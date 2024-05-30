@@ -1,0 +1,47 @@
+<RadzenFormField Name="@FieldName">
+    <RadzenDatePicker Ref="@picker" @bind-Value=@(Value.Date) DateFormat="dd.MM.yyyy" YearRange="1:2100"
+        ShowCalendarWeek />
+</RadzenFormField>
+<RadzenFormField Name="Precision">
+    <RadzenDropDown @bind-Value=@(Value.Precision) Data="precisionDescriptions" ValueProperty="Key" TextProperty="Value"
+        Change="args => OnChange()" />
+</RadzenFormField>
+
+@code
+{
+    Dictionary<DatePrecision, String> precisionDescriptions = new()
+        {
+            [DatePrecision.None] = "Do not show date",
+            [DatePrecision.Full] = "Show full date (day, month and year)",
+            [DatePrecision.YearAndMonthOnly] = "Show year and month only",
+            [DatePrecision.YearOnly] = "Show year only",
+            [DatePrecision.Circa] = "Show \"circa\" + year",
+            [DatePrecision.Decade] = "Show decade (early/mid/late)",
+            [DatePrecision.DecadeOnly] = "Show decade only",
+            [DatePrecision.Century] = "Show century (early/mid/late)",
+            [DatePrecision.CenturyOnly] = "Show century only"
+        };
+
+    [Parameter]
+    public string FieldName { get; set; } = "Date";
+
+    [Parameter]
+    public ImpreciseDate Value { get; set; } = new();
+
+    [Parameter]
+    public EventCallback<ImpreciseDate> ValueChanged { get; set; }
+
+    RadzenDatePicker<DateTime> picker = default!;
+
+    public void OnChange()
+    {
+        var dateFormat = Value.Precision switch
+        {
+            DatePrecision.Full => "dd.MM.yyyy",
+            DatePrecision.YearAndMonthOnly => "MM.yyyy",
+            _ => "yyyy"
+        };
+        if (picker is not null) picker.DateFormat = dateFormat;
+    }
+
+}

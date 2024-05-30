@@ -1,0 +1,110 @@
+@page "/admin/users"
+@inject UserManager<ArchiBaseUser> UserManager
+@inject RoleManager<ArchiBaseRole> RoleManager
+@inject IStringLocalizer<ManageUsers> Loc
+
+<ArchibasePageTitle Title=@Loc["Manage users"] />
+
+<AdminOnly AlertText="To access admin page, you must be logged in as admin.">
+    @if (dataLoaded)
+    {
+        <RadzenText TextStyle="TextStyle.H3">Manage users</RadzenText>
+        <RadzenDataGrid Data="users">
+            <Columns>
+                <RadzenDataGridColumn Title="Username" Property="Name"></RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Date of birth" Property="DateOfBirth" FormatString="{0:dd.MM.yyyy}" />
+                <RadzenDataGridColumn Title="Admin?">
+                    <Template Context="user">
+                        <RadzenCheckBox TValue="bool" Value="@(userRoles[user].Admin)"
+                            Change="args => SetAdmin(user, args)" />
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Editor?">
+                    <Template Context="user">
+                        <RadzenCheckBox TValue="bool" Value="@(userRoles[user].Editor)"
+                            Change="args => SetEditor(user, args)" />
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Enabled?">
+                    <Template Context="user">
+                        @if (user.IsEnabled)
+                        {
+                            <RadzenText class="rz-color-success-dark">User is enabled.
+                                <RadzenButton ButtonStyle="ButtonStyle.Danger" Text="Disable"
+                                    Click="args => user.IsEnabled = false" />
+                            </RadzenText>
+
+                        }
+                        else
+                        {
+                            <RadzenText class="rz-color-danger-dark">User is disabled.
+                                <RadzenButton ButtonStyle="ButtonStyle.Success" Text="Enable"
+                                    Click="args => user.IsEnabled = true" />
+                            </RadzenText>
+
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    }
+    else
+    {
+        <RadzenText TextStyle="TextStyle.H4">Loading data...</RadzenText>
+    }
+    </AdminOnly>
+
+    @code
+    {
+    List<ArchiBaseUser> users = [];
+
+    class Roles
+    {
+        public bool Admin { get; set; }
+        public bool Editor { get; set; }
+    }
+    Dictionary<ArchiBaseUser, Roles> userRoles = [];
+
+    bool dataLoaded = false;
+    protected override async Task OnInitializedAsync()
+    {
+        users = UserManager.Users.ToList().OrderBy(u => u.UserName,
+        StringComparison.OrdinalIgnoreCase.WithNaturalSort()).ToList();
+        foreach (var user in users)
+        {
+            userRoles[user] = new()
+                {
+                    Admin = await UserManager.IsInRoleAsync(user, "Admin"),
+                    Editor = await UserManager.IsInRoleAsync(user, "Editor"),
+                };
+        }
+        dataLoaded = true;
+        await base.OnInitializedAsync();
+    }
+
+    public async Task SetAdmin(ArchiBaseUser user, bool value)
+    {
+        if (value)
+        {
+            await UserManager.AddToRoleAsync(user, "Admin");
+        }
+        else
+        {
+            await UserManager.RemoveFromRoleAsync(user, "Admin");
+        }
+        userRoles[user].Admin = value;
+    }
+
+    public async Task SetEditor(ArchiBaseUser user, bool value)
+    {
+        if (value)
+        {
+            await UserManager.AddToRoleAsync(user, "Editor");
+        }
+        else
+        {
+            await UserManager.RemoveFromRoleAsync(user, "Editor");
+        }
+        userRoles[user].Editor = value;
+    }
+}

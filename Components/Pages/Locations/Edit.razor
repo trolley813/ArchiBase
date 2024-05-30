@@ -1,0 +1,99 @@
+@page "/locations/{id:guid}/edit"
+@inject ModelContext ModelContext
+@inject NotificationService NotificationService
+
+
+@if (location is not null)
+{
+
+    <EditorOnly>
+    <RadzenText TextStyle="TextStyle.H3">Edit location</RadzenText>
+    <RadzenStack Orientation="Orientation.Vertical">
+        <RadzenFormField Text="Name">
+            <RadzenTextBox @bind-Value="@location.Name" />
+        </RadzenFormField>
+        <RadzenFormField Text="Flag (ISO 3166-2)">
+            <RadzenTextBox @bind-Value="@location.Flag" />
+        </RadzenFormField>
+        <RadzenFormField Text="Parent">
+            <RadzenDropDown @bind-Value="@location.Parent" Data="Locations" TextProperty="Name">
+            </RadzenDropDown>
+        </RadzenFormField>
+        <RadzenFormField Text="Description">
+            <RadzenHtmlEditor @bind-Value="@location.Description" />
+        </RadzenFormField>
+        <RadzenRow>
+            <RadzenFormField Text="Latitude">
+                <RadzenNumeric ShowUpDown="false" @bind-Value="location.Latitude" />
+            </RadzenFormField>
+            <RadzenFormField Text="Longitude">
+                <RadzenNumeric ShowUpDown="false" @bind-Value="location.Longitude" />
+            </RadzenFormField>
+        </RadzenRow>
+        <OpenStreetMap @ref="map" Style="height:480px; width:640px" OnClick="OnMapClick">
+        </OpenStreetMap>
+        <RadzenFormField>
+            <RadzenButton Text="Save" Icon="add_circle_outline" Click="@Save" />
+        </RadzenFormField>
+    </RadzenStack>
+</EditorOnly>
+
+
+}
+
+
+@code
+{
+    [Parameter]
+    public Guid? Id { get; set; }
+    Location? location;
+
+    Map map = null!;
+
+    IEnumerable<Location> Locations { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Locations = ModelContext.Locations;
+        location = Locations.FirstOrDefault(loc => loc.Id == Id);
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            map.SetCenter(new Coordinate(location?.Longitude ?? 0.0, location?.Latitude ?? 0.0));
+        }
+    }
+
+    public void Save()
+    {
+        try
+        {
+            ModelContext.SaveChanges();
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Location saved",
+                    Detail = $"ID: {location.Id}"
+                });
+        }
+        catch (Exception e)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"{e.Message}"
+                });
+        }
+    }
+
+    void OnMapClick(Coordinate coordinate)
+    {
+        map.MarkersList.Clear();
+        map.MarkersList.Add(new Marker(OpenLayers.Blazor.MarkerType.MarkerPin, coordinate));
+        location!.Longitude = coordinate.Longitude;
+        location!.Latitude = coordinate.Latitude;
+    }
+}

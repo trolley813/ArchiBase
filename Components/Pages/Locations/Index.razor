@@ -1,0 +1,154 @@
+@page "/locations/{id:guid?}"
+@using Microsoft.EntityFrameworkCore
+@inject ModelContext ModelContext
+@inject IStringLocalizer<Index> Loc
+
+<RadzenBreadCrumb>
+    <RadzenBreadCrumbItem Text=@Loc["Locations"] Path="/locations" />
+    @foreach (Location loc in HierarchyPath)
+    {
+        <RadzenBreadCrumbItem Text="@(loc.Name)" Path=@($"/locations/{loc.Id}") />
+    }
+    @if (location != null)
+    {
+        <RadzenBreadCrumbItem Text=@Loc["Add"] Path=@($"locations/add?parentid={location.Id}") Icon="add_circle_outline" />
+    }
+    else
+    {
+        <RadzenBreadCrumbItem Text=@Loc["Add"] Path=@($"locations/add") Icon="add_circle_outline" />
+    }
+
+</RadzenBreadCrumb>
+
+@if (location != null)
+{
+    <RadzenRow>
+    <img src=@($"flags/{location.Flag ?? "xx"}.svg") width="48px" />
+    <RadzenText TextStyle="TextStyle.H3">@(location.Name)</RadzenText>
+</RadzenRow>
+    <RadzenRow>
+        <RadzenLink Path=@($"locations/{Id}/edit") Text=@Loc["Edit"] Icon="edit" />
+        <RadzenLink Path=@($"locations/{Id}/delete") Text=@Loc["Delete"] Icon="delete" />
+    </RadzenRow>
+
+    <RadzenRow>
+
+        <RadzenColumn>
+            <OpenStreetMap @ref="map" Style="height:480px; width:640px" Zoom="10"
+                Center="new Coordinate(location.Longitude, location.Latitude)">
+            </OpenStreetMap>
+        </RadzenColumn>
+
+        <RadzenColumn>
+            <RadzenText>@((MarkupString)(location?.Description ?? "<i>(no description)</i>"))</RadzenText>
+        </RadzenColumn>
+
+
+        @if (ChildLocations.Count != 0)
+        {
+            <RadzenColumn>
+                <RadzenText TextStyle="TextStyle.DisplayH5">@Loc["Sub-locations"]</RadzenText>
+
+
+                <RadzenDataGrid Data="ChildLocations" Density="Density.Compact">
+                    <Columns>
+                        <RadzenDataGridColumn Title=@Loc["Name"] Width="80%">
+                            <Template Context="loc">
+                                <RadzenStack Orientation="Orientation.Horizontal">
+                                    <img src=@($"flags/{loc.Flag ?? "xx"}.svg") width="24px" />
+                                    <RadzenLink Text="@(loc.Name)" Path=@($"/locations/{loc.Id}") />
+                                </RadzenStack>
+
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn Title=@Loc["Count"] Width="20%">
+                            <Template Context="loc">
+                                <RadzenText>@(loc.Children.Count)</RadzenText>
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+            </RadzenColumn>
+        }
+
+
+    </RadzenRow>
+
+    <RadzenRow>
+        <RadzenText TextStyle="TextStyle.DisplayH5">@Loc["Streets"]</RadzenText>
+        <RadzenLink Text=@Loc["Add Street"] Path=@($"locations/addstreet?parentid={location.Id}")
+            Icon="add_circle_outline" />
+        <RadzenLink Text=@Loc["Add Building"] Path=@($"buildings/add?locid={location.Id}") Icon="add_circle_outline" />
+        <RadzenDataGrid Data="location.Streets">
+            <Columns>
+                <RadzenDataGridColumn Title=@Loc["Street Name"]>
+                    <Template Context="street">
+                        <RadzenLink Text="@(street.Name)" Path="@($"buildings/by-street/{street.Id}")" />
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </RadzenRow>
+
+}
+else
+{
+    <RadzenText TextStyle="TextStyle.DisplayH3">@Loc["Locations"]</RadzenText>
+    <RadzenDataGrid Data="ChildLocations" Density="Density.Compact">
+        <Columns>
+            <RadzenDataGridColumn Title=@Loc["Name"]>
+                <Template Context="loc">
+                    <img src=@($"flags/{loc.Flag ?? "xx"}.svg") width="32px" />
+                    <RadzenLink Text="@(loc.Name)" Path=@($"/locations/{loc.Id}") />
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title=@Loc["Count"]>
+                <Template Context="loc">
+                    <RadzenText>@(loc.Children.Count)</RadzenText>
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+
+}
+
+@code
+{
+
+    [Parameter]
+    public Guid? Id { get; set; }
+
+    Location? location;
+
+    public List<Location> ChildLocations { get; set; }
+
+    public List<Location> HierarchyPath { get; set; } = [];
+
+    OpenStreetMap map = null!;
+
+    protected override void OnParametersSet()
+    {
+        location = ModelContext.Locations.Include(loc => loc.Children).ThenInclude(loc => loc.Streets).FirstOrDefault(loc =>
+        loc.Id == Id);
+        ChildLocations = location?.Children.OrderBy(loc => loc.Name).ToList() ?? ModelContext.Locations.Include(loc =>
+        loc.Children).Where(loc => loc.Parent == null).OrderBy(loc => loc.Name).ToList();
+        HierarchyPath.Clear();
+        Location? loc = location;
+        while (loc != null)
+        {
+            HierarchyPath.Add(loc);
+            loc = loc?.Parent;
+        }
+        HierarchyPath.Reverse();
+        base.OnParametersSet();
+        if (map != null)
+        {
+            map.MarkersList.Clear();
+            map.MarkersList.Add(new Marker(
+            OpenLayers.Blazor.MarkerType.MarkerPin,
+            new Coordinate(location?.Longitude ?? 0.0, location?.Latitude ?? 0.0)
+            ));
+        }
+    }
+
+}

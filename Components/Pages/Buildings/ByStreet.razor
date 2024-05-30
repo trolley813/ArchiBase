@@ -1,0 +1,74 @@
+@page "/buildings/by-street/{id:guid}"
+@using Microsoft.EntityFrameworkCore
+@inject ModelContext ModelContext
+
+@if (street != null)
+{
+    <RadzenText TextStyle="TextStyle.H4">List of buildings at the street: @(street.Name)</RadzenText>
+
+    <RadzenLink Text="@(street.Location.Name)" Path=@($"locations/{street.Location.Id}") />
+
+    <RadzenDataGrid Data="buildings">
+        <Columns>
+            <RadzenDataGridColumn Title="Address" Width="15%">
+                <Template Context="building">
+                    <RadzenLink style="white-space: pre-wrap"
+                        Text="@(String.Join(" / ", building.ActualCard?.StreetAddresses.Select(a => $"{a.Street.Name}, {a.HouseNumber}") ?? []))"
+                        Path=@($"buildings/{building.Id}")>
+
+                    </RadzenLink>
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="Design" Width="25%">
+                <Template Context="building">
+                    <RadzenText>@(building.ActualCard?.Design?.Name)</RadzenText>
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="Name" Width="40%">
+                <Template Context="building">
+                    <RadzenText>@(building.ActualCard?.Name)</RadzenText>
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="Built" Width="10%">
+                <Template Context="building">
+                    <RadzenText>@(building.GetDateOfStatus(BuildingEventType.ConstructionFinished))</RadzenText>
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="Demolished" Width="10%">
+                <Template Context="building">
+                    <RadzenText>@(building.GetDateOfStatus(BuildingEventType.Demolished))</RadzenText>
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+}
+else
+{
+
+}
+
+@code
+{
+    [Parameter]
+    public Guid Id { get; set; }
+
+    public Street? street = null;
+
+    public List<Building> buildings = [];
+
+    protected override void OnParametersSet()
+    {
+        street = ModelContext.Streets.Include(s => s.Location).FirstOrDefault(s => s.Id == Id);
+        if (street != null)
+        {
+            buildings = ModelContext.Buildings
+            .Include(b => b.Events)
+            .Include(b => b.Cards)
+            .ThenInclude(c => c.StreetAddresses)
+            .Include(b => b.Cards)
+            .ThenInclude(c => c.Design)
+            .Where(b => b.Cards.Any(c => c.StreetAddresses.Any(a => a.Street == street)))
+            .ToList();
+        }
+    }
+}

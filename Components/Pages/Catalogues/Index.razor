@@ -1,0 +1,19 @@
+@page "/catalogues"
+@inject IStringLocalizer<Index> Loc
+@inject ModelContext ModelContext
+
+<RadzenText TextStyle="TextStyle.H2">@Loc["Catalogues"] (@(ModelContext.DesignCatalogues.Count()))</RadzenText>
+
+<CascadingAuthenticationState>
+    <AuthorizeView>
+        <RadzenLink Icon="add_circle_outline" Path="catalogues/add" Text=@Loc["Add"] />
+    </AuthorizeView>
+</CascadingAuthenticationState>
+
+
+<RadzenDataList Data="@(ModelContext.DesignCatalogues)" AllowPaging="true" PageSize="5">
+    <Template Context="catalogue">
+        <RadzenLink Text="@(catalogue.Name != "" ? catalogue.Name : "(empty name)")"
+            Path="@($"catalogues/{catalogue.Id}")" />
+    </Template>
+</RadzenDataList>

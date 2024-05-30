@@ -1,0 +1,53 @@
+@page "/login"
+@using Microsoft.AspNetCore.Authentication
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+@inject ILogger<Login> Log
+@inject StateContainer StateContainer
+@inject IStringLocalizer<Login> Loc
+
+<ArchibasePageTitle Title=@Loc["Login"] />
+
+<RadzenCard>
+    <RadzenTemplateForm Data=@model>
+        <RadzenLogin AllowRegister="true" AllowResetPassword="true" Username=@model.Username Password=@model.Password
+            RememberMe=@model.RememberMe Login="args => OnLogin(args)" Register="args => OnRegister()"
+            AllowRememberMe=true />
+    </RadzenTemplateForm>
+</RadzenCard>
+
+@code
+{
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public bool LoginFailed { get; set; }
+    LoginModel model = new();
+
+    protected override void OnParametersSet()
+    {
+        if (LoginFailed)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Login failed",
+                    Detail = "Wrong username and/or password, or your user account is disabled."
+                });
+        }
+    }
+    public void OnLogin(LoginArgs args)
+    {
+        Guid key = Guid.NewGuid();
+        model.Username = args.Username;
+        model.Password = args.Password;
+        model.RememberMe = args.RememberMe;
+        StateContainer[key] = model;
+        NavigationManager.NavigateTo($"/account/login?key={key}");
+    }
+
+    public void OnRegister()
+    {
+        Log.LogInformation("Redirecting to registration");
+        NavigationManager.NavigateTo("/register");
+    }
+}

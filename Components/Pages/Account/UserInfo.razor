@@ -1,0 +1,71 @@
+@page "/users/{id:guid}"
+@inject UserManager<ArchiBaseUser> UserManager
+@inject IStringLocalizer<UserInfo> Loc
+
+@if (user != null)
+{
+    <ArchibasePageTitle Title=@Loc["User information"] />
+    <RadzenCard>
+        <RadzenText TextStyle="TextStyle.H4">User information</RadzenText>
+        @if (!user.IsEnabled)
+        {
+            <RadzenBadge Text="Disabled account" />
+        }
+
+        <RadzenRow>
+            <RadzenColumn>
+                <RadzenText TextStyle="TextStyle.Overline">Username</RadzenText>
+                <RadzenText>@(user.UserName)</RadzenText>
+            </RadzenColumn>
+            <RadzenColumn>
+                <RadzenText TextStyle="TextStyle.Overline">Date of birth</RadzenText>
+                <RadzenText>@(user.DateOfBirth?.ToString("dd.MM.yyyy") ?? "not specified")</RadzenText>
+            </RadzenColumn>
+            <RadzenColumn>
+                <RadzenText TextStyle="TextStyle.Overline">Roles</RadzenText>
+                <RadzenStack Orientation="Orientation.Horizontal">
+                    @foreach (var role in roles)
+                    {
+                        <RadzenBadge Text="@(role)" IsPill=true />
+                    }
+                    @if (roles.Count == 0)
+                    {
+                        <RadzenText>No roles.</RadzenText>
+                    }
+
+                </RadzenStack>
+
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow Gap="8">
+            <RadzenColumn>
+                <RadzenText TextStyle="TextStyle.Overline">bio</RadzenText>
+                <RadzenText>@((MarkupString)user.Bio)</RadzenText>
+            </RadzenColumn>
+
+        </RadzenRow>
+    </RadzenCard>
+}
+else
+{
+    <RadzenAlert AllowClose="false" Title="Unauthorized" AlertStyle="AlertStyle.Danger" Variant="Variant.Flat"
+    Shade="Shade.Lighter">User with specified ID not found.</RadzenAlert>
+}
+
+@code
+{
+    [Parameter]
+    public Guid Id { get; set; }
+
+    ArchiBaseUser? user;
+    List<String> roles = [];
+    protected override async Task OnParametersSetAsync()
+    {
+        user = await UserManager.FindByIdAsync(Id.ToString());
+        if (user is not null)
+        {
+            roles = (await UserManager.GetRolesAsync(user)).ToList() ?? [];
+        }
+        await base.OnParametersSetAsync();
+    }
+}

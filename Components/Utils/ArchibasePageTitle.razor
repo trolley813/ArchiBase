@@ -1,0 +1,9 @@
+@inject IConfiguration Configuration
+
+<PageTitle>@Title — @(Configuration.GetValue<string>("SiteName", "ArchiBase"))</PageTitle>
+
+@code
+{
+    [Parameter]
+    public string Title { get; set; } = "";
+}

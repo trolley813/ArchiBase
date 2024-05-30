@@ -1,0 +1,71 @@
+@page "/categories/add"
+@using ArchiBase.Components.Utils
+@inject NotificationService NotificationService
+@inject ModelContext ModelContext
+
+<EditorOnly>
+    <RadzenText TextStyle="TextStyle.H3">Add category</RadzenText>
+    <RadzenStack Orientation="Orientation.Vertical">
+        <RadzenFormField Text="Name">
+            <RadzenTextBox @bind-Value="@name" />
+        </RadzenFormField>
+        <RadzenFormField Text="Parent">
+            <RadzenDropDown @bind-Value="@parentCategory" @bind-SearchText="searchText" Data="Categories"
+                TextProperty="Name" AllowFiltering="true" AllowClear="true">
+            </RadzenDropDown>
+        </RadzenFormField>
+        <RadzenFormField>
+            <RadzenButton Text="Submit" Icon="add_circle_outline" Click="@AddNew" />
+        </RadzenFormField>
+    </RadzenStack>
+</EditorOnly>
+
+@code
+{
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public Guid? ParentId { get; set; }
+    string name = "";
+    string searchText;
+
+    DesignCategory? parentCategory;
+
+    IEnumerable<DesignCategory> Categories { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Categories = ModelContext.DesignCategories;
+        parentCategory = Categories.FirstOrDefault(loc => loc.Id == ParentId);
+    }
+
+    public void AddNew()
+    {
+        DesignCategory category = new()
+            {
+                Id = Guid.NewGuid(),
+                Name = name,
+                Parent = parentCategory,
+            };
+        ModelContext.DesignCategories.Add(category);
+        try
+        {
+            ModelContext.SaveChanges();
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Location added",
+                    Detail = $"ID: {category.Id}"
+                });
+        }
+        catch (Exception e)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"{e.Message}"
+                });
+        }
+    }
+}

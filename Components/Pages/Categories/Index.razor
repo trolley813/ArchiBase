@@ -1,0 +1,94 @@
+@page "/categories/{id:guid?}"
+@using Microsoft.EntityFrameworkCore
+@inject ModelContext ModelContext
+
+<RadzenBreadCrumb>
+
+    <RadzenBreadCrumbItem Text="Catalogue" Path=@($"/categories") />
+    @foreach (DesignCategory cat in HierarchyPath)
+    {
+        <RadzenBreadCrumbItem Text="@(cat.Name)" Path=@($"/categories/{cat.Id}") />
+    }
+    @if (category != null)
+    {
+        <RadzenBreadCrumbItem Text="Add" Path=@($"categories/add?parentid={category.Id}") Icon="add_circle_outline" />
+    }
+    else
+    {
+        <RadzenBreadCrumbItem Text="Add" Path=@($"categories/add") Icon="add_circle_outline" />
+    }
+
+</RadzenBreadCrumb>
+@if (category is not null)
+{
+    <RadzenLink Text="Edit" Icon="edit" Path="@($"categories/{category.Id}/edit")" />
+    <RadzenLink Text="Delete" Icon="delete" Path="@($"categories/{category.Id}/delete")" />
+}
+
+@if (ChildCategories.Count != 0)
+{
+
+    <RadzenRow>
+    <RadzenDataList Data="ChildCategories">
+        <Template Context="cat">
+            <RadzenLink Text="@(cat.Name)" Path=@($"/categories/{cat.Id}") />
+        </Template>
+    </RadzenDataList>
+</RadzenRow>
+
+}
+
+@if (category != null)
+{
+    <RadzenDataGrid AllowFiltering="true" Density="Density.Compact"
+    Data="@(category.Designs.OrderBy(d => d.Name, StringComparison.OrdinalIgnoreCase.WithNaturalSort()))"
+    AllowPaging=true PageSize="10">
+    <Columns>
+        <RadzenDataGridColumn Title="Design" Width="60%">
+            <Template Context="design">
+                <RadzenLink style="white-space:pre-wrap" Text="@(design.Name)" Path="@($"/series/{design.Id}")" />
+            </Template>
+            <FooterTemplate>
+                <RadzenText>Total designs in this category: <b>@(category.Designs.Count)</b></RadzenText>
+            </FooterTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="Codes in catalogues" Width="30%">
+            <Template Context="design">
+                <RadzenText>
+                    @(String.Join(", ", ModelContext.DesignCatalogueEntries.Include(e => e.Catalogue).Where(e =>
+                            e.Design == design).OrderBy(e => e.Catalogue.Id).OrderBy(e => e.Code).Select(e => e.Formatted)))
+                    </RadzenText>
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+}
+
+@code
+{
+
+    [Parameter]
+    public Guid? Id { get; set; }
+
+    public List<DesignCategory> HierarchyPath { get; set; } = [];
+    public List<DesignCategory> ChildCategories { get; set; } = [];
+
+    DesignCategory? category;
+
+    protected override void OnParametersSet()
+    {
+        ModelContext.DesignCategories.Include(c => c.Parent).Include(c => c.Children).ToList();
+        category = ModelContext.DesignCategories.Include(c => c.Children).Include(c => c.Designs)
+        .FirstOrDefault(c => c.Id == Id);
+        ChildCategories = category?.Children.OrderBy(cat => cat.Name).ToList() ?? ModelContext.DesignCategories.Include(cat =>
+        cat.Children).Where(cat => cat.Parent == null).OrderBy(cat => cat.Name).ToList();
+        HierarchyPath.Clear();
+        DesignCategory? cat = category;
+        while (cat != null)
+        {
+            HierarchyPath.Add(cat);
+            cat = cat?.Parent;
+        }
+        HierarchyPath.Reverse();
+    }
+}

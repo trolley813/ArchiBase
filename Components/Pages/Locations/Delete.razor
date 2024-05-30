@@ -1,0 +1,65 @@
+@page "/locations/{id:guid}/delete"
+@using ArchiBase.Components.Utils
+@inject ModelContext ModelContext
+@inject NotificationService NotificationService
+
+
+@if (location is not null)
+{
+
+    <AdminOnly AlertText="To delete items, you must be authorized as admin." ShowLoginLink=true>
+    <RadzenText>Are you sure to delete this location?</RadzenText>
+    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Text="Delete" Click="DeleteLocation" />
+</AdminOnly>
+
+}
+
+@code
+{
+    [Parameter]
+    public Guid Id { get; set; }
+
+    Location? location;
+
+    protected override void OnParametersSet()
+    {
+        location = ModelContext.Locations.FirstOrDefault(c => c.Id == Id);
+    }
+
+    void DeleteLocation()
+    {
+        if (location is null) return;
+
+        if (location.Children.Count != 0)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Cannot delete location",
+                    Detail = $"This location has {location.Children.Count} child locations"
+                });
+            return;
+        }
+        ModelContext.Locations.Remove(location);
+        try
+        {
+            ModelContext.SaveChanges();
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Catalogue deleted",
+                    Detail = $"ID: {location.Id}"
+                });
+        }
+        catch (Exception e)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"{e.Message}"
+                });
+        }
+
+    }
+}

@@ -1,0 +1,12 @@
+﻿@inject IStringLocalizer<NavMenu> Loc
+
+<RadzenPanelMenu>
+    <RadzenPanelMenuItem Text=@Loc["Home"] Icon="home" Path="" />
+    <RadzenPanelMenuItem Text=@Loc["Locations"] Icon="location_city" Path="locations" />
+    <RadzenPanelMenuItem Text=@Loc["Catalogues"] Icon="menu_book" Path="catalogues" />
+    <RadzenPanelMenuItem Text=@Loc["Series and Designs"] Icon="architecture" Path="series">
+        <RadzenPanelMenuItem Text=@Loc["Categories"] Path="categories" Icon="category" />
+    </RadzenPanelMenuItem>
+    <RadzenPanelMenuItem Text=@Loc["Editorial board"] Icon="groups" Path="editorial" />
+    <RadzenPanelMenuItem Text=@Loc["Pages"] Icon="description" Path="pages" />
+</RadzenPanelMenu>

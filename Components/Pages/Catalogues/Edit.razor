@@ -1,0 +1,77 @@
+@page "/catalogues/{id:guid}/edit"
+@using ArchiBase.Models
+@using ArchiBase.Data
+@inject ModelContext ModelContext
+@inject NotificationService NotificationService
+
+<CascadingAuthenticationState>
+    <AuthorizeView>
+        <Authorized>
+            @if (designCatalogue != null)
+            {
+                <RadzenText TextStyle="TextStyle.H3">Edit: @(designCatalogue.Name)</RadzenText>
+                <RadzenStack Orientation="Orientation.Vertical">
+
+                    <RadzenFormField Text="Name">
+                        <RadzenTextBox @bind-Value="@name" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Description">
+                        <RadzenHtmlEditor @bind-Value="@description" style="height: 300px;" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Abbreviated Format">
+                        <RadzenTextBox Name="Abbr" @bind-Value="@abbreviatedFormat" />
+                        <RadzenRegexValidator Component="Abbr" Text="Format must include {Code} placeholder"
+                            Pattern="{Code}">
+                        </RadzenRegexValidator>
+                    </RadzenFormField>
+                    <RadzenFormField>
+                        <RadzenButton Text="Save" Icon="save" Click="@Save" />
+                    </RadzenFormField>
+                </RadzenStack>
+            }
+            else
+            {
+                <RadzenAlert AllowClose="false" Title="Error" AlertStyle="AlertStyle.Danger" Variant="Variant.Flat"
+                    Shade="Shade.Lighter">Catalogue with id @(Id) not found</RadzenAlert>
+            }
+        </Authorized>
+        <NotAuthorized>
+            <RadzenAlert AllowClose="false" Title="Unauthorized" AlertStyle="AlertStyle.Danger" Variant="Variant.Flat"
+                Shade="Shade.Lighter">
+                To create or edit items, you must be authorized as admin/editor.
+                <RadzenLink Path="login" Text="Log in" />
+            </RadzenAlert>
+        </NotAuthorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>
+
+@code
+{
+    [Parameter]
+    public Guid Id { get; set; }
+
+    DesignCatalogue? designCatalogue;
+
+    string name = "", description = "", abbreviatedFormat = "";
+
+    protected override void OnInitialized()
+    {
+        designCatalogue = ModelContext.DesignCatalogues
+        .FirstOrDefault(c => c.Id == Id);
+        name = designCatalogue?.Name ?? "";
+        description = designCatalogue?.Description ?? "";
+        abbreviatedFormat = designCatalogue?.AbbreviatedFormat ?? "";
+
+    }
+
+    void Save()
+    {
+        if (designCatalogue != null)
+        {
+            designCatalogue.Name = name;
+            designCatalogue.Description = description;
+            designCatalogue.AbbreviatedFormat = abbreviatedFormat;
+            ModelContext.SaveChanges();
+        }
+    }
+}

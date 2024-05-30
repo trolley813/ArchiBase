@@ -1,0 +1,113 @@
+@page "/series/{id:guid}"
+@using Microsoft.EntityFrameworkCore
+@inject ModelContext ModelContext
+@inject IStringLocalizer<Details> Loc
+
+<ArchibasePageTitle Title="@($"{Loc["Design"]} {design?.Name}")" />
+
+@if (design != null)
+{
+    <RadzenText TextStyle="TextStyle.H3">@Loc["Design"] @(design.Name)</RadzenText>
+    <RadzenRow>
+        <RadzenLink Path=@($"series/{Id}/edit") Text=@Loc["Edit"] Icon="edit" />
+        <RadzenLink Path=@($"series/{Id}/delete") Text=@Loc["Delete"] Icon="delete" />
+    </RadzenRow>
+    <RadzenText TextStyle="TextStyle.H5">@Loc["Description"]</RadzenText>
+    <RadzenStack>
+
+        @if (design.BuildingArea != null)
+        {
+            <RadzenRow>
+                <RadzenText>"@Loc["Building area"]: <b>@(design.BuildingArea)</b> m² </RadzenText>
+            </RadzenRow>
+        }
+        @if (design.TotalArea != null)
+        {
+            <RadzenRow>
+                <RadzenText>@Loc["Total area"]: <b>@(design.TotalArea)</b> m² </RadzenText>
+            </RadzenRow>
+        }
+        @if (design.Cubage != null)
+        {
+            <RadzenRow>
+                <RadzenText>@Loc["Cubage"]: <b>@(design.Cubage)</b> m³ </RadzenText>
+            </RadzenRow>
+        }
+
+    </RadzenStack>
+    <RadzenText TextStyle="TextStyle.H5">@Loc["Categories"]</RadzenText>
+
+    <RadzenRow Gap="10">
+
+        @foreach (var cat in design.Categories)
+        {
+            <RadzenBadge Text="@(cat.Name)" IsPill=true />
+        }
+
+    </RadzenRow>
+
+    <RadzenText TextStyle="TextStyle.H5">@Loc["Codes in catalogues"]</RadzenText>
+    <RadzenDataGrid
+        Data="@(design.CatalogueEntries.OrderBy(e => e.Catalogue.Name).ThenBy(e => e.Code, StringComparison.OrdinalIgnoreCase.WithNaturalSort()))">
+        <Columns>
+            <RadzenDataGridColumn Title=@Loc["Code"]>
+                <Template Context="entry">
+                    <RadzenText>@(entry.Code)</RadzenText>
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title=@Loc["Catalogue"]>
+                <Template Context="entry">
+                    <RadzenText>@(entry.Catalogue.Name)</RadzenText>
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+
+    </RadzenDataGrid>
+
+    <RadzenText TextStyle="TextStyle.H5">@Loc["Buildings"]</RadzenText>
+    <RadzenDataGrid Data="buildingsByLocation">
+        <Columns>
+            <RadzenDataGridColumn Title=@Loc["Location"]>
+                <Template Context="pair">
+                    <RadzenText>@(pair.Item1.Name)</RadzenText>
+                </Template>
+                <FooterTemplate>
+                    <RadzenText>@Loc["Total locations"]: @(buildingsByLocation.Count)</RadzenText>
+                </FooterTemplate>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title=@Loc["Count"]>
+                <Template Context="pair">
+                    <RadzenText>@(pair.Item2)</RadzenText>
+                </Template>
+                <FooterTemplate>
+                    <RadzenText>@Loc["Total buildings"]: @(buildingsByLocation.Select(p => p.Item2).Sum())</RadzenText>
+                </FooterTemplate>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+}
+
+@code
+{
+    [Parameter]
+    public Guid Id { get; set; }
+
+    Design? design = null;
+
+    List<Tuple<Location, int>> buildingsByLocation = [];
+
+    protected override void OnInitialized()
+    {
+        design = ModelContext.Designs
+        .Include(c => c.Categories)
+        .Include(c => c.CatalogueEntries)
+        .ThenInclude(e => e.Catalogue)
+        .FirstOrDefault(c => c.Id == Id);
+
+        if (design != null)
+        {
+            buildingsByLocation = ModelContext.BuildingCards.Where(c => c.Design == design).Select(c => c.Building).GroupBy(b =>
+            b.Location).Select(g => new Tuple<Location, int>(g.Key, g.Count())).ToList();
+        }
+    }
+}

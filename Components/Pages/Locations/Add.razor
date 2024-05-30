@@ -1,0 +1,114 @@
+@page "/locations/add"
+@inject ModelContext ModelContext
+@inject NotificationService NotificationService
+
+
+<CascadingAuthenticationState>
+    <AuthorizeView>
+        <Authorized>
+            <RadzenText TextStyle="TextStyle.H3">Add location</RadzenText>
+            <RadzenStack Orientation="Orientation.Vertical">
+                <RadzenFormField Text="Name">
+                    <RadzenTextBox @bind-Value="@name" />
+                </RadzenFormField>
+                <RadzenFormField Text="Flag (ISO 3166-2)">
+                    <RadzenTextBox @bind-Value="@flag" />
+                </RadzenFormField>
+                <RadzenFormField Text="Parent">
+                    <RadzenDropDown @bind-Value="@parentLocation" Data="Locations" TextProperty="Name">
+                    </RadzenDropDown>
+                </RadzenFormField>
+                <RadzenFormField Text="Description">
+                    <RadzenHtmlEditor @bind-Value="@description" />
+                </RadzenFormField>
+                <RadzenRow>
+                    <RadzenFormField Text="Latitude">
+                        <RadzenNumeric ShowUpDown="false" @bind-Value="latitude" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Longitude">
+                        <RadzenNumeric ShowUpDown="false" @bind-Value="longitude" />
+                    </RadzenFormField>
+                </RadzenRow>
+                <OpenStreetMap @ref="map" Style="height:480px; width:640px" OnClick="OnMapClick">
+                </OpenStreetMap>
+                <RadzenFormField>
+                    <RadzenButton Text="Submit" Icon="add_circle_outline" Click="@AddNew" />
+                </RadzenFormField>
+            </RadzenStack>
+        </Authorized>
+        <NotAuthorized>
+            <RadzenAlert AllowClose="false" Title="Unauthorized" AlertStyle="AlertStyle.Danger" Variant="Variant.Flat"
+                Shade="Shade.Lighter">
+                To create or edit items, you must be authorized as admin/editor.
+                <RadzenLink Path="login" Text="Log in" />
+            </RadzenAlert>
+        </NotAuthorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>
+
+
+@code
+{
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public Guid? ParentId { get; set; }
+    string name = "";
+
+    string? flag, description;
+
+    Location? parentLocation;
+
+    double latitude, longitude;
+
+    Map map = null!;
+
+    IEnumerable<Location> Locations { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Locations = ModelContext.Locations;
+        parentLocation = Locations.FirstOrDefault(loc => loc.Id == ParentId);
+    }
+
+    public void AddNew()
+    {
+        Location location = new Location
+            {
+                Id = Guid.NewGuid(),
+                Name = name,
+                Parent = parentLocation,
+                Latitude = latitude,
+                Longitude = longitude,
+                Flag = flag,
+                Description = description
+            };
+        ModelContext.Locations.Add(location);
+        try
+        {
+            ModelContext.SaveChanges();
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Location added",
+                    Detail = $"ID: {location.Id}"
+                });
+        }
+        catch (Exception e)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"{e.Message}"
+                });
+        }
+    }
+
+    void OnMapClick(Coordinate coordinate)
+    {
+        map.MarkersList.Clear();
+        map.MarkersList.Add(new Marker(OpenLayers.Blazor.MarkerType.MarkerPin, coordinate));
+        longitude = coordinate.Longitude;
+        latitude = coordinate.Latitude;
+    }
+}

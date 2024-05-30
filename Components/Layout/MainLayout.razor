@@ -1,0 +1,41 @@
+﻿@using System.Reflection
+@inherits LayoutComponentBase
+@inject IConfiguration Configuration
+
+<RadzenComponents />
+
+<RadzenLayout>
+    <RadzenHeader>
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
+            <RadzenSidebarToggle Click="@(() => sidebar1Expanded = !sidebar1Expanded)" />
+            <RadzenLabel Text="@(Configuration.GetValue<string>("SiteName", "ArchiBase"))" />
+            <ProfileMenu />
+            <CultureSelector />
+        </RadzenStack>
+    </RadzenHeader>
+    <RadzenSidebar @bind-Expanded="@sidebar1Expanded">
+        <NavMenu />
+    </RadzenSidebar>
+    <RadzenBody>
+        @Body
+    </RadzenBody>
+    <RadzenFooter>
+        Copyright ⓒ @(Configuration.GetValue<string>("CopyrightYears", "2024"))
+        @(Configuration.GetValue<string>("CopyrightAuthors", "ArchiBase Team")).
+        All content licenced under CC-BY-SA unless specified.
+        Powered by <RadzenLink Path="https://github.com/trolley813/ArchiBase">ArchiBase Engine</RadzenLink>
+        version @(Assembly.GetEntryAssembly()?.GetName()?.Version ?? new Version(0, 0, 0))
+    </RadzenFooter>
+</RadzenLayout>
+
+@* TODO: add Radzen-based *@
+<div id="blazor-error-ui">
+    An unhandled error has occurred.
+    <a href="" class="reload">Reload</a>
+    <a class="dismiss">🗙</a>
+</div>
+
+@code
+{
+    bool sidebar1Expanded = true;
+}

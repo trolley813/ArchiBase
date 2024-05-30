@@ -1,0 +1,138 @@
+@page "/series/{id:guid}/edit"
+@using ArchiBase.Components.Utils
+@using Microsoft.EntityFrameworkCore
+@inject IStringLocalizer<Edit> Loc
+@inject NotificationService NotificationService
+@inject ModelContext ModelContext
+
+<EditorOnly>
+    @if (design is not null)
+    {
+        <RadzenText TextStyle="TextStyle.H3">@Loc["Edit design"]</RadzenText>
+        <RadzenStack Orientation="Orientation.Vertical">
+            <RadzenFormField Text=@Loc["Name"]>
+                <RadzenTextBox @bind-Value="design.Name" />
+            </RadzenFormField>
+            <RadzenText TextStyle="TextStyle.H6">@Loc["Technical data"]</RadzenText>
+            <RadzenFormField Text=@Loc["Building area"]>
+                <RadzenNumeric @bind-Value="design.BuildingArea" Format="0 m²" />
+            </RadzenFormField>
+            <RadzenFormField Text=@Loc["Total area"]>
+                <RadzenNumeric @bind-Value="design.TotalArea" Format="0 m²" />
+            </RadzenFormField>
+            <RadzenFormField Text=@Loc["Cubage"]>
+                <RadzenNumeric @bind-Value="design.Cubage" Format="0 m³" />
+            </RadzenFormField>
+            <RadzenRow>
+                <RadzenText>Catalogue Entries</RadzenText>
+                <RadzenFormField>
+                    <RadzenButton Icon="add" Click="AddEntry"></RadzenButton>
+                </RadzenFormField>
+            </RadzenRow>
+            @for (int index = 0; index < design.CatalogueEntries.Count; index++)
+            {
+                var i = index;
+                <RadzenRow Gap="10">
+                    <RadzenColumn Size="3">
+                        <RadzenFormField Text=@Loc["Catalogue"]>
+                            <RadzenDropDown Data="@designCatalogues" @bind-Value="design.CatalogueEntries[i].Id"
+                                TextProperty="Name" ValueProperty="Id" Style="width: 350px;">
+                            </RadzenDropDown>
+                        </RadzenFormField>
+                    </RadzenColumn>
+                    <RadzenColumn Size="2">
+                        <RadzenFormField Text=@Loc["Code"]>
+                            <RadzenTextBox @bind-Value="@design.CatalogueEntries[i].Code" />
+                        </RadzenFormField>
+                    </RadzenColumn>
+                    <RadzenColumn Size="6">
+                        <RadzenFormField Text=@Loc["Description"]>
+                            <RadzenTextBox @bind-Value="@design.CatalogueEntries[i].Description" Style="width: 550px;" />
+                        </RadzenFormField>
+                    </RadzenColumn>
+                    <RadzenColumn Size="1">
+                        <RadzenFormField>
+                            <RadzenButton Icon="delete" Click="args => RemoveEntry(i)"></RadzenButton>
+                        </RadzenFormField>
+                    </RadzenColumn>
+                </RadzenRow>
+            }
+
+            <RadzenFormField Text=@Loc["Select categories"]>
+                <RadzenDropDown Data="categories" @bind-Value="design.Categories" Chips=true Multiple=true AllowClear=true
+                    AllowFiltering=true @bind-SearchText="categorySearchText" TextProperty="Name" />
+            </RadzenFormField>
+
+            <RadzenFormField>
+                <RadzenButton Text=@Loc["Save"] Icon="save" Click="@Save" />
+            </RadzenFormField>
+
+        </RadzenStack>
+    }
+    </EditorOnly>
+
+    @code
+    {
+    [Parameter]
+    public Guid Id { get; set; }
+
+    Design? design;
+    IEnumerable<DesignCatalogue> designCatalogues = [];
+    IEnumerable<DesignCategory> categories = [];
+
+    string categorySearchText = "";
+
+
+    protected override void OnInitialized()
+    {
+        designCatalogues = ModelContext.DesignCatalogues.ToList();
+        categories = ModelContext.DesignCategories.ToList();
+        design = ModelContext.Designs
+        .Include(c => c.Categories)
+        .Include(c => c.CatalogueEntries)
+        .ThenInclude(e => e.Catalogue)
+        .FirstOrDefault(c => c.Id == Id);
+    }
+
+    public void AddEntry()
+    {
+        design.CatalogueEntries.Add(new());
+    }
+    public void RemoveEntry(int index)
+    {
+        design.CatalogueEntries.RemoveAt(index);
+    }
+
+    public void Save()
+    {
+        if (design.Categories.Count == 0)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error",
+                    Detail = $"You must add at least one category"
+                });
+            return;
+        }
+        try
+        {
+            ModelContext.SaveChanges();
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Design saved",
+                    Detail = $"ID: {design.Id}"
+                });
+        }
+        catch (Exception e)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"{e.Message}"
+                });
+        }
+    }
+}

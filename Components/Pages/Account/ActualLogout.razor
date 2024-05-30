@@ -1,0 +1,41 @@
+@page "/account/logout"
+@using Microsoft.AspNetCore.Authentication
+@inject NavigationManager NavigationManager
+@inject UserManager<ArchiBaseUser> UserManager
+@inject SignInManager<ArchiBaseUser> SignInManager
+@inject ILogger<ActualLogout> Log
+
+@if (HttpContext is null)
+{
+    <RadzenText>Logging out...</RadzenText>
+}
+else
+{
+    <RadzenText>You have successfully logged out. Redirecting back to home page...</RadzenText>
+}
+
+@code
+{
+    [CascadingParameter]
+    private HttpContext? HttpContext { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (HttpContext is null)
+        {
+            Log.LogInformation("Refreshing");
+            NavigationManager.Refresh(forceReload: true);
+        }
+        else
+        {
+            Log.LogInformation("Loaded with HttpContext");
+            Logout();
+        }
+    }
+
+    private async Task Logout()
+    {
+        await SignInManager.SignOutAsync();
+        NavigationManager.NavigateTo("/", true);
+    }
+}

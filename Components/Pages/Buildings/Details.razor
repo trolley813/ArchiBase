@@ -1,0 +1,128 @@
+@page "/buildings/{id:guid}"
+@using Microsoft.EntityFrameworkCore
+@inject ModelContext ModelContext
+
+
+@if (building != null)
+{
+    <RadzenText TextStyle="TextStyle.H4">@(building.Location.Name + ", " + String.Join(" / ",
+    building.ActualCard?.StreetAddresses.Select(a => $"{a.Street.Name}, {a.HouseNumber}") ?? []))</RadzenText>
+    <RadzenLink Text="Edit" Icon="edit" Path=@($"buildings/{building.Id}/edit") />
+    <RadzenRow>
+        <RadzenColumn>
+            <RadzenText TextStyle="TextStyle.H6">Timeline</RadzenText>
+            <RadzenCard>
+                <RadzenTimeline>
+                    <Items>
+                        @foreach (var ev in building.Events.OrderBy(ev => ev.Date.Date))
+                        {
+                            <RadzenTimelineItem PointStyle="GetPointStyleByEventType(ev.Type)">
+                                <LabelContent>
+                                    <RadzenText TextStyle="TextStyle.H5" Class="@(GetTextStyleByEventType(ev.Type))">@(ev.Date)
+                                    </RadzenText>
+                                </LabelContent>
+                                <ChildContent>
+                                    <RadzenText Class="@(GetTextStyleByEventType(ev.Type))">@(ev.Type)</RadzenText>
+                                </ChildContent>
+                            </RadzenTimelineItem>
+                        }
+                    </Items>
+                </RadzenTimeline>
+            </RadzenCard>
+        </RadzenColumn>
+        <RadzenColumn>
+            <RadzenText TextStyle="TextStyle.H6">Map</RadzenText>
+            <RadzenCard>
+                <OpenStreetMap Style="height:300px; width:300px"
+                    Center="new Coordinate(building.Longitude, building.Latitude)" Zoom="15">
+                    <Features>
+                        <Marker Type="OpenLayers.Blazor.MarkerType.MarkerPin"
+                            Coordinate="new Coordinate(building.Longitude, building.Latitude)">
+                        </Marker>
+                    </Features>
+                </OpenStreetMap>
+            </RadzenCard>
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenText TextStyle=" TextStyle.H6">Details</RadzenText>
+    <RadzenRow>
+        <RadzenText>@((MarkupString)building.Description)</RadzenText>
+    </RadzenRow>
+    <RadzenTabs>
+        <Tabs>
+            @foreach (var (card, index) in building.Cards.OrderBy(c => c.ActualFrom.Date)
+           .Select((item, index) => (item, index + 1)))
+            {
+                <RadzenTabsItem Text=@($"Card #{index} actual from {card.ActualFrom}")>
+                    <RadzenCard>
+                        <RadzenRow>
+                            <RadzenColumn>
+                                <RadzenText TextStyle="TextStyle.Overline">Design</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1"><b>@(card.Design.Name)</b>
+                                </RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2"><i>@(String.Join(" · ",
+                                card.Design.CatalogueEntries.OrderBy(e => (e.Catalogue.Id,
+                                e.Code)).Select(e
+                                => e.Formatted)))</i></RadzenText>
+                            </RadzenColumn>
+                            <RadzenColumn>
+                                <RadzenText TextStyle="TextStyle.Overline">Floor count</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1"><b>@(card.FloorCount)</b>
+                                </RadzenText>
+                            </RadzenColumn>
+                        </RadzenRow>
+                        <RadzenRow>
+                            <RadzenColumn>
+                                <RadzenText TextStyle="TextStyle.Overline">Building name</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1"><b>@(card.Name)</b></RadzenText>
+                            </RadzenColumn>
+                        </RadzenRow>
+                    </RadzenCard>
+                </RadzenTabsItem>
+            }
+        </Tabs>
+    </RadzenTabs>
+}
+
+@code
+{
+    [Parameter]
+    public Guid Id { get; set; }
+
+    Building? building;
+
+    protected override void OnParametersSet()
+    {
+        building = ModelContext.Buildings.Include(b => b.Events)
+        .Include(b => b.Location)
+        .Include(b => b.Cards)
+        .ThenInclude(c => c.StreetAddresses)
+        .ThenInclude(a => a.Street)
+        .Include(b => b.Cards)
+        .ThenInclude(c => c.Design)
+        .ThenInclude(d => d.CatalogueEntries)
+        .ThenInclude(e => e.Catalogue).FirstOrDefault(b => b.Id == Id);
+    }
+
+    public PointStyle GetPointStyleByEventType(BuildingEventType eventType) => eventType switch
+    {
+        BuildingEventType.ConstructionStarted => PointStyle.Success,
+        BuildingEventType.ConstructionFinished => PointStyle.Success,
+        BuildingEventType.RebuildingStarted => PointStyle.Warning,
+        BuildingEventType.RebuildingFinished => PointStyle.Warning,
+        BuildingEventType.Abandoned => PointStyle.Dark,
+        BuildingEventType.Demolished => PointStyle.Danger,
+        _ => PointStyle.Info
+    };
+
+    public string GetTextStyleByEventType(BuildingEventType eventType) => eventType switch
+    {
+        BuildingEventType.ConstructionStarted => "rz-color-success",
+        BuildingEventType.ConstructionFinished => "rz-color-success",
+        BuildingEventType.RebuildingStarted => "rz-color-warning",
+        BuildingEventType.RebuildingFinished => "rz-color-warning",
+        BuildingEventType.Abandoned => "rz-color-dark",
+        BuildingEventType.Demolished => "rz-color-danger",
+        _ => "rz-color-info"
+    };
+}

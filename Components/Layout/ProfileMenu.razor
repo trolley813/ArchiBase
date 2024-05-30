@@ -1,0 +1,43 @@
+<CascadingAuthenticationState>
+    <AuthorizeView>
+        <Authorized>
+            <RadzenProfileMenu>
+                <Template>
+                    <RadzenStack Orientation="Orientation.Horizontal">
+                        <RadzenIcon Icon="account_circle" />
+                        <RadzenText>@(context.User.Identity?.Name)</RadzenText>
+                    </RadzenStack>
+                </Template>
+                <ChildContent>
+                    <RadzenProfileMenuItem Text="My page"
+                        Path=@($"users/{context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value}") />
+                    <RadzenProfileMenuItem Text="Log out" Path="account/logout" />
+                </ChildContent>
+            </RadzenProfileMenu>
+        </Authorized>
+        <NotAuthorized>
+            <RadzenProfileMenu>
+                <Template>
+                    <RadzenIcon Icon="no_accounts" />
+                </Template>
+                <ChildContent>
+                    <RadzenProfileMenuItem Text="Log in" Path="login" />
+                    <RadzenProfileMenuItem Text="Register" Path="register" />
+                </ChildContent>
+            </RadzenProfileMenu>
+        </NotAuthorized>
+    </AuthorizeView>
+    <AuthorizeView Roles="Admin">
+        <RadzenProfileMenu>
+            <Template>
+                <RadzenStack Orientation="Orientation.Horizontal">
+                    <RadzenIcon Icon="admin_panel_settings" />
+                    <RadzenText>Admin</RadzenText>
+                </RadzenStack>
+            </Template>
+            <ChildContent>
+                <RadzenProfileMenuItem Text="Manage users" Path="admin/users" />
+            </ChildContent>
+        </RadzenProfileMenu>
+    </AuthorizeView>
+</CascadingAuthenticationState>

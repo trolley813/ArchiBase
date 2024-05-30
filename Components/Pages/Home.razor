@@ -1,0 +1,55 @@
+﻿@page "/"
+@using ArchiBase.Components.Utils
+@inject IStringLocalizer<Home> Loc
+@inject ModelContext ModelContext
+
+<ArchibasePageTitle Title=@Loc["Home"] />
+
+<RadzenText TextStyle="TextStyle.H3" class="mx-4 my-4">@Loc["Welcome to USSR Architectural Database"]</RadzenText>
+
+<RadzenRow>
+    <RadzenColumn>
+        <RadzenCard>
+            <RadzenRow>
+                <RadzenColumn>
+                    <RadzenText TextStyle="TextStyle.Overline">@Loc["Total locations"]</RadzenText>
+                    <RadzenText TextStyle="TextStyle.H1">@locationsCount</RadzenText>
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenCard>
+    </RadzenColumn>
+
+    <RadzenColumn>
+        <RadzenCard>
+            <RadzenRow>
+                <RadzenColumn>
+                    <RadzenText TextStyle="TextStyle.Overline">@Loc["Total buildings"]</RadzenText>
+                    <RadzenText TextStyle="TextStyle.H1">@buildingsCount</RadzenText>
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenCard>
+    </RadzenColumn>
+
+    <RadzenColumn>
+        <RadzenCard>
+            <RadzenRow>
+                <RadzenColumn>
+                    <RadzenText TextStyle="TextStyle.Overline">@Loc["Total designs"]</RadzenText>
+                    <RadzenText TextStyle="TextStyle.H1">@designsCount</RadzenText>
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenCard>
+    </RadzenColumn>
+</RadzenRow>
+
+@code
+{
+    int locationsCount, designsCount, buildingsCount;
+
+    protected override void OnInitialized()
+    {
+        locationsCount = ModelContext.Locations.Count();
+        designsCount = ModelContext.Designs.Count();
+        buildingsCount = ModelContext.Buildings.Count();
+    }
+}

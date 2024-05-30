@@ -1,0 +1,69 @@
+@page "/catalogues/{id:guid}"
+@using Microsoft.EntityFrameworkCore
+@inject ModelContext ModelContext
+
+@if (designCatalogue != null)
+{
+    <RadzenText TextStyle="TextStyle.H3">Catalogue @(designCatalogue.Name)</RadzenText>
+
+    <RadzenText TextStyle="TextStyle.Body1">@((MarkupString)designCatalogue.Description)</RadzenText>
+
+    <CascadingAuthenticationState>
+        <AuthorizeView>
+            <RadzenLink Path="@($"catalogues/{Id}/edit")" Text="Edit" Icon="edit" />
+            <RadzenLink Path="@($"catalogues/{Id}/delete")" Text="Delete" Icon="delete" />
+        </AuthorizeView>
+    </CascadingAuthenticationState>
+
+    <RadzenDataGrid AllowFiltering="true" Density="Density.Compact" AllowPaging=true PageSize="10"
+        Data="@(designCatalogue.Entries.OrderBy(d=> d.Code, StringComparison.OrdinalIgnoreCase.WithNaturalSort()))">
+        <Columns>
+            <RadzenDataGridColumn Property="Formatted" Title="Code" Width="10%"></RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="Design" Width="60%">
+                <Template Context="entry">
+                    <RadzenLink style="white-space:pre-wrap" Text="@(entry?.Description ?? "(no description)")"
+                        Path="@($"/series/{entry.Design.Id}")" />
+                </Template>
+                <FooterTemplate>
+                    <RadzenText>
+                        Total entries in the catalogue: <b>@(designCatalogue.Entries.Count)</b>
+                    </RadzenText>
+                </FooterTemplate>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="Codes in other catalogues" Width="30%">
+                <Template Context="entry">
+                    <RadzenText>
+                        @(String.Join(", ", ModelContext.DesignCatalogueEntries.Include(e => e.Catalogue).Where(e =>
+                            e.Design == entry.Design && e.Catalogue != entry.Catalogue).Select(e => e.Formatted)))
+                    </RadzenText>
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+}
+else
+{
+    <RadzenAlert AllowClose="false" Title="Error" AlertStyle="AlertStyle.Danger" Variant="Variant.Flat"
+    Shade="Shade.Lighter">Catalogue with id @(Id) not found</RadzenAlert>
+}
+
+@code
+{
+    [Parameter]
+    public Guid Id { get; set; }
+
+    DesignCatalogue? designCatalogue = null;
+
+    protected override void OnInitialized()
+    {
+        designCatalogue = ModelContext.DesignCatalogues
+        .Include(c => c.Entries)
+        .ThenInclude(e => e.Design)
+        .FirstOrDefault(c => c.Id == Id);
+    }
+
+    void Delete()
+    {
+
+    }
+}

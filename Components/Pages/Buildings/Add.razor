@@ -1,0 +1,226 @@
+@page "/buildings/add"
+@inject ModelContext ModelContext
+@inject NotificationService NotificationService
+@inject NavigationManager NavigationManager
+@using ArchiBase.Components.Utils
+
+<CascadingAuthenticationState>
+    <AuthorizeView>
+        <Authorized>
+            <RadzenText TextStyle="TextStyle.H4">Add building</RadzenText>
+
+            <RadzenFormField Text="Location">
+                <RadzenDropDown @bind-Value="@location" Data="Locations" TextProperty="Name" Change="SelectStreets" />
+            </RadzenFormField>
+
+            <RadzenRow>
+                <RadzenFormField Text="Latitude">
+                    <RadzenNumeric ShowUpDown="false" @bind-Value="latitude" />
+                </RadzenFormField>
+                <RadzenFormField Text="Longitude">
+                    <RadzenNumeric ShowUpDown="false" @bind-Value="longitude" />
+                </RadzenFormField>
+            </RadzenRow>
+            <OpenStreetMap @ref="map" Style="height:480px; width:640px" OnClick="OnMapClick">
+            </OpenStreetMap>
+
+            <RadzenText TextStyle="TextStyle.H6">Timeline</RadzenText>
+            <RadzenFormField>
+                <RadzenButton Icon="add" Click="AddEvent"></RadzenButton>
+            </RadzenFormField>
+            @for (int index = 0; index < events.Count; index++)
+            {
+                var i = index;
+                <RadzenRow>
+                    <ImpreciseDateInput @bind-Value="events[i].Date" FieldName="Date" />
+                    <RadzenDropDown @bind-Value="events[i].Type" Data="eventTypes" />
+                    <RadzenFormField>
+                        <RadzenButton Icon="delete" Click="args => RemoveEvent(i)"></RadzenButton>
+                    </RadzenFormField>
+                </RadzenRow>
+            }
+
+            <RadzenText TextStyle="TextStyle.H6">Addresses</RadzenText>
+            <RadzenFormField>
+                <RadzenButton Icon="add" Click="AddAddress"></RadzenButton>
+            </RadzenFormField>
+
+            @for (int index = 0; index < addresses.Count; index++)
+            {
+                var i = index;
+                <RadzenRow>
+                    <RadzenFormField Text="Street name">
+                        <RadzenDropDown AllowFiltering="true" @bind-SearchText="searchText"
+                            @bind-Value="addresses[i].Street" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            Data="Streets" TextProperty="Name" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="House number">
+                        <RadzenTextBox @bind-Value="addresses[i].HouseNumber" />
+                    </RadzenFormField>
+                    <RadzenFormField>
+                        <RadzenButton Icon="delete" Click="args => RemoveAddress(i)"></RadzenButton>
+                    </RadzenFormField>
+
+                </RadzenRow>
+            }
+
+
+            <RadzenText TextStyle="TextStyle.H6">Details</RadzenText>
+            <RadzenStack Orientation="Orientation.Vertical">
+                <RadzenFormField Text="Name">
+                    <RadzenTextBox @bind-Value="@name" />
+                </RadzenFormField>
+                <RadzenFormField Text="Description">
+                    <RadzenHtmlEditor @bind-Value="@description" style="height: 300px;" />
+                </RadzenFormField>
+                <RadzenRow>
+                    <RadzenFormField Text="Design">
+                        <RadzenDropDown @bind-Value="design" Data="Designs" TextProperty="Name" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Floor count">
+                        <RadzenTextBox @bind-Value="@floorCount" />
+                    </RadzenFormField>
+                </RadzenRow>
+                <RadzenFormField>
+                    <RadzenButton Text="Submit" Icon="add_circle_outline" Click="@AddBuilding" />
+                </RadzenFormField>
+
+            </RadzenStack>
+        </Authorized>
+        <NotAuthorized>
+            <RadzenAlert AllowClose="false" Title="Unauthorized" AlertStyle="AlertStyle.Danger" Variant="Variant.Flat"
+                Shade="Shade.Lighter">
+                To create or edit items, you must be authorized as admin/editor.
+                <RadzenLink Path="login" Text="Log in" />
+            </RadzenAlert>
+        </NotAuthorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>
+
+
+
+
+@code
+{
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public Guid? LocId { get; set; }
+
+    public List<Location> Locations { get; set; }
+
+    Location? location = null;
+
+    OpenStreetMap map;
+
+    double latitude, longitude;
+
+    public List<Street> Streets { get; set; } = [];
+
+    public List<Design> Designs { get; set; } = [];
+    List<BuildingEvent> events = [];
+    List<StreetAddress> addresses = [];
+
+    string searchText = "";
+
+    string name, description, floorCount;
+
+    Design? design;
+
+    List<BuildingEventType> eventTypes = Enum.GetValues(typeof(BuildingEventType)).Cast<BuildingEventType>().ToList();
+
+    protected override void OnParametersSet()
+    {
+        Locations = ModelContext.Locations.ToList();
+        Designs = ModelContext.Designs.ToList();
+        location = Locations.FirstOrDefault(loc => loc.Id == LocId);
+        SelectStreets();
+    }
+
+    void OnMapClick(Coordinate coordinate)
+    {
+        map.MarkersList.Clear();
+        map.MarkersList.Add(new Marker(OpenLayers.Blazor.MarkerType.MarkerPin, coordinate));
+        longitude = coordinate.Longitude;
+        latitude = coordinate.Latitude;
+    }
+
+    public void SelectStreets()
+    {
+        if (map != null && location != null) map.SetCenter(new Coordinate(location.Longitude, location.Latitude));
+        Streets = ModelContext.Streets.Where(s => s.Location == location).ToList();
+        addresses.Clear();
+    }
+    public void AddEvent()
+    {
+        events.Add(new());
+    }
+
+    public void RemoveEvent(int index)
+    {
+        events.RemoveAt(index);
+    }
+
+    public void AddAddress()
+    {
+        addresses.Add(new());
+    }
+
+    public void RemoveAddress(int index)
+    {
+        addresses.RemoveAt(index);
+    }
+
+    public void AddBuilding()
+    {
+        if (addresses.Count == 0)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = "Building must have at least one address"
+                });
+            return;
+        }
+        BuildingCard card = new()
+            {
+                ActualFrom = events.FirstOrDefault(e => e.Type == BuildingEventType.ConstructionFinished)?.Date.Clone() ?? new(),
+                Name = name,
+                Design = design,
+                FloorCount = floorCount,
+                StreetAddresses = addresses
+            };
+        Building building = new()
+            {
+                Cards = [card],
+                Events = events,
+                Latitude = latitude,
+                Longitude = longitude,
+                Description = description,
+                Location = location
+            };
+        try
+        {
+            ModelContext.Buildings.Add(building);
+            ModelContext.SaveChanges();
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Building added",
+                    Detail = $"ID: {building.Id}"
+                });
+            //NavigationManager.NavigateTo("buildings/{building.Id}");
+            NavigationManager.Refresh(forceReload: true);
+        }
+        catch (Exception e)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"{e.Message}"
+                });
+        }
+
+    }
+}

@@ -1,0 +1,240 @@
+@page "/buildings/{id:guid}/edit"
+@using Microsoft.EntityFrameworkCore
+@using ArchiBase.Components.Utils
+@inject NotificationService NotificationService
+@inject ModelContext ModelContext
+
+<CascadingAuthenticationState>
+    <AuthorizeView>
+        <Authorized>
+            @if (building != null)
+            {
+                <RadzenText TextStyle="TextStyle.H4">Edit building</RadzenText>
+
+                <RadzenText TextStyle="TextStyle.H6">Timeline</RadzenText>
+                <RadzenFormField>
+                    <RadzenButton Icon="add" Click="AddEvent"></RadzenButton>
+                </RadzenFormField>
+                @for (int index = 0; index < building.Events.Count; index++)
+                {
+                    var i = index;
+                    <RadzenRow>
+                        <ImpreciseDateInput @bind-Value="building.Events[i].Date" FieldName="Date" />
+                        <RadzenDropDown @bind-Value="building.Events[i].Type" Data="eventTypes" />
+                        <RadzenFormField>
+                            <RadzenButton Icon="delete" Click="args => RemoveEvent(i)"></RadzenButton>
+                        </RadzenFormField>
+                    </RadzenRow>
+                }
+                <RadzenText TextStyle="TextStyle.H6">Location on map</RadzenText>
+                <RadzenRow>
+                    <RadzenFormField Text="Latitude">
+                        <RadzenNumeric ShowUpDown="false" @bind-Value="building.Latitude" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Longitude">
+                        <RadzenNumeric ShowUpDown="false" @bind-Value="building.Longitude" />
+                    </RadzenFormField>
+                </RadzenRow>
+                <OpenStreetMap @ref="map" Style="height:300px; width:300px"
+                    Center="new Coordinate(building.Longitude, building.Latitude)" OnClick="OnMapClick" Zoom="15">
+                    <Features>
+                        <Marker Type="OpenLayers.Blazor.MarkerType.MarkerPin"
+                            Coordinate="new Coordinate(building.Longitude, building.Latitude)">
+                        </Marker>
+                    </Features>
+                </OpenStreetMap>
+
+                <RadzenRow RowGap="5">
+                    <RadzenColumn>
+                        <RadzenFormField Text="Description">
+                            <RadzenHtmlEditor @bind-Value="@building.Description" style="height: 300px;" />
+                        </RadzenFormField>
+                    </RadzenColumn>
+                </RadzenRow>
+
+                <RadzenText TextStyle="TextStyle.H6">Details</RadzenText>
+                <RadzenButton Icon="add" Text="Add new card" Size="ButtonSize.Small" Click="AddCard" />
+                <RadzenTabs>
+                    <Tabs>
+                        @foreach (var (card, index) in building.Cards.Select((item, index) => (item, index + 1)))
+                        {
+                            var i = index - 1;
+                            <RadzenTabsItem>
+                                <Template Context="c">
+                                    @($"Card #{index}")
+                                    <RadzenButton Icon="close" Size="ButtonSize.ExtraSmall" Variant="Variant.Outlined" />
+                                </Template>
+                                <ChildContent>
+                                    <RadzenCard>
+                                        <RadzenRow>
+                                            <RadzenRow>
+                                                <RadzenText TextStyle="TextStyle.Subtitle1">Addresses</RadzenText>
+                                                <RadzenButton Icon="add" Text="Add" Size="ButtonSize.ExtraSmall"
+                                                    Click="args => AddAddress(i)" />
+                                            </RadzenRow>
+                                            <RadzenRow>
+                                                @for (int aindex = 0; aindex < card.StreetAddresses.Count; aindex++)
+                                                {
+                                                    var ai = aindex;
+                                                    <RadzenRow>
+                                                        <RadzenFormField Text="Street name">
+                                                            <RadzenDropDown AllowFiltering="true" @bind-SearchText="searchText"
+                                                                @bind-Value="card.StreetAddresses[ai].Street" Data="Streets"
+                                                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                                                TextProperty="Name" />
+                                                        </RadzenFormField>
+                                                        <RadzenFormField Text="House number">
+                                                            <RadzenTextBox @bind-Value="card.StreetAddresses[ai].HouseNumber" />
+                                                        </RadzenFormField>
+                                                        <RadzenFormField>
+                                                            <RadzenButton Icon="delete" Click="args => RemoveAddress(i, ai)">
+                                                            </RadzenButton>
+                                                        </RadzenFormField>
+
+                                                    </RadzenRow>
+                                                }
+                                            </RadzenRow>
+                                        </RadzenRow>
+                                        <RadzenRow>
+                                            <ImpreciseDateInput @bind-Value="card.ActualFrom" FieldName="Actual from" />
+                                        </RadzenRow>
+                                        <RadzenRow>
+                                            <RadzenColumn>
+                                                <RadzenFormField Text="Design">
+                                                    <RadzenDropDown @bind-Value="card.Design" Data="Designs"
+                                                        TextProperty="Name" />
+                                                </RadzenFormField>
+                                            </RadzenColumn>
+                                            <RadzenColumn>
+                                                <RadzenFormField Text="Floor count">
+                                                    <RadzenTextBox @bind-Value="card.FloorCount" />
+                                                </RadzenFormField>
+                                            </RadzenColumn>
+                                        </RadzenRow>
+                                        <RadzenRow>
+                                            <RadzenColumn>
+                                                <RadzenFormField Text="Name">
+                                                    <RadzenTextBox @bind-Value="card.Name" />
+                                                </RadzenFormField>
+                                            </RadzenColumn>
+                                        </RadzenRow>
+                                    </RadzenCard>
+                                </ChildContent>
+                            </RadzenTabsItem>
+                        }
+                    </Tabs>
+                </RadzenTabs>
+                <RadzenFormField>
+                    <RadzenButton Text="Save" Icon="save" Click="@Save" />
+                </RadzenFormField>
+
+            }
+        </Authorized>
+        <NotAuthorized>
+            <RadzenAlert AllowClose="false" Title="Unauthorized" AlertStyle="AlertStyle.Danger" Variant="Variant.Flat"
+                Shade="Shade.Lighter">
+                To create or edit items, you must be authorized as admin/editor.
+                <RadzenLink Path="login" Text="Log in" />
+            </RadzenAlert>
+        </NotAuthorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>
+
+
+@code
+{
+    [Parameter]
+    public Guid Id { get; set; }
+
+    Building? building;
+
+    OpenStreetMap map;
+
+    public List<Street> Streets { get; set; } = [];
+
+    public List<Design> Designs { get; set; } = [];
+
+    string searchText = "";
+
+    List<BuildingEventType> eventTypes = Enum.GetValues(typeof(BuildingEventType)).Cast<BuildingEventType>().ToList();
+    protected override void OnParametersSet()
+    {
+        building = ModelContext.Buildings.Include(b => b.Events)
+        .Include(b => b.Cards)
+        .ThenInclude(c => c.StreetAddresses)
+        .ThenInclude(a => a.Street)
+        .Include(b => b.Cards)
+        .ThenInclude(c => c.Design)
+        .ThenInclude(d => d.CatalogueEntries)
+        .ThenInclude(e => e.Catalogue).FirstOrDefault(b => b.Id == Id);
+
+        if (building != null)
+        {
+            Designs = ModelContext.Designs.ToList();
+            Streets = ModelContext.Streets.ToList();
+        }
+
+    }
+
+    void OnMapClick(Coordinate coordinate)
+    {
+        map.MarkersList.Clear();
+        map.MarkersList.Add(new Marker(OpenLayers.Blazor.MarkerType.MarkerPin, coordinate));
+        building.Longitude = coordinate.Longitude;
+        building.Latitude = coordinate.Latitude;
+    }
+
+    public void AddEvent()
+    {
+        building.Events.Add(new());
+    }
+
+    public void RemoveEvent(int index)
+    {
+        building.Events.RemoveAt(index);
+    }
+
+    public void AddAddress(int cardIndex)
+    {
+        building.Cards[cardIndex].StreetAddresses.Add(new());
+    }
+
+    public void RemoveAddress(int cardIndex, int index)
+    {
+        building.Cards[cardIndex].StreetAddresses.RemoveAt(index);
+    }
+
+    public void AddCard()
+    {
+        BuildingCard card = new()
+            {
+                Design = building.Cards.LastOrDefault()?.Design!,
+                Name = building.Cards.LastOrDefault()?.Name ?? "",
+                FloorCount = building.Cards.LastOrDefault()?.FloorCount ?? "",
+            };
+        building.Cards.Add(card);
+    }
+
+    public void Save()
+    {
+        try
+        {
+            ModelContext.SaveChanges();
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Building saved",
+                    Detail = $"ID: {building.Id}"
+                });
+        }
+        catch (Exception e)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"{e.Message}"
+                });
+        }
+    }
+}
