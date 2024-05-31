@@ -100,7 +100,7 @@ After that, you will be able to use:
 - the engine with HTTPS at https://10.94.0.1:443 (or just https://10.94.0.1, since the port 443 is assumed when using HTTPS) and https://10.94.0.1:8081;
 - the engine with plain HTTP at http://10.94.0.1:80 (or just http://10.94.0.1, since the port 80 is assumed when using HTTP) and http://10.94.0.1:8080;
 - PostgreSQL database (with PostGIS enabled, but unused at the moment) at [10.94.0.2:5432](10.94.0.2:5432) (username is `postgres` and password is `example`);
-- Adminerevo database management tool at http://10.94.0.3:8081 (optional, you can use other software such as DBeaver to get to the database).
+- AdminerEvo database management tool at http://10.94.0.3:8080 (optional, you can use other software such as DBeaver to get to the database).
 
 ---
 ⚠️ Note: This will create a temporary admin with username `admin` and password `1Password!`, intended to give necessary rights to the regular admin user. ***When using on production, make sure that this account is disabled after the regular admin is created.***
