@@ -41,6 +41,19 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
+
+    var modelContext = services.GetRequiredService<ModelContext>();
+    if (modelContext.Database.GetPendingMigrations().Any())
+    {
+        modelContext.Database.Migrate();
+    }
+
+    var usersContext = services.GetRequiredService<UsersContext>();
+    if (usersContext.Database.GetPendingMigrations().Any())
+    {
+        usersContext.Database.Migrate();
+    }
+
     await SeedData.InitializeAsync(services);
 }
 
