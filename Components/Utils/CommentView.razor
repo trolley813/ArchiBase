@@ -1,0 +1,126 @@
+@using Microsoft.EntityFrameworkCore
+@inject ModelContext ModelContext
+@inject UserManager<ArchiBaseUser> UserManager
+@inject IStringLocalizer<CommentView> Loc
+@inject NotificationService NotificationService
+@inject TooltipService TooltipService
+
+<RadzenText TextStyle="TextStyle.H5">@Loc["Comments"] (@(comments.Count()))</RadzenText>
+
+<RadzenDataList Data="comments" AllowPaging=@(ShowMode != CommentShowMode.ByEntity) ShowPagingSummary=@(ShowMode !=
+    CommentShowMode.ByEntity) PageSize="20" PagerAlwaysVisible=@(ShowMode != CommentShowMode.ByEntity)>
+    <Template Context="comment">
+        <RadzenCard>
+            <RadzenText TextStyle="TextStyle.Subtitle1">
+                @(commentAuthors.GetValueOrDefault(comment.AuthorId, Loc["(unknown author)"])):
+                <LocalTime DateTime="comment.PublicationDate" />
+            </RadzenText>
+            <RadzenText>@((MarkupString)comment.Text)</RadzenText>
+            <RadzenStack Orientation="Orientation.Horizontal">
+                <RadzenButton Icon="keyboard_arrow_up" Size="ButtonSize.ExtraSmall" />
+                <RadzenText TextStyle="TextStyle.Body2" MouseEnter="args => ShowVotesTooltip(args, comment)">
+                    @(comment.VotesCount)</RadzenText>
+                <RadzenButton Icon="keyboard_arrow_down" Size="ButtonSize.ExtraSmall" />
+            </RadzenStack>
+        </RadzenCard>
+    </Template>
+</RadzenDataList>
+
+@if (ShowMode == CommentShowMode.ByEntity)
+{
+    <CascadingAuthenticationState>
+    <AuthorizeView Context="actx">
+        <RadzenTemplateForm Data="commentText">
+            <RadzenFormField Text=@Loc["Add comment"]>
+                <RadzenHtmlEditor @bind-Value="commentText" />
+            </RadzenFormField>
+            <RadzenButton ButtonType="ButtonType.Submit" Icon="add" Text=@Loc["Add comment"]
+                Click="args => AddComment(actx.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value)" />
+        </RadzenTemplateForm>
+    </AuthorizeView>
+</CascadingAuthenticationState>
+}
+
+@code
+{
+    public enum CommentShowMode
+    {
+        ByEntity,
+        All,
+        New
+    }
+
+    [Parameter]
+    public Guid EntityId { get; set; }
+
+    [Parameter]
+    public CommentShowMode ShowMode { get; set; } = CommentShowMode.ByEntity;
+
+    IEnumerable<Comment> comments = [];
+
+    Dictionary<Guid, string> commentAuthors = [];
+
+    string commentText = "";
+
+    protected override void OnParametersSet()
+    {
+
+        comments = ShowMode switch
+        {
+            CommentShowMode.ByEntity => ModelContext.Comments.Where(c => c.EntityId == EntityId).OrderBy(c
+            => c.PublicationDate).Include(c => c.Votes),
+            CommentShowMode.All => ModelContext.Comments.OrderByDescending(c
+            => c.PublicationDate).Include(c => c.Votes),
+            CommentShowMode.New => ModelContext.Comments.OrderBy(c
+            => c.PublicationDate).Include(c => c.Votes),
+            _ => []
+        };
+        var authorIds = comments.Select(c => c.AuthorId).Distinct();
+        commentAuthors = UserManager.Users.Where(u => authorIds.Contains(u.Id))
+        .Select(u => new { u.Id, u.UserName }).ToDictionary(x => x.Id, x => x.UserName ?? "(unnamed)");
+    }
+
+    void AddComment(string? userId)
+    {
+        if (Guid.TryParse(userId, out Guid userGuid))
+        {
+            var user = UserManager.Users.FirstOrDefault(u => u.Id == userGuid);
+            if (user is not null)
+            {
+                var comment = new Comment()
+                    {
+                        AuthorId = userGuid,
+                        PublicationDate = DateTime.Now,
+                        EntityId = EntityId,
+                        Text = commentText
+                    };
+                ModelContext.Comments.Add(comment);
+                try
+                {
+                    ModelContext.SaveChanges();
+                    NotificationService.Notify(new NotificationMessage
+                        {
+                            Severity = NotificationSeverity.Success,
+                            Summary = "Comment added",
+                            Detail = $"Your comment was saved!"
+                        });
+                    this.StateHasChanged();
+                }
+                catch (Exception e)
+                {
+                    NotificationService.Notify(new NotificationMessage
+                        {
+                            Severity = NotificationSeverity.Error,
+                            Summary = "Error occured",
+                            Detail = $"{e.Message}"
+                        });
+                }
+            }
+        }
+    }
+
+    void ShowVotesTooltip(ElementReference elementReference, Comment comment)
+    {
+        TooltipService.Open(elementReference, $"+{comment.UpvotesCount}/-{comment.DownvotesCount}");
+    }
+}

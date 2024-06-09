@@ -10,4 +10,8 @@ public class ArchiBaseUser : IdentityUser<Guid>
     public string Bio { get; set; } = string.Empty;
 
     public bool IsEnabled { get; set; } = true;
+
+    public List<Guid> Locations { get; set; } = [];
+
+    public DateTime? LastReadCommentTime { get; set; }
 }

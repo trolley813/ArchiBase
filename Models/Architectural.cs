@@ -54,4 +54,18 @@ public class Design : IAuditable
     public List<DesignCatalogueEntry> CatalogueEntries { get; set; } = [];
 
     public List<DesignCategory> Categories { get; set; } = [];
+
+    public List<Architect> Architects { get; set; } = [];
+}
+
+public class Architect : IAuditable
+{
+    public Guid Id { get; set; }
+    public string AbbreviatedName { get; set; }
+    public string? FullName { get; set; }
+    public ImpreciseDate? DateOfBirth { get; set; }
+    public ImpreciseDate? DateOfDeath { get; set; }
+
+    public List<Design> Designs { get; set; } = [];
+    public List<Building> Buildings { get; set; } = [];
 }

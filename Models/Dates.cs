@@ -12,7 +12,9 @@ public enum DatePrecision
     Decade = 5,
     DecadeOnly = 6,
     Century = 7,
-    CenturyOnly = 8
+    CenturyOnly = 8,
+    YearOrEarlier = 9,
+    YearOrLater = 10,
 }
 
 public static class DateExtensions
@@ -70,6 +72,8 @@ public class ImpreciseDate
         DatePrecision.DecadeOnly => $"{Date.Year / 10 * 10}s",
         DatePrecision.Century => $"{Date.GetEarlyMidLate(useCentury: true)}{Date.GetCentury()} century",
         DatePrecision.CenturyOnly => $"{Date.GetCentury()} century",
+        DatePrecision.YearOrEarlier => Date.ToString("yyyy") + " or earlier",
+        DatePrecision.YearOrLater => Date.ToString("yyyy") + " or later",
         _ => throw new NotImplementedException()
     };
 

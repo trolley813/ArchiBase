@@ -1,0 +1,131 @@
+@page "/photos/{id:guid}"
+@using Microsoft.EntityFrameworkCore
+@inject ModelContext ModelContext
+@inject UserManager<ArchiBaseUser> UserManager
+@inject IStringLocalizer<Details> Loc
+
+@if (photo is not null)
+{
+    <RadzenRow Style="margin: auto; padding: 10px; width: 80%">
+    <RadzenColumn Width="12">
+        <RadzenCard>
+            <RadzenText TextStyle="TextStyle.H5">@Loc["Photo"]</RadzenText>
+            <RadzenImage Path=@(photo.PhotoLink)
+                Style="display:block;margin:auto;max-height:500px;max-width:1000px;height:auto;width:auto;"
+                AlternateText=@Loc["Photo not available"] />
+
+            <ul>
+                @foreach (var b in photo.BuildingBinds)
+
+                    {
+                        <li>
+                            <RadzenText TextStyle="TextStyle.Body1">
+                                <RadzenLink Text="@(b.Building.Location.Name)" Path=@($"/locations/{b.Building.Location.Id}") />
+                                ,
+                                <RadzenLink
+                                    Text="@(String.Join(" / ",
+                                    b.Building.ActualCard?.StreetAddresses.Select(a => $"{a.Street?.Name}, {a.HouseNumber}") ?? []))"
+                                    Path=@($"/buildings/{b.Building.Id}") />
+                            </RadzenText>
+                        </li>
+                    }
+
+                </ul>
+                <RadzenRow>
+                    <RadzenText TextStyle="TextStyle.Body1" Style="margin: auto">@(photo.Description)</RadzenText>
+                </RadzenRow>
+                <RadzenRow>
+                    <RadzenColumn>
+                        <RadzenText TextStyle="TextStyle.Overline">@Loc["Shooting Date"]</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1"><b>@photo.ShootingDate</b></RadzenText>
+                    </RadzenColumn>
+                    <RadzenColumn>
+                        @if (photo.NonAuthor)
+                        {
+                            <RadzenText TextStyle="TextStyle.Overline">@Loc["Sent by"]</RadzenText>
+                        }
+                        else
+                        {
+                            <RadzenText TextStyle="TextStyle.Overline">@Loc["Author"]</RadzenText>
+                        }
+
+                        <RadzenText TextStyle="TextStyle.Body1">
+                            <b>@author</b>
+                        </RadzenText>
+                    </RadzenColumn>
+                </RadzenRow>
+
+            </RadzenCard>
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenRow Style="margin: auto; padding: 10px; width: 90%; height: 30%">
+        <RadzenColumn Width="6">
+            <RadzenCard>
+                <RadzenText TextStyle="TextStyle.H5">@Loc["Details"]</RadzenText>
+                <RadzenRow>
+                    <RadzenColumn>
+                        <RadzenText TextStyle="TextStyle.Overline">@Loc["Published"]</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1">
+                            <b>
+                                <LocalTime DateTime="photo.PublicationDate" />
+                            </b>
+                        </RadzenText>
+                    </RadzenColumn>
+                    <RadzenColumn>
+                        <RadzenText TextStyle="TextStyle.Overline">@Loc["License"]</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1">
+                            <RadzenLink Text=@(photo.License.Name) Path=@(photo.License.Link) />
+                        </RadzenText>
+                    </RadzenColumn>
+                </RadzenRow>
+            </RadzenCard>
+        </RadzenColumn>
+        <RadzenColumn Width="6">
+            <OpenStreetMap @ref="map" Center="new Coordinate(photo.Longitude, photo.Latitude)">
+            </OpenStreetMap>
+        </RadzenColumn>
+    </RadzenRow>
+
+    <CommentView EntityId="photo.Id" />
+
+}
+else
+{
+    <RadzenAlert Title=@Loc["Photo not found"] AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" Shade="Shade.Lighter">
+    @Loc["Photo with this ID does not exist"]
+</RadzenAlert>
+}
+
+@code
+{
+    [Parameter]
+    public Guid Id { get; set; }
+    Photo? photo;
+
+    ArchiBaseUser? author;
+
+    OpenStreetMap? map;
+
+    protected override async Task OnInitializedAsync()
+    {
+        photo = ModelContext.Photos
+        .Include(p => p.BuildingBinds).ThenInclude(b => b.Building).ThenInclude(b => b.Location)
+        .Include(p => p.BuildingBinds).ThenInclude(b => b.Building).ThenInclude(b => b.Cards).ThenInclude(c =>
+        c.StreetAddresses).ThenInclude(a => a.Street)
+        .Include(p => p.License)
+        .FirstOrDefault(p => p.Id == Id);
+        author = await UserManager.FindByIdAsync(photo?.AuthorId.ToString());
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (map != null)
+        {
+            map.MarkersList.Clear();
+            map.MarkersList.Add(new Marker(
+            OpenLayers.Blazor.MarkerType.MarkerPin,
+            new Coordinate(photo?.Longitude ?? 0.0, photo?.Latitude ?? 0.0)
+            ));
+        }
+    }
+}

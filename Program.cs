@@ -14,6 +14,9 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddRadzenComponents();
 
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddTransient<TimeProvider, BrowserTimeProvider>();
+
 builder.Services.AddDbContext<ModelContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("ArchitectureDatabase")));
 

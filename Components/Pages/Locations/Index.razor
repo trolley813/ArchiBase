@@ -128,8 +128,8 @@ else
 
     protected override void OnParametersSet()
     {
-        location = ModelContext.Locations.Include(loc => loc.Children).ThenInclude(loc => loc.Streets).FirstOrDefault(loc =>
-        loc.Id == Id);
+        location = ModelContext.Locations.Include(loc => loc.Parent).Include(loc => loc.Children).ThenInclude(loc =>
+        loc.Streets).FirstOrDefault(loc => loc.Id == Id);
         ChildLocations = location?.Children.OrderBy(loc => loc.Name).ToList() ?? ModelContext.Locations.Include(loc =>
         loc.Children).Where(loc => loc.Parent == null).OrderBy(loc => loc.Name).ToList();
         HierarchyPath.Clear();

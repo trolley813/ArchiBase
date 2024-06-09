@@ -86,4 +86,6 @@ public class Building : IAuditable
         Events.FirstOrDefault(e => e.Type == type)?.Date;
 
     public Location Location { get; set; }
+
+    public List<Architect> Architects { get; set; }
 }

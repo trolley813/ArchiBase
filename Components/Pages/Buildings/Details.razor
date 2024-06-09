@@ -1,6 +1,7 @@
 @page "/buildings/{id:guid}"
 @using Microsoft.EntityFrameworkCore
 @inject ModelContext ModelContext
+@inject UserManager<ArchiBaseUser> UserManager
 
 
 @if (building != null)
@@ -44,7 +45,7 @@
             </RadzenCard>
         </RadzenColumn>
     </RadzenRow>
-    <RadzenText TextStyle=" TextStyle.H6">Details</RadzenText>
+    <RadzenText TextStyle="TextStyle.H6">Details</RadzenText>
     <RadzenRow>
         <RadzenText>@((MarkupString)building.Description)</RadzenText>
     </RadzenRow>
@@ -82,6 +83,31 @@
             }
         </Tabs>
     </RadzenTabs>
+    <RadzenText TextStyle="TextStyle.H6">Photos (@(photos.Count))</RadzenText>
+    <RadzenDataGrid Data="photos">
+        <Columns>
+            <RadzenDataGridColumn Title="Photo">
+                <Template Context="photo">
+                    <RadzenLink Path="@($"/photos/{photo.Id}")" Text="Photo" Target="_blank">
+                        <RadzenImage Path=@(photo.PhotoLink)
+                            Style="display:block;margin:auto;max-height:200px;max-width:400px;height:auto;width:auto;"
+                            AlternateText="Photo not available" />
+                    </RadzenLink>
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="Details">
+                <Template Context="photo">
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@(photo.ShootingDate)</b></RadzenText>
+                    <RadzenText TextStyle="TextStyle.Overline">
+                        @(photo.NonAuthor ? "Sent" : "Author"):
+                        @(UserManager.Users.FirstOrDefault(u => u.Id == photo.AuthorId)?.UserName)
+                    </RadzenText>
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+
+    <CommentView EntityId="building.Id" />
 }
 
 @code
@@ -90,6 +116,9 @@
     public Guid Id { get; set; }
 
     Building? building;
+    String? authorName;
+
+    List<Photo> photos = [];
 
     protected override void OnParametersSet()
     {
@@ -102,6 +131,8 @@
         .ThenInclude(c => c.Design)
         .ThenInclude(d => d.CatalogueEntries)
         .ThenInclude(e => e.Catalogue).FirstOrDefault(b => b.Id == Id);
+        photos = ModelContext.BuildingBinds.Where(b => b.Building == building)
+        .Select(b => b.Photo).OrderByDescending(p => p.ShootingDate.Date).ToList();
     }
 
     public PointStyle GetPointStyleByEventType(BuildingEventType eventType) => eventType switch

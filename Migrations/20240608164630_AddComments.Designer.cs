@@ -3,6 +3,7 @@ using System;
 using ArchiBase.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ArchiBase.Migrations
 {
     [DbContext(typeof(ModelContext))]
-    partial class ModelContextModelSnapshot : ModelSnapshot
+    [Migration("20240608164630_AddComments")]
+    partial class AddComments
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -418,28 +421,6 @@ namespace ArchiBase.Migrations
                     b.ToTable("Photos");
                 });
 
-            modelBuilder.Entity("ArchiBase.Models.PhotoVote", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("AuthorId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("PhotoId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Vote")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PhotoId");
-
-                    b.ToTable("PhotoVote");
-                });
-
             modelBuilder.Entity("ArchiBase.Models.Street", b =>
                 {
                     b.Property<Guid>("Id")
@@ -828,17 +809,6 @@ namespace ArchiBase.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ArchiBase.Models.PhotoVote", b =>
-                {
-                    b.HasOne("ArchiBase.Models.Photo", "Photo")
-                        .WithMany("Votes")
-                        .HasForeignKey("PhotoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Photo");
-                });
-
             modelBuilder.Entity("ArchiBase.Models.Street", b =>
                 {
                     b.HasOne("ArchiBase.Models.Location", "Location")
@@ -973,8 +943,6 @@ namespace ArchiBase.Migrations
             modelBuilder.Entity("ArchiBase.Models.Photo", b =>
                 {
                     b.Navigation("BuildingBinds");
-
-                    b.Navigation("Votes");
                 });
 #pragma warning restore 612, 618
         }

@@ -5,7 +5,16 @@
     <RadzenPanelMenuItem Text=@Loc["Locations"] Icon="location_city" Path="locations" />
     <RadzenPanelMenuItem Text=@Loc["Catalogues"] Icon="menu_book" Path="catalogues" />
     <RadzenPanelMenuItem Text=@Loc["Series and Designs"] Icon="architecture" Path="series">
-        <RadzenPanelMenuItem Text=@Loc["Categories"] Path="categories" Icon="category" />
+        <RadzenPanelMenuItem Text=@Loc["Categories"] Icon="category" Path="categories" />
+    </RadzenPanelMenuItem>
+    <RadzenPanelMenuItem Text=@Loc["Comments"] Icon="comment" Path="comments">
+        <RadzenPanelMenuItem Icon="new" Path="comments/new">
+            <Template>
+                @Loc["New"]&emsp;
+                <RadzenBadge IsPill=true Text="123" />
+            </Template>
+
+        </RadzenPanelMenuItem>
     </RadzenPanelMenuItem>
     <RadzenPanelMenuItem Text=@Loc["Editorial board"] Icon="groups" Path="editorial" />
     <RadzenPanelMenuItem Text=@Loc["Pages"] Icon="description" Path="pages" />

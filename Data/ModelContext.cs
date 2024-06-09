@@ -19,6 +19,7 @@ class ModelContext : DbContext
     public DbSet<DesignCatalogueEntry> DesignCatalogueEntries { get; set; }
 
     public DbSet<DesignCategory> DesignCategories { get; set; }
+    public DbSet<Architect> Architects { get; set; }
 
     public DbSet<Translation> Translation { get; set; }
 
@@ -28,6 +29,14 @@ class ModelContext : DbContext
     public DbSet<BuildingCard> BuildingCards { get; set; }
     public DbSet<BuildingEvent> BuildingEvents { get; set; }
     public DbSet<Building> Buildings { get; set; }
+
+    public DbSet<License> Licenses { get; set; }
+    public DbSet<BuildingBind> BuildingBinds { get; set; }
+    public DbSet<Photo> Photos { get; set; }
+
+    public DbSet<Comment> Comments { get; set; }
+
+    public DbSet<CommentVote> CommentVotes { get; set; }
 
     public DbSet<AuditRecord> AuditRecords { get; set; }
 
@@ -53,8 +62,14 @@ class ModelContext : DbContext
 
         modelBuilder.Entity<Building>().HasMany(e => e.Events).WithOne(e => e.Building);
 
+        modelBuilder.Entity<Photo>()
+            .Property(e => e.Extension)
+            .HasDefaultValue("jpg");
+
         modelBuilder.Entity<BuildingEvent>().OwnsOne(e => e.Date);
         modelBuilder.Entity<BuildingCard>().OwnsOne(e => e.ActualFrom);
+        modelBuilder.Entity<Photo>().OwnsOne(e => e.ShootingDate);
+        modelBuilder.Entity<BuildingBind>().OwnsOne(e => e.Markup);
     }
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)

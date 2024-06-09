@@ -1,0 +1,57 @@
+@page "/architects/{id:guid}"
+@using Microsoft.EntityFrameworkCore
+@inject ModelContext ModelContext
+@inject IStringLocalizer<Details> Loc
+
+@if (architect is not null)
+{
+    <RadzenText TextStyle="TextStyle.H4">@(architect.AbbreviatedName)</RadzenText>
+    <RadzenCard>
+        <RadzenText TextStyle="TextStyle.H5">@(architect.FullName)</RadzenText>
+        <RadzenRow>
+            <RadzenColumn>
+                @if (architect.DateOfBirth is not null || architect.DateOfDeath is not null)
+                {
+                    <RadzenText TextStyle="TextStyle.Overline">@Loc["Lifespan"]</RadzenText>
+                }
+                @if (architect.DateOfBirth is not null && architect.DateOfDeath is null)
+                {
+                    <RadzenText TextStyle="TextStyle.H5">@Loc["born"] @(architect.DateOfBirth)</RadzenText>
+                }
+                @if (architect.DateOfBirth is null && architect.DateOfDeath is not null)
+                {
+                    <RadzenText TextStyle="TextStyle.H5">@Loc["died"] @(architect.DateOfDeath)</RadzenText>
+                }
+                @if (architect.DateOfBirth is not null && architect.DateOfDeath is not null)
+                {
+                    <RadzenText TextStyle="TextStyle.H5">@(architect?.DateOfBirth) — @(architect?.DateOfDeath)</RadzenText>
+                }
+            </RadzenColumn>
+        </RadzenRow>
+    </RadzenCard>
+
+    <RadzenText TextStyle="TextStyle.H5">@Loc["Designs"]</RadzenText>
+    <RadzenDataGrid Data="architect.Designs">
+
+    </RadzenDataGrid>
+
+    <RadzenText TextStyle="TextStyle.H5">@Loc["Buildings"]</RadzenText>
+    <RadzenDataGrid Data="architect.Buildings">
+
+    </RadzenDataGrid>
+
+}
+
+@code
+{
+    [Parameter]
+    public Guid Id { get; set; }
+    Architect? architect;
+
+    protected override void OnParametersSet()
+    {
+        architect = ModelContext.Architects
+        .Include(a => a.Buildings).Include(a => a.Designs)
+        .FirstOrDefault(a => a.Id == Id);
+    }
+}

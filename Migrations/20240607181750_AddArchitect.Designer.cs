@@ -3,6 +3,7 @@ using System;
 using ArchiBase.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ArchiBase.Migrations
 {
     [DbContext(typeof(ModelContext))]
-    partial class ModelContextModelSnapshot : ModelSnapshot
+    [Migration("20240607181750_AddArchitect")]
+    partial class AddArchitect
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -160,52 +163,6 @@ namespace ArchiBase.Migrations
                     b.HasIndex("BuildingId");
 
                     b.ToTable("BuildingEvents");
-                });
-
-            modelBuilder.Entity("ArchiBase.Models.Comment", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("AuthorId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("EntityId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("PublicationDate")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Comments");
-                });
-
-            modelBuilder.Entity("ArchiBase.Models.CommentVote", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("AuthorId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("CommentId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Vote")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CommentId");
-
-                    b.ToTable("CommentVotes");
                 });
 
             modelBuilder.Entity("ArchiBase.Models.Design", b =>
@@ -416,28 +373,6 @@ namespace ArchiBase.Migrations
                     b.HasIndex("LicenseId");
 
                     b.ToTable("Photos");
-                });
-
-            modelBuilder.Entity("ArchiBase.Models.PhotoVote", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("AuthorId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("PhotoId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Vote")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PhotoId");
-
-                    b.ToTable("PhotoVote");
                 });
 
             modelBuilder.Entity("ArchiBase.Models.Street", b =>
@@ -745,17 +680,6 @@ namespace ArchiBase.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ArchiBase.Models.CommentVote", b =>
-                {
-                    b.HasOne("ArchiBase.Models.Comment", "Comment")
-                        .WithMany("Votes")
-                        .HasForeignKey("CommentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Comment");
-                });
-
             modelBuilder.Entity("ArchiBase.Models.DesignCatalogueEntry", b =>
                 {
                     b.HasOne("ArchiBase.Models.DesignCatalogue", "Catalogue")
@@ -826,17 +750,6 @@ namespace ArchiBase.Migrations
 
                     b.Navigation("ShootingDate")
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("ArchiBase.Models.PhotoVote", b =>
-                {
-                    b.HasOne("ArchiBase.Models.Photo", "Photo")
-                        .WithMany("Votes")
-                        .HasForeignKey("PhotoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Photo");
                 });
 
             modelBuilder.Entity("ArchiBase.Models.Street", b =>
@@ -943,11 +856,6 @@ namespace ArchiBase.Migrations
                     b.Navigation("StreetAddresses");
                 });
 
-            modelBuilder.Entity("ArchiBase.Models.Comment", b =>
-                {
-                    b.Navigation("Votes");
-                });
-
             modelBuilder.Entity("ArchiBase.Models.Design", b =>
                 {
                     b.Navigation("CatalogueEntries");
@@ -973,8 +881,6 @@ namespace ArchiBase.Migrations
             modelBuilder.Entity("ArchiBase.Models.Photo", b =>
                 {
                     b.Navigation("BuildingBinds");
-
-                    b.Navigation("Votes");
                 });
 #pragma warning restore 612, 618
         }
