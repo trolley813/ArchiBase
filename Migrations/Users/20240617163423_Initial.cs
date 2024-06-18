@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -34,6 +35,9 @@ namespace ArchiBase.Migrations.Users
                     DateOfBirth = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     Bio = table.Column<string>(type: "text", nullable: false),
                     IsEnabled = table.Column<bool>(type: "boolean", nullable: false),
+                    Locations = table.Column<List<Guid>>(type: "uuid[]", nullable: false),
+                    MyLocation = table.Column<Guid>(type: "uuid", nullable: true),
+                    LastReadCommentTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),

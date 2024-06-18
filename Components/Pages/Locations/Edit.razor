@@ -1,6 +1,8 @@
 @page "/locations/{id:guid}/edit"
 @inject ModelContext ModelContext
 @inject NotificationService NotificationService
+@inject ITreeRepository<Location, Guid> TreeRepo
+
 
 
 @if (location is not null)
@@ -16,7 +18,7 @@
             <RadzenTextBox @bind-Value="@location.Flag" />
         </RadzenFormField>
         <RadzenFormField Text="Parent">
-            <RadzenDropDown @bind-Value="@location.Parent" Data="Locations" TextProperty="Name">
+            <RadzenDropDown @bind-Value="@parent" Data="Locations" TextProperty="Name">
             </RadzenDropDown>
         </RadzenFormField>
         <RadzenFormField Text="Description">
@@ -45,17 +47,19 @@
 @code
 {
     [Parameter]
-    public Guid? Id { get; set; }
+    public Guid Id { get; set; }
     Location? location;
+
+    Location? parent;
 
     Map map = null!;
 
-    IEnumerable<Location> Locations { get; set; }
+    List<Location> Locations { get; set; }
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        Locations = ModelContext.Locations;
-        location = Locations.FirstOrDefault(loc => loc.Id == Id);
+        Locations = ModelContext.Locations.ToList();
+        location = await TreeRepo.GetByIdAsync(Id);
     }
 
     protected override void OnAfterRender(bool firstRender)
@@ -66,10 +70,11 @@
         }
     }
 
-    public void Save()
+    public async Task Save()
     {
         try
         {
+            await TreeRepo.SetParentAsync(location, parent);
             ModelContext.SaveChanges();
             NotificationService.Notify(new NotificationMessage
                 {

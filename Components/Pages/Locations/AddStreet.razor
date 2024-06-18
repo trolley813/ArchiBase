@@ -145,7 +145,7 @@
                 {
                     ActualFrom = events.FirstOrDefault(e => e.Type == BuildingEventType.ConstructionFinished)?.Date.Clone() ?? new(),
                     Name = name,
-                    Design = buildingEntry.Design,
+                    Parts = [new BuildingPart() { Design = buildingEntry.Design }],
                     StreetAddresses = [new StreetAddress { Street = street, HouseNumber = buildingEntry.Number }]
                 };
             Building building = new()

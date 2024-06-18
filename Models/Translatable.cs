@@ -1,4 +1,4 @@
-class Translation
+public class Translation
 {
     public Guid Id { get; set; }
     public Guid ObjectId { get; set; }

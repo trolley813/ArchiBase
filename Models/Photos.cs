@@ -61,6 +61,8 @@ public class Photo : IAuditable
 
 
     public string PhotoLink => $"/data/photos/{Id.ToString()[..8]}/{Id}.{Extension}";
+
+    public bool IsHidden { get; set; }
 }
 
 public class PhotoVote

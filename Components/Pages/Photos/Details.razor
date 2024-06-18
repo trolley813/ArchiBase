@@ -108,12 +108,12 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        photo = ModelContext.Photos
+        photo = await ModelContext.ActivePhotos
         .Include(p => p.BuildingBinds).ThenInclude(b => b.Building).ThenInclude(b => b.Location)
         .Include(p => p.BuildingBinds).ThenInclude(b => b.Building).ThenInclude(b => b.Cards).ThenInclude(c =>
         c.StreetAddresses).ThenInclude(a => a.Street)
         .Include(p => p.License)
-        .FirstOrDefault(p => p.Id == Id);
+        .FirstOrDefaultAsync(p => p.Id == Id);
         author = await UserManager.FindByIdAsync(photo?.AuthorId.ToString());
     }
 

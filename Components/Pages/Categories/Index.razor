@@ -1,10 +1,11 @@
 @page "/categories/{id:guid?}"
 @using Microsoft.EntityFrameworkCore
 @inject ModelContext ModelContext
+@inject ITreeRepository<DesignCategory, Guid> TreeRepo
 
 <RadzenBreadCrumb>
 
-    <RadzenBreadCrumbItem Text="Catalogue" Path=@($"/categories") />
+    <RadzenBreadCrumbItem Text="Categories" Path=@($"/categories") />
     @foreach (DesignCategory cat in HierarchyPath)
     {
         <RadzenBreadCrumbItem Text="@(cat.Name)" Path=@($"/categories/{cat.Id}") />
@@ -21,11 +22,12 @@
 </RadzenBreadCrumb>
 @if (category is not null)
 {
+    <ArchibasePageTitle Title=@(category.Name) />
     <RadzenLink Text="Edit" Icon="edit" Path="@($"categories/{category.Id}/edit")" />
     <RadzenLink Text="Delete" Icon="delete" Path="@($"categories/{category.Id}/delete")" />
 }
 
-@if (ChildCategories.Count != 0)
+@if (ChildCategories.Any())
 {
 
     <RadzenRow>
@@ -62,6 +64,8 @@
             </RadzenDataGridColumn>
         </Columns>
     </RadzenDataGrid>
+
+    <CommentView EntityId="category.Id" />
 }
 
 @code
@@ -71,24 +75,18 @@
     public Guid? Id { get; set; }
 
     public List<DesignCategory> HierarchyPath { get; set; } = [];
-    public List<DesignCategory> ChildCategories { get; set; } = [];
+    public List<DesignCategory?> ChildCategories { get; set; } = [];
 
     DesignCategory? category;
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
-        ModelContext.DesignCategories.Include(c => c.Parent).Include(c => c.Children).ToList();
-        category = ModelContext.DesignCategories.Include(c => c.Children).Include(c => c.Designs)
-        .FirstOrDefault(c => c.Id == Id);
-        ChildCategories = category?.Children.OrderBy(cat => cat.Name).ToList() ?? ModelContext.DesignCategories.Include(cat =>
-        cat.Children).Where(cat => cat.Parent == null).OrderBy(cat => cat.Name).ToList();
-        HierarchyPath.Clear();
-        DesignCategory? cat = category;
-        while (cat != null)
+        category = await ModelContext.DesignCategories.Include(c => c.Designs).FirstOrDefaultAsync(cat => cat.Id == Id);
+        ChildCategories = await (category is null ? TreeRepo.QueryRoots() : TreeRepo.QueryChildren(category)).ToListAsync();
+        if (category is not null)
         {
-            HierarchyPath.Add(cat);
-            cat = cat?.Parent;
+            HierarchyPath = (await TreeRepo.GetPathFromRootAsync(category)).ToList();
+            HierarchyPath.Add(category);
         }
-        HierarchyPath.Reverse();
     }
 }

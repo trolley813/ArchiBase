@@ -1,14 +1,30 @@
 @using Microsoft.EntityFrameworkCore
 @inject ModelContext ModelContext
+@inject UsersContext UsersContext
 @inject UserManager<ArchiBaseUser> UserManager
 @inject IStringLocalizer<CommentView> Loc
 @inject NotificationService NotificationService
 @inject TooltipService TooltipService
+@inject UserResolverService UserResolverService
+@inject CommentService CommentService
+@inject NavigationManager NavigationManager
 
 <RadzenText TextStyle="TextStyle.H5">@Loc["Comments"] (@(comments.Count()))</RadzenText>
 
+@if (ShowMode == CommentShowMode.New)
+{
+    <RadzenText TextStyle="TextStyle.Body1">@Loc["New comments written after:"]</RadzenText>
+    <RadzenText>
+        <b>
+            <LocalTime DateTime=lastReadTime />
+        </b>
+    </RadzenText>
+    <RadzenButton Text=@Loc["Mark all as read"] Icon="done_all" Click="args => OnMark()" />
+}
+
 <RadzenDataList Data="comments" AllowPaging=@(ShowMode != CommentShowMode.ByEntity) ShowPagingSummary=@(ShowMode !=
-    CommentShowMode.ByEntity) PageSize="20" PagerAlwaysVisible=@(ShowMode != CommentShowMode.ByEntity)>
+    CommentShowMode.ByEntity) PageSize="20" PagerAlwaysVisible=@(ShowMode != CommentShowMode.ByEntity)
+    @ref="commentsList">
     <Template Context="comment">
         <RadzenCard>
             <RadzenText TextStyle="TextStyle.Subtitle1">
@@ -22,6 +38,11 @@
                     @(comment.VotesCount)</RadzenText>
                 <RadzenButton Icon="keyboard_arrow_down" Size="ButtonSize.ExtraSmall" />
             </RadzenStack>
+            @if (ShowMode == CommentShowMode.New)
+            {
+                <RadzenButton Text=@Loc["Mark up to this comment as read"] Icon="check" Size="ButtonSize.Small"
+                    Click="args => OnMark(comment.PublicationDate)" />
+            }
         </RadzenCard>
     </Template>
 </RadzenDataList>
@@ -31,11 +52,15 @@
     <CascadingAuthenticationState>
     <AuthorizeView Context="actx">
         <RadzenTemplateForm Data="commentText">
-            <RadzenFormField Text=@Loc["Add comment"]>
-                <RadzenHtmlEditor @bind-Value="commentText" />
-            </RadzenFormField>
-            <RadzenButton ButtonType="ButtonType.Submit" Icon="add" Text=@Loc["Add comment"]
-                Click="args => AddComment(actx.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value)" />
+            <RadzenStack Orientation="Orientation.Vertical">
+                <RadzenFormField Text=@Loc["Add comment"]>
+                    <RadzenHtmlEditor @bind-Value="commentText" Style="height: 300px" />
+                </RadzenFormField>
+                <RadzenFormField>
+                    <RadzenButton ButtonType="ButtonType.Submit" Icon="add" Text=@Loc["Add comment"]
+                        Click="args => AddComment()" />
+                </RadzenFormField>
+            </RadzenStack>
         </RadzenTemplateForm>
     </AuthorizeView>
 </CascadingAuthenticationState>
@@ -60,67 +85,103 @@
 
     Dictionary<Guid, string> commentAuthors = [];
 
+    RadzenDataList<Comment> commentsList;
+
     string commentText = "";
+
+    DateTime? lastReadTime;
 
     protected override void OnParametersSet()
     {
-
+        if (ShowMode == CommentShowMode.New)
+        {
+            lastReadTime = CommentService.GetLastReadTimeForCurrentUser();
+        }
         comments = ShowMode switch
         {
             CommentShowMode.ByEntity => ModelContext.Comments.Where(c => c.EntityId == EntityId).OrderBy(c
             => c.PublicationDate).Include(c => c.Votes),
             CommentShowMode.All => ModelContext.Comments.OrderByDescending(c
             => c.PublicationDate).Include(c => c.Votes),
-            CommentShowMode.New => ModelContext.Comments.OrderBy(c
-            => c.PublicationDate).Include(c => c.Votes),
+            CommentShowMode.New => ModelContext.Comments.Where(c => c.PublicationDate > lastReadTime)
+            .OrderBy(c => c.PublicationDate).Include(c => c.Votes),
             _ => []
         };
         var authorIds = comments.Select(c => c.AuthorId).Distinct();
         commentAuthors = UserManager.Users.Where(u => authorIds.Contains(u.Id))
         .Select(u => new { u.Id, u.UserName }).ToDictionary(x => x.Id, x => x.UserName ?? "(unnamed)");
+
     }
 
-    void AddComment(string? userId)
+    void AddComment()
     {
-        if (Guid.TryParse(userId, out Guid userGuid))
+        var userGuid = UserResolverService.GetUser();
+        var user = UserManager.Users.FirstOrDefault(u => u.Id == userGuid);
+        if (user is not null)
         {
-            var user = UserManager.Users.FirstOrDefault(u => u.Id == userGuid);
-            if (user is not null)
+            var comment = new Comment()
+                {
+                    AuthorId = userGuid,
+                    PublicationDate = DateTime.UtcNow,
+                    EntityId = EntityId,
+                    Text = commentText
+                };
+            ModelContext.Comments.Add(comment);
+            try
             {
-                var comment = new Comment()
+                ModelContext.SaveChanges();
+                NotificationService.Notify(new NotificationMessage
                     {
-                        AuthorId = userGuid,
-                        PublicationDate = DateTime.Now,
-                        EntityId = EntityId,
-                        Text = commentText
-                    };
-                ModelContext.Comments.Add(comment);
-                try
-                {
-                    ModelContext.SaveChanges();
-                    NotificationService.Notify(new NotificationMessage
-                        {
-                            Severity = NotificationSeverity.Success,
-                            Summary = "Comment added",
-                            Detail = $"Your comment was saved!"
-                        });
-                    this.StateHasChanged();
-                }
-                catch (Exception e)
-                {
-                    NotificationService.Notify(new NotificationMessage
-                        {
-                            Severity = NotificationSeverity.Error,
-                            Summary = "Error occured",
-                            Detail = $"{e.Message}"
-                        });
-                }
+                        Severity = NotificationSeverity.Success,
+                        Summary = "Comment added",
+                        Detail = $"Your comment was saved!"
+                    });
+                //this.StateHasChanged();
+            }
+            catch (Exception e)
+            {
+                NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Error,
+                        Summary = "Error occured",
+                        Detail = $"{e.Message}"
+                    });
             }
         }
+
     }
 
     void ShowVotesTooltip(ElementReference elementReference, Comment comment)
     {
         TooltipService.Open(elementReference, $"+{comment.UpvotesCount}/-{comment.DownvotesCount}");
+    }
+
+    void OnMark(DateTime? dateTime = null)
+    {
+        var user = UserManager.Users.FirstOrDefault(u => u.Id == UserResolverService.GetUser());
+        if (user is not null)
+        {
+            user.LastReadCommentTime = dateTime ?? DateTime.UtcNow;
+            try
+            {
+                UsersContext.SaveChanges();
+                NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Success,
+                        Summary = "Comments read",
+                        Detail = $"Comments are marked as read!"
+                    });
+                NavigationManager.Refresh(forceReload: true);
+            }
+            catch (Exception e)
+            {
+                NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Error,
+                        Summary = "Error occured",
+                        Detail = $"{e.Message}"
+                    });
+            }
+        }
     }
 }

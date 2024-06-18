@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ArchiBase.Data;
 
-class ModelContext : DbContext
+public class ModelContext : DbContext
 {
     UserResolverService service;
 
@@ -34,9 +34,13 @@ class ModelContext : DbContext
     public DbSet<BuildingBind> BuildingBinds { get; set; }
     public DbSet<Photo> Photos { get; set; }
 
+    public IQueryable<Photo> ActivePhotos => Photos.Where(p => !p.IsHidden);
+
     public DbSet<Comment> Comments { get; set; }
 
     public DbSet<CommentVote> CommentVotes { get; set; }
+
+    public DbSet<NewsItem> NewsItems { get; set; }
 
     public DbSet<AuditRecord> AuditRecords { get; set; }
 
@@ -65,6 +69,8 @@ class ModelContext : DbContext
         modelBuilder.Entity<Photo>()
             .Property(e => e.Extension)
             .HasDefaultValue("jpg");
+
+        modelBuilder.Entity<BuildingCard>().HasMany(e => e.Categories).WithMany(e => e.BuildingCards);
 
         modelBuilder.Entity<BuildingEvent>().OwnsOne(e => e.Date);
         modelBuilder.Entity<BuildingCard>().OwnsOne(e => e.ActualFrom);

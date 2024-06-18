@@ -1,3 +1,11 @@
+## 0.1.3 (2024-06-18)
+- new porting features
+- fixes in design and code
+- *Warning:* Migrations are reset
+
+## 0.1.2 (2024-06-09)
+- Added most of the entities needed to port PB data backup
+
 ## 0.1.1 (2024-05-31)
 - Applying migrations from inside Docker
 - Added `docker-compose` example into `README.md`

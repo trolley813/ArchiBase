@@ -4,10 +4,13 @@
 @inject UserManager<ArchiBaseUser> UserManager
 @inject NotificationService NotificationService
 @inject IStringLocalizer<Register> Loc
+@inject IConfiguration Configuration
 
 <ArchibasePageTitle Title=@Loc["Register"] />
 
-<RadzenCard>
+@if (!Configuration.GetValue<bool>("DisableRegistration", true))
+{
+    <RadzenCard>
     <RadzenText TextStyle="TextStyle.H4">Register</RadzenText>
     <RadzenTemplateForm TItem="Model" Data="@model" Submit=@OnSubmit InvalidSubmit=@OnInvalidSubmit>
         <RadzenStack>
@@ -43,6 +46,15 @@
 
     </RadzenTemplateForm>
 </RadzenCard>
+}
+else
+{
+    <RadzenAlert AllowClose="false" Title=@Loc["Registration is temporarily disabled"] AlertStyle="AlertStyle.Danger"
+    Variant="Variant.Flat" Shade="Shade.Lighter">
+    @Loc["If you have had an account, please use the reset password form"]
+    <RadzenLink Text=@Loc["Reset password"] Path="resetpassword" />
+</RadzenAlert>
+}
 
 @code
 {

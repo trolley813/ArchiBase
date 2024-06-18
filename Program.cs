@@ -5,6 +5,9 @@ using ArchiBase.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using ArchiBase.Utils;
+using ArchiBase.Models;
+using EFMaterializedPath.Extensions;
+using EFMaterializedPath;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +23,10 @@ builder.Services.AddTransient<TimeProvider, BrowserTimeProvider>();
 builder.Services.AddDbContext<ModelContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("ArchitectureDatabase")));
 
+builder.Services.AddSingleton<IIdentifierSerializer<Guid>, GuidIdentifierSerializer>();
+builder.Services.AddTreeRepository<ModelContext, Location, Guid>();
+builder.Services.AddTreeRepository<ModelContext, DesignCategory, Guid>();
+
 builder.Services.AddDbContext<UsersContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("ArchitectureDatabase")));
 
@@ -31,6 +38,9 @@ builder.Services.AddIdentity<ArchiBaseUser, ArchiBaseRole>(options =>
     .AddDefaultTokenProviders()
     .AddUserConfirmation<UserConfirmation>();
 
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("CanEdit", policy => policy.RequireRole("Admin", "Editor", "Local Editor"));
+
 builder.Services.AddSingleton<StateContainer>();
 
 builder.Services.AddLocalization(options => { options.ResourcesPath = "Resources"; });
@@ -38,6 +48,7 @@ builder.Services.AddLocalization(options => { options.ResourcesPath = "Resources
 builder.Services.AddScoped<IUserConfirmation<ArchiBaseUser>, UserConfirmation>();
 
 builder.Services.AddTransient<UserResolverService>();
+builder.Services.AddTransient<CommentService>();
 
 var app = builder.Build();
 
@@ -74,7 +85,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAntiforgery();
 
-var supportedCultures = new[] { "en-US", "ru-RU", "et-EE", "pl-PL" };
+var supportedCultures = new[] { "en-US", "ru-RU", "et-EE", "pl-PL", "be-BY", "de-DE" };
 
 app.UseRequestLocalization(new RequestLocalizationOptions()
     .SetDefaultCulture(supportedCultures[0])

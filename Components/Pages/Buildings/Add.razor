@@ -3,6 +3,7 @@
 @inject NotificationService NotificationService
 @inject NavigationManager NavigationManager
 @using ArchiBase.Components.Utils
+@using System.Text.RegularExpressions
 
 <CascadingAuthenticationState>
     <AuthorizeView>
@@ -75,7 +76,12 @@
                 </RadzenFormField>
                 <RadzenRow>
                     <RadzenFormField Text="Design">
-                        <RadzenDropDown @bind-Value="design" Data="Designs" TextProperty="Name" />
+                        <RadzenDropDown @bind-Value="design" Data="Designs" TextProperty="Name"
+                            AllowClear=true AllowFiltering=true />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Categories">
+                        <RadzenDropDown @bind-Value="selectedCategories" Data="Categories" TextProperty="Name"
+                            AllowClear=true AllowFiltering=true Multiple=true />
                     </RadzenFormField>
                     <RadzenFormField Text="Floor count">
                         <RadzenTextBox @bind-Value="@floorCount" />
@@ -117,14 +123,17 @@
     public List<Street> Streets { get; set; } = [];
 
     public List<Design> Designs { get; set; } = [];
+    public List<DesignCategory> Categories { get; set; } = [];
     List<BuildingEvent> events = [];
     List<StreetAddress> addresses = [];
 
     string searchText = "";
 
-    string name, description, floorCount;
+    string name = "", description = "", floorCount = "", builder = "", customer = "";
 
     Design? design;
+
+    List<DesignCategory> selectedCategories = [];
 
     List<BuildingEventType> eventTypes = Enum.GetValues(typeof(BuildingEventType)).Cast<BuildingEventType>().ToList();
 
@@ -132,6 +141,7 @@
     {
         Locations = ModelContext.Locations.ToList();
         Designs = ModelContext.Designs.ToList();
+        Categories = ModelContext.DesignCategories.ToList();
         location = Locations.FirstOrDefault(loc => loc.Id == LocId);
         SelectStreets();
     }
@@ -182,13 +192,21 @@
                 });
             return;
         }
+        List<BuildingPart> parts = [];
+        if (design is not null)
+        {
+            parts.Add(new() { Design = design });
+        }
         BuildingCard card = new()
             {
                 ActualFrom = events.FirstOrDefault(e => e.Type == BuildingEventType.ConstructionFinished)?.Date.Clone() ?? new(),
                 Name = name,
-                Design = design,
-                FloorCount = floorCount,
-                StreetAddresses = addresses
+                Parts = parts,
+                Categories = selectedCategories,
+                FloorCount = Array.ConvertAll(Regex.Matches(floorCount ?? "", "\\d+").Select(m => m.Value).ToArray(), Int32.Parse).ToList(),
+                StreetAddresses = addresses,
+                Builder = builder,
+                Customer = customer
             };
         Building building = new()
             {
@@ -197,7 +215,7 @@
                 Latitude = latitude,
                 Longitude = longitude,
                 Description = description,
-                Location = location
+                Location = location,
             };
         try
         {

@@ -1,17 +1,19 @@
+using EFMaterializedPath.Entity;
 using SmartFormat;
 
 namespace ArchiBase.Models;
 
-public class DesignCategory : IAuditable
+public class DesignCategory : IAuditable, IMaterializedPathEntity<Guid>
 {
     public Guid Id { get; set; }
 
     public string Name { get; set; }
-
-    public DesignCategory? Parent { get; set; }
-
-    public List<DesignCategory> Children { get; set; }
     public List<Design> Designs { get; set; }
+    public List<BuildingCard> BuildingCards { get; set; }
+    public string Path { get; set; }
+    public int Level { get; set; }
+    public Guid? ParentId { get; set; }
+
 }
 
 public class DesignCatalogue : IAuditable

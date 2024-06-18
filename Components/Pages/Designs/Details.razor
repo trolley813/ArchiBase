@@ -108,7 +108,8 @@
 
         if (design != null)
         {
-            buildingsByLocation = ModelContext.BuildingCards.Where(c => c.Design == design).Select(c => c.Building).GroupBy(b =>
+            buildingsByLocation = ModelContext.BuildingCards.Where(c => c.Parts.Any(p => p.Design == design)).Select(c =>
+            c.Building).GroupBy(b =>
             b.Location).Select(g => new Tuple<Location, int>(g.Key, g.Count())).ToList();
         }
     }

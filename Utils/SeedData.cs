@@ -19,6 +19,11 @@ public class SeedData
             {
                 var results = await roleManager.CreateAsync(new ArchiBaseRole("Editor"));
             }
+            ArchiBaseRole? localEditorRole = await roleManager.FindByNameAsync("Local Editor");
+            if (localEditorRole == null)
+            {
+                var results = await roleManager.CreateAsync(new ArchiBaseRole("Local Editor"));
+            }
         }
         var userManager = serviceProvider.GetRequiredService<UserManager<ArchiBaseUser>>();
         if (userManager != null)
@@ -37,7 +42,7 @@ public class SeedData
                 };
                 await userManager.CreateAsync(admin, "1Password!");
             }
-            await userManager.AddToRolesAsync(admin, ["Admin", "Editor"]);
+            await userManager.AddToRolesAsync(admin, ["Admin", "Editor", "Local Editor"]);
         }
     }
 }

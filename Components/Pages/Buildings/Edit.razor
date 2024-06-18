@@ -98,19 +98,19 @@
                                         <RadzenRow>
                                             <ImpreciseDateInput @bind-Value="card.ActualFrom" FieldName="Actual from" />
                                         </RadzenRow>
-                                        <RadzenRow>
-                                            <RadzenColumn>
-                                                <RadzenFormField Text="Design">
-                                                    <RadzenDropDown @bind-Value="card.Design" Data="Designs"
-                                                        TextProperty="Name" />
-                                                </RadzenFormField>
-                                            </RadzenColumn>
-                                            <RadzenColumn>
-                                                <RadzenFormField Text="Floor count">
-                                                    <RadzenTextBox @bind-Value="card.FloorCount" />
-                                                </RadzenFormField>
-                                            </RadzenColumn>
-                                        </RadzenRow>
+                                        @* <RadzenRow>
+                                <RadzenColumn>
+                                <RadzenFormField Text="Design">
+                                <RadzenDropDown @bind-Value="card.Design" Data="Designs"
+                                TextProperty="Name" />
+                                </RadzenFormField>
+                                </RadzenColumn>
+                                <RadzenColumn>
+                                <RadzenFormField Text="Floor count">
+                                <RadzenTextBox @bind-Value="card.FloorCount" />
+                                </RadzenFormField>
+                                </RadzenColumn>
+                                </RadzenRow> *@
                                         <RadzenRow>
                                             <RadzenColumn>
                                                 <RadzenFormField Text="Name">
@@ -164,7 +164,8 @@
         .ThenInclude(c => c.StreetAddresses)
         .ThenInclude(a => a.Street)
         .Include(b => b.Cards)
-        .ThenInclude(c => c.Design)
+        .ThenInclude(c => c.Parts)
+        .ThenInclude(p => p.Design)
         .ThenInclude(d => d.CatalogueEntries)
         .ThenInclude(e => e.Catalogue).FirstOrDefault(b => b.Id == Id);
 
@@ -208,9 +209,9 @@
     {
         BuildingCard card = new()
             {
-                Design = building.Cards.LastOrDefault()?.Design!,
+                //Design = building.Cards.LastOrDefault()?.Design!,
                 Name = building.Cards.LastOrDefault()?.Name ?? "",
-                FloorCount = building.Cards.LastOrDefault()?.FloorCount ?? "",
+                FloorCount = building.Cards.LastOrDefault()?.FloorCount ?? [],
             };
         building.Cards.Add(card);
     }

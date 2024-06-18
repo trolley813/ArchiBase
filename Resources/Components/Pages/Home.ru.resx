@@ -134,8 +134,16 @@
     <value>Всего местоположений</value>
     <comment/>
   </data>
-  <data name="Welcome to USSR (and other countries) Architectural Database" xml:space="preserve">
+  <data name="Welcome to USSR (and other countries) Architectural Database" xml:space="preserve">
     <value>Добро пожаловать на сайт архитектурной базы СССР и других стран</value>
+    <comment> </comment>
+  </data>
+  <data name="News" xml:space="preserve">
+    <value>Новости</value>
+    <comment> </comment>
+  </data>
+  <data name="All news" xml:space="preserve">
+    <value>Все новости</value>
     <comment> </comment>
   </data>
 </root>

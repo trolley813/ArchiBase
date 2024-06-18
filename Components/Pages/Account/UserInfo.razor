@@ -1,12 +1,14 @@
 @page "/users/{id:guid}"
 @inject UserManager<ArchiBaseUser> UserManager
+@inject ModelContext ModelContext
 @inject IStringLocalizer<UserInfo> Loc
+@inject ITreeRepository<Location, Guid> TreeRepo
 
 @if (user != null)
 {
     <ArchibasePageTitle Title=@Loc["User information"] />
     <RadzenCard>
-        <RadzenText TextStyle="TextStyle.H4">User information</RadzenText>
+        <RadzenText TextStyle="TextStyle.H4">@Loc["User information"] @(user.UserName)</RadzenText>
         @if (!user.IsEnabled)
         {
             <RadzenBadge Text="Disabled account" />
@@ -14,19 +16,30 @@
 
         <RadzenRow>
             <RadzenColumn>
-                <RadzenText TextStyle="TextStyle.Overline">Username</RadzenText>
+                <RadzenText TextStyle="TextStyle.Overline">@Loc["Username"]</RadzenText>
                 <RadzenText>@(user.UserName)</RadzenText>
+                @if (myLocation is not null)
+                {
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="3">
+                        @foreach (var flag in myLocationFlags)
+                        {
+                            <img src=@($"flags/{flag ?? "xx"}.svg") width="16px" />
+                        }
+                        <RadzenLink Text="@(myLocation.Name)" Path=@($"locations/{myLocation.Id}") />
+                    </RadzenStack>
+                }
             </RadzenColumn>
             <RadzenColumn>
-                <RadzenText TextStyle="TextStyle.Overline">Date of birth</RadzenText>
-                <RadzenText>@(user.DateOfBirth?.ToString("dd.MM.yyyy") ?? "not specified")</RadzenText>
+                <RadzenText TextStyle="TextStyle.Overline">@Loc["Date of birth"]</RadzenText>
+                <RadzenText>@(user.DateOfBirth?.ToString("dd.MM.yyyy") ?? @Loc["not specified"])</RadzenText>
             </RadzenColumn>
             <RadzenColumn>
-                <RadzenText TextStyle="TextStyle.Overline">Roles</RadzenText>
+                <RadzenText TextStyle="TextStyle.Overline">@Loc["Roles"]</RadzenText>
                 <RadzenStack Orientation="Orientation.Horizontal">
                     @foreach (var role in roles)
                     {
-                        <RadzenBadge Text="@(role)" IsPill=true />
+                        <RadzenBadge Text="@Loc[role]" IsPill=true BadgeStyle=@((BadgeStyle)((uint)role.GetHashCode() %
+                    Enum.GetValues(typeof(BadgeStyle)).Length)) />
                     }
                     @if (roles.Count == 0)
                     {
@@ -34,12 +47,30 @@
                     }
 
                 </RadzenStack>
-
             </RadzenColumn>
+            @if (roles.Contains("Local Editor"))
+            {
+                <RadzenColumn>
+                    <RadzenText TextStyle="TextStyle.Overline">@Loc["Locations"]</RadzenText>
+                    <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" Gap="8">
+                        @foreach (var location in locations)
+                        {
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap="3">
+                                @foreach (var flag in locationFlags[location])
+                                {
+                                    <img src=@($"flags/{flag ?? "xx"}.svg") width="16px" />
+                                }
+                                <RadzenLink Text="@(location.Name)" Path=@($"locations/{location.Id}") />
+                            </RadzenStack>
+                        }
+                    </RadzenStack>
+
+                </RadzenColumn>
+            }
         </RadzenRow>
         <RadzenRow Gap="8">
             <RadzenColumn>
-                <RadzenText TextStyle="TextStyle.Overline">bio</RadzenText>
+                <RadzenText TextStyle="TextStyle.Overline">@Loc["Bio"]</RadzenText>
                 <RadzenText>@((MarkupString)user.Bio)</RadzenText>
             </RadzenColumn>
 
@@ -48,7 +79,7 @@
 }
 else
 {
-    <RadzenAlert AllowClose="false" Title="Unauthorized" AlertStyle="AlertStyle.Danger" Variant="Variant.Flat"
+    <RadzenAlert AllowClose="false" Title="User not found" AlertStyle="AlertStyle.Danger" Variant="Variant.Flat"
     Shade="Shade.Lighter">User with specified ID not found.</RadzenAlert>
 }
 
@@ -59,12 +90,31 @@ else
 
     ArchiBaseUser? user;
     List<String> roles = [];
+    List<Location> locations = [];
+    Dictionary<Location, List<string?>> locationFlags = [];
+    List<string?> myLocationFlags = [];
+    Location? myLocation;
     protected override async Task OnParametersSetAsync()
     {
         user = await UserManager.FindByIdAsync(Id.ToString());
         if (user is not null)
         {
             roles = (await UserManager.GetRolesAsync(user)).ToList() ?? [];
+            locations = ModelContext.Locations.Where(loc => user.Locations.Contains(loc.Id)).ToList();
+            myLocation = ModelContext.Locations.FirstOrDefault(loc => loc.Id == user.MyLocation);
+            if (myLocation is not null)
+            {
+                myLocationFlags = (await TreeRepo.GetPathFromRootAsync(myLocation))
+                .Select(loc => loc.Flag).Where(f => f is not null && f != "xx").ToList();
+                myLocationFlags.Add(myLocation.Flag);
+            }
+            foreach (var loca in locations)
+            {
+                locationFlags[loca] = (await TreeRepo.GetPathFromRootAsync(loca))
+                .Select(loc => loc.Flag).Where(f => f is not null && f != "xx").ToList();
+                locationFlags[loca].Add(loca.Flag);
+            }
+
         }
         await base.OnParametersSetAsync();
     }

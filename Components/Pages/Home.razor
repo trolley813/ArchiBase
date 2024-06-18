@@ -42,14 +42,28 @@
     </RadzenColumn>
 </RadzenRow>
 
+
+<RadzenText TextStyle="TextStyle.H4" class="mx-4 my-4">@Loc["News"]</RadzenText>
+<RadzenLink Path="news" Text=@Loc["All news"] />
+@foreach(var n in news)
+{
+    <RadzenText>
+        <b><LocalTime DateTime="n.PublicationDate"/></b>
+        @((MarkupString)n.Text)
+    </RadzenText>
+}
+
 @code
 {
     int locationsCount, designsCount, buildingsCount;
+
+    List<NewsItem> news = [];
 
     protected override void OnInitialized()
     {
         locationsCount = ModelContext.Locations.Count();
         designsCount = ModelContext.Designs.Count();
         buildingsCount = ModelContext.Buildings.Count();
+        news = ModelContext.NewsItems.OrderByDescending(n => n.PublicationDate).Take(5).ToList();
     }
 }

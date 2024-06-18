@@ -2,6 +2,7 @@
 @using ArchiBase.Components.Utils
 @inject ModelContext ModelContext
 @inject NotificationService NotificationService
+@inject ITreeRepository<Location, Guid> TreeRepo
 
 
 @if (location is not null)
@@ -20,23 +21,25 @@
     public Guid Id { get; set; }
 
     Location? location;
+    int childrenCount = 0;
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
-        location = ModelContext.Locations.FirstOrDefault(c => c.Id == Id);
+        location = await TreeRepo.GetByIdAsync(Id);
+        childrenCount = location is not null ? TreeRepo.QueryChildren(location).Count() : 0;
     }
 
     void DeleteLocation()
     {
         if (location is null) return;
 
-        if (location.Children.Count != 0)
+        if (childrenCount != 0)
         {
             NotificationService.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
                     Summary = "Cannot delete location",
-                    Detail = $"This location has {location.Children.Count} child locations"
+                    Detail = $"This location has {childrenCount} child locations"
                 });
             return;
         }

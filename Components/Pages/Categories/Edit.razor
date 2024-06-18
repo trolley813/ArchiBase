@@ -1,0 +1,69 @@
+@page "/categories/{id:guid}/edit"
+@using ArchiBase.Components.Utils
+@inject NotificationService NotificationService
+@inject ModelContext ModelContext
+@inject ITreeRepository<DesignCategory, Guid> TreeRepo
+
+<EditorOnly>
+    <RadzenText TextStyle="TextStyle.H3">Add category</RadzenText>
+    <RadzenStack Orientation="Orientation.Vertical">
+        <RadzenFormField Text="Name">
+            <RadzenTextBox @bind-Value="@category.Name" />
+        </RadzenFormField>
+        <RadzenFormField Text="Parent">
+            <RadzenDropDown @bind-Value="@category.ParentId" @bind-SearchText="searchText" Data="Categories"
+                TextProperty="Name" AllowFiltering="true" AllowClear="true" ValueProperty="Id">
+            </RadzenDropDown>
+        </RadzenFormField>
+        <RadzenFormField>
+            <RadzenButton Text="Submit" Icon="save" Click="@Save" />
+        </RadzenFormField>
+    </RadzenStack>
+</EditorOnly>
+
+@code
+{
+
+    [Parameter]
+    public Guid Id { get; set; }
+
+    DesignCategory? category;
+    string searchText;
+
+    List<DesignCategory> Categories { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Categories = ModelContext.DesignCategories.ToList();
+        category = await TreeRepo.GetByIdAsync(Id);
+    }
+
+    public async Task Save()
+    {
+        DesignCategory? parentCategory = null;
+        if (category.ParentId is Guid parent)
+        {
+            parentCategory = await TreeRepo.GetByIdAsync(parent);
+        }
+        await TreeRepo.SetParentAsync(category, parentCategory);
+        try
+        {
+            await ModelContext.SaveChangesAsync();
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Category saved",
+                    Detail = $"ID: {category.Id}"
+                });
+        }
+        catch (Exception e)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"{e.Message}"
+                });
+        }
+    }
+}

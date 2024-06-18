@@ -12,7 +12,7 @@
     <RadzenTemplateForm Data=@model>
         <RadzenLogin AllowRegister="true" AllowResetPassword="true" Username=@model.Username Password=@model.Password
             RememberMe=@model.RememberMe Login="args => OnLogin(args)" Register="args => OnRegister()"
-            AllowRememberMe=true />
+            AllowRememberMe=true ResetPassword="args => OnResetPassword(args)" />
     </RadzenTemplateForm>
 </RadzenCard>
 
@@ -49,5 +49,10 @@
     {
         Log.LogInformation("Redirecting to registration");
         NavigationManager.NavigateTo("/register");
+    }
+
+    public void OnResetPassword(string value)
+    {
+        NavigationManager.NavigateTo("/resetpassword");
     }
 }

@@ -2,12 +2,17 @@
 @using Microsoft.EntityFrameworkCore
 @inject ModelContext ModelContext
 @inject UserManager<ArchiBaseUser> UserManager
+@inject IStringLocalizer<Details> Loc
 
 
 @if (building != null)
 {
-    <RadzenText TextStyle="TextStyle.H4">@(building.Location.Name + ", " + String.Join(" / ",
-    building.ActualCard?.StreetAddresses.Select(a => $"{a.Street.Name}, {a.HouseNumber}") ?? []))</RadzenText>
+    <ArchibasePageTitle Title=@buildingDisplayString />
+    <RadzenText TextStyle="TextStyle.H4">@buildingDisplayString</RadzenText>
+    @foreach (var sa in building.ActualCard?.StreetAddresses ?? [])
+    {
+        <RadzenLink Text=@($"{building.Location.Name}, {sa.Street.Name}") Path=@($"buildings/by-street/{sa.Street.Id}") />
+    }
     <RadzenLink Text="Edit" Icon="edit" Path=@($"buildings/{building.Id}/edit") />
     <RadzenRow>
         <RadzenColumn>
@@ -57,18 +62,37 @@
                 <RadzenTabsItem Text=@($"Card #{index} actual from {card.ActualFrom}")>
                     <RadzenCard>
                         <RadzenRow>
-                            <RadzenColumn>
-                                <RadzenText TextStyle="TextStyle.Overline">Design</RadzenText>
-                                <RadzenText TextStyle="TextStyle.Body1"><b>@(card.Design.Name)</b>
-                                </RadzenText>
-                                <RadzenText TextStyle="TextStyle.Body2"><i>@(String.Join(" · ",
-                                card.Design.CatalogueEntries.OrderBy(e => (e.Catalogue.Id,
-                                e.Code)).Select(e
-                                => e.Formatted)))</i></RadzenText>
-                            </RadzenColumn>
+                            @if (card.Parts.Any())
+                            {
+                                <RadzenColumn>
+
+                                    <RadzenText TextStyle="TextStyle.Overline">Design</RadzenText>
+                                    <RadzenRow>
+                                        @foreach (var part in card.Parts.OrderBy(p => p.Name))
+                                        {
+                                            <RadzenColumn>
+                                                <RadzenText TextStyle="TextStyle.Body1">
+                                                    @if (part.Name is not null)
+                                                    {
+                                                        <i>@(part.Name):</i>
+                                                    }
+                                                    <b>
+                                                        <RadzenLink Text=@(part.Design.Name) Path=@($"/series/{part.Design.Id}") />
+                                                    </b>
+                                                </RadzenText>
+                                                <RadzenText TextStyle="TextStyle.Body2"><i>@(String.Join(" · ",
+                                        part.Design.CatalogueEntries.OrderBy(e => (e.Catalogue.Id, e.Code)).Select(e =>
+                                        e.Formatted)))</i>
+                                                </RadzenText>
+                                            </RadzenColumn>
+                                        }
+                                    </RadzenRow>
+                                </RadzenColumn>
+                            }
                             <RadzenColumn>
                                 <RadzenText TextStyle="TextStyle.Overline">Floor count</RadzenText>
-                                <RadzenText TextStyle="TextStyle.Body1"><b>@(card.FloorCount)</b>
+                                <RadzenText TextStyle="TextStyle.Body1">
+                                    <b>@(String.Join("; ", card.FloorCount))</b>
                                 </RadzenText>
                             </RadzenColumn>
                         </RadzenRow>
@@ -76,6 +100,21 @@
                             <RadzenColumn>
                                 <RadzenText TextStyle="TextStyle.Overline">Building name</RadzenText>
                                 <RadzenText TextStyle="TextStyle.Body1"><b>@(card.Name)</b></RadzenText>
+                            </RadzenColumn>
+                        </RadzenRow>
+                        <RadzenRow>
+                            <RadzenColumn>
+                                <RadzenText TextStyle="TextStyle.Overline">Categories</RadzenText>
+                                <RadzenStack Orientation="Orientation.Horizontal">
+                                    @foreach (var cat in card.Categories)
+                                    {
+                                        <RadzenBadge Text=@(cat.Name) BadgeStyle="BadgeStyle.Primary" />
+                                    }
+                                    @foreach (var cat in card.CategoriesOfDesigns)
+                                    {
+                                        <RadzenBadge Text=@(cat.Name) BadgeStyle="BadgeStyle.Secondary" />
+                                    }
+                                </RadzenStack>
                             </RadzenColumn>
                         </RadzenRow>
                     </RadzenCard>
@@ -116,7 +155,8 @@
     public Guid Id { get; set; }
 
     Building? building;
-    String? authorName;
+
+    string buildingDisplayString = "";
 
     List<Photo> photos = [];
 
@@ -125,14 +165,28 @@
         building = ModelContext.Buildings.Include(b => b.Events)
         .Include(b => b.Location)
         .Include(b => b.Cards)
+        .ThenInclude(c => c.Categories)
+        .Include(b => b.Cards)
         .ThenInclude(c => c.StreetAddresses)
         .ThenInclude(a => a.Street)
         .Include(b => b.Cards)
-        .ThenInclude(c => c.Design)
+        .ThenInclude(c => c.Parts)
+        .ThenInclude(p => p.Design)
+        .ThenInclude(d => d.Categories)
+        .Include(b => b.Cards)
+        .ThenInclude(c => c.Parts)
+        .ThenInclude(p => p.Design)
         .ThenInclude(d => d.CatalogueEntries)
-        .ThenInclude(e => e.Catalogue).FirstOrDefault(b => b.Id == Id);
+        .ThenInclude(e => e.Catalogue).AsSplitQuery().FirstOrDefault(b => b.Id == Id);
         photos = ModelContext.BuildingBinds.Where(b => b.Building == building)
         .Select(b => b.Photo).OrderByDescending(p => p.ShootingDate.Date).ToList();
+
+        if (building is not null)
+        {
+            buildingDisplayString = building.Location.Name + ", " + String.Join(" / ",
+            building.ActualCard?.StreetAddresses.Select(a => $"{a.Street.Name}, {a.HouseNumber}") ?? []);
+        }
+
     }
 
     public PointStyle GetPointStyleByEventType(BuildingEventType eventType) => eventType switch

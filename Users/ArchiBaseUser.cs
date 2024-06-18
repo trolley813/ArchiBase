@@ -13,5 +13,7 @@ public class ArchiBaseUser : IdentityUser<Guid>
 
     public List<Guid> Locations { get; set; } = [];
 
+    public Guid? MyLocation { get; set; }
+
     public DateTime? LastReadCommentTime { get; set; }
 }

@@ -21,7 +21,9 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Design" Width="25%">
                 <Template Context="building">
-                    <RadzenText>@(building.ActualCard?.Design?.Name)</RadzenText>
+                    <RadzenText>
+                        @(String.Join(" ⋅ ", building.ActualCard?.Parts?.Select(p => p.Design.Name) ?? []))
+                    </RadzenText>
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Name" Width="40%">
@@ -66,7 +68,10 @@ else
             .Include(b => b.Cards)
             .ThenInclude(c => c.StreetAddresses)
             .Include(b => b.Cards)
-            .ThenInclude(c => c.Design)
+            .ThenInclude(c => c.Categories)
+            .Include(b => b.Cards)
+            .ThenInclude(c => c.Parts)
+            .ThenInclude(p => p.Design)
             .Where(b => b.Cards.Any(c => c.StreetAddresses.Any(a => a.Street == street)))
             .ToList();
         }

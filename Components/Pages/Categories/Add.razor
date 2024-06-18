@@ -2,6 +2,7 @@
 @using ArchiBase.Components.Utils
 @inject NotificationService NotificationService
 @inject ModelContext ModelContext
+@inject ITreeRepository<DesignCategory, Guid> TreeRepo
 
 <EditorOnly>
     <RadzenText TextStyle="TextStyle.H3">Add category</RadzenText>
@@ -31,26 +32,29 @@
 
     DesignCategory? parentCategory;
 
-    IEnumerable<DesignCategory> Categories { get; set; }
+    List<DesignCategory> Categories { get; set; }
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        Categories = ModelContext.DesignCategories;
-        parentCategory = Categories.FirstOrDefault(loc => loc.Id == ParentId);
+        Categories = ModelContext.DesignCategories.ToList();
+        if (ParentId is Guid parent)
+        {
+            parentCategory = await TreeRepo.GetByIdAsync(parent);
+        }
     }
 
-    public void AddNew()
+    public async Task AddNew()
     {
         DesignCategory category = new()
             {
                 Id = Guid.NewGuid(),
-                Name = name,
-                Parent = parentCategory,
+                Name = name
             };
         ModelContext.DesignCategories.Add(category);
+        await TreeRepo.SetParentAsync(category, parentCategory);
         try
         {
-            ModelContext.SaveChanges();
+            await ModelContext.SaveChangesAsync();
             NotificationService.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Success,
