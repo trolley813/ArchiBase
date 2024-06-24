@@ -2,6 +2,7 @@
 @inject ModelContext ModelContext
 @inject NotificationService NotificationService
 @inject NavigationManager NavigationManager
+@inject IStringLocalizer<BuildingEvent> ELoc
 @using ArchiBase.Components.Utils
 @using System.Text.RegularExpressions
 
@@ -34,7 +35,11 @@
                 var i = index;
                 <RadzenRow>
                     <ImpreciseDateInput @bind-Value="events[i].Date" FieldName="Date" />
-                    <RadzenDropDown @bind-Value="events[i].Type" Data="eventTypes" />
+                    <RadzenDropDown @bind-Value="events[i].Type" Data="eventTypes">
+                        <Template Context="type">
+                            @(ELoc[ArchiBase.Utils.EnumExtensions.GetDisplayName(type)])
+                        </Template>
+                    </RadzenDropDown>
                     <RadzenFormField>
                         <RadzenButton Icon="delete" Click="args => RemoveEvent(i)"></RadzenButton>
                     </RadzenFormField>

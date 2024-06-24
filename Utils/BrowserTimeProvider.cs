@@ -1,6 +1,6 @@
 namespace ArchiBase.Utils;
 
-internal sealed class BrowserTimeProvider : TimeProvider
+public sealed class BrowserTimeProvider : TimeProvider
 {
     private TimeZoneInfo? _browserLocalTimeZone;
 

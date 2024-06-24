@@ -75,6 +75,7 @@ public class ModelContext : DbContext
         modelBuilder.Entity<BuildingEvent>().OwnsOne(e => e.Date);
         modelBuilder.Entity<BuildingCard>().OwnsOne(e => e.ActualFrom);
         modelBuilder.Entity<Photo>().OwnsOne(e => e.ShootingDate);
+        modelBuilder.Entity<Photo>().OwnsOne(e => e.Exif);
         modelBuilder.Entity<BuildingBind>().OwnsOne(e => e.Markup);
     }
 

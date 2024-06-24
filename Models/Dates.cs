@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 
 namespace ArchiBase.Models;
@@ -24,33 +25,43 @@ public static class DateExtensions
         return (date.Year - 1) / 100 + 1;
     }
 
-    public static string GetEarlyMidLate(this DateTime date, bool useCentury)
+    public enum EarlyMidLate { Early, Mid, Late }
+
+    public static string GetRepresentation(this EarlyMidLate earlyMidLate) => earlyMidLate switch
+    {
+        EarlyMidLate.Early => "early ",
+        EarlyMidLate.Mid => "mid-",
+        EarlyMidLate.Late => "late ",
+        _ => "",
+    };
+
+    public static EarlyMidLate GetEarlyMidLate(this DateTime date, bool useCentury)
     {
         if (useCentury)
         {
             return (date.Year % 100) switch
             {
-                >= 1 and <= 29 => "early ",
-                >= 30 and <= 69 => "mid-",
-                0 or >= 70 and <= 99 => "late ",
-                _ => ""
+                >= 1 and <= 29 => EarlyMidLate.Early,
+                >= 30 and <= 69 => EarlyMidLate.Mid,
+                0 or >= 70 and <= 99 => EarlyMidLate.Late,
+                _ => EarlyMidLate.Mid
             };
         }
         else
         {
             return (date.Year % 10) switch
             {
-                >= 0 and <= 2 => "early ",
-                >= 3 and <= 6 => "mid-",
-                >= 7 and <= 9 => "late ",
-                _ => ""
+                >= 0 and <= 2 => EarlyMidLate.Early,
+                >= 3 and <= 6 => EarlyMidLate.Mid,
+                >= 7 and <= 9 => EarlyMidLate.Late,
+                _ => EarlyMidLate.Mid
             };
         }
     }
 }
 
 [Owned]
-public class ImpreciseDate
+public class ImpreciseDate : IComparable<ImpreciseDate>
 {
     public DateTime Date { get; set; }
     public DatePrecision Precision { get; set; }
@@ -58,6 +69,11 @@ public class ImpreciseDate
     public ImpreciseDate Clone()
     {
         return new ImpreciseDate { Date = Date, Precision = Precision };
+    }
+
+    public int CompareTo(ImpreciseDate? other)
+    {
+        return Date.CompareTo(other?.Date);
     }
 
     public override string ToString() =>
@@ -68,9 +84,11 @@ public class ImpreciseDate
         DatePrecision.YearAndMonthOnly => Date.ToString("MM.yyyy"),
         DatePrecision.YearOnly => Date.ToString("yyyy"),
         DatePrecision.Circa => "ca. " + Date.ToString("yyyy"),
-        DatePrecision.Decade => $"{Date.GetEarlyMidLate(useCentury: false)}{Date.Year / 10 * 10}s",
+        DatePrecision.Decade =>
+            $"{Date.GetEarlyMidLate(useCentury: false).GetRepresentation()}{Date.Year / 10 * 10}s",
         DatePrecision.DecadeOnly => $"{Date.Year / 10 * 10}s",
-        DatePrecision.Century => $"{Date.GetEarlyMidLate(useCentury: true)}{Date.GetCentury()} century",
+        DatePrecision.Century =>
+            $"{Date.GetEarlyMidLate(useCentury: true).GetRepresentation()}{Date.GetCentury()} century",
         DatePrecision.CenturyOnly => $"{Date.GetCentury()} century",
         DatePrecision.YearOrEarlier => Date.ToString("yyyy") + " or earlier",
         DatePrecision.YearOrLater => Date.ToString("yyyy") + " or later",

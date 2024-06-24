@@ -36,8 +36,12 @@
                 </RadzenRow>
                 <RadzenRow>
                     <RadzenColumn>
-                        <RadzenText TextStyle="TextStyle.Overline">@Loc["Shooting Date"]</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Body1"><b>@photo.ShootingDate</b></RadzenText>
+                        <RadzenText TextStyle="TextStyle.Overline">@Loc["Shooting date"]</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1">
+                            <b>
+                                <ImpreciseDateDisplay Value=@(photo.ShootingDate) />
+                            </b>
+                        </RadzenText>
                     </RadzenColumn>
                     <RadzenColumn>
                         @if (photo.NonAuthor)

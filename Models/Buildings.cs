@@ -1,4 +1,5 @@
 
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using EFMaterializedPath.Entity;
 
@@ -6,11 +7,17 @@ namespace ArchiBase.Models;
 
 public enum BuildingEventType
 {
+    [Display(Name = "Construction started")]
     ConstructionStarted = 1,
+    [Display(Name = "Construction finished")]
     ConstructionFinished = 2,
+    [Display(Name = "Rebuilding started")]
     RebuildingStarted = 3,
+    [Display(Name = "Rebuilding finished")]
     RebuildingFinished = 4,
+    [Display(Name = "Abandoned")]
     Abandoned = 5,
+    [Display(Name = "Demolished")]
     Demolished = 6,
 }
 public class Location : IAuditable, IMaterializedPathEntity<Guid>
@@ -47,7 +54,7 @@ public class BuildingEvent
 {
     public Guid Id { get; set; }
     public Building Building { get; set; }
-    public BuildingEventType Type { get; set; }
+    public BuildingEventType Type { get; set; } = BuildingEventType.ConstructionFinished;
 
     public ImpreciseDate Date { get; set; } = new();
 }
@@ -107,4 +114,6 @@ public class Building : IAuditable
         Events.FirstOrDefault(e => e.Type == type)?.Date;
 
     public Location Location { get; set; }
+
+    public string? CadastreRecordNumber { get; set; }
 }

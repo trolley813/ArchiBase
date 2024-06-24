@@ -10,6 +10,8 @@ public class Comment
 
     public List<CommentVote> Votes { get; set; } = [];
 
+    public bool IsRecorded { get; set; }
+
     public int VotesCount => Votes.Select(v => v.Vote).Sum();
     public int UpvotesCount => Votes.Where(v => v.Vote > 0).Count();
     public int DownvotesCount => Votes.Where(v => v.Vote < 0).Count();

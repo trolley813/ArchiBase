@@ -8,6 +8,8 @@ using ArchiBase.Utils;
 using ArchiBase.Models;
 using EFMaterializedPath.Extensions;
 using EFMaterializedPath;
+using Archibase.Utils;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,8 +19,7 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddRadzenComponents();
 
-builder.Services.AddSingleton(TimeProvider.System);
-builder.Services.AddTransient<TimeProvider, BrowserTimeProvider>();
+builder.Services.AddScoped<BrowserTimeProvider>();
 
 builder.Services.AddDbContext<ModelContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("ArchitectureDatabase")));
@@ -49,6 +50,26 @@ builder.Services.AddScoped<IUserConfirmation<ArchiBaseUser>, UserConfirmation>()
 
 builder.Services.AddTransient<UserResolverService>();
 builder.Services.AddTransient<CommentService>();
+builder.Services.AddScoped<CadastreRecordService>();
+
+
+var emailConfig = builder.Configuration
+    .GetSection("EmailConfiguration")
+    .Get<EmailConfiguration>();
+if (emailConfig != null)
+{
+    builder.Services.AddSingleton(emailConfig);
+    builder.Services.AddScoped<IEmailSender, EmailSender>();
+}
+else
+{
+    builder.Services.AddScoped<IEmailSender, NoOpEmailSender>();
+}
+builder.Services.AddScoped<IEmailSender<ArchiBaseUser>, UserEmailSender>();
+
+
+builder.Services.Configure<DataProtectionTokenProviderOptions>(opt =>
+   opt.TokenLifespan = TimeSpan.FromHours(4));
 
 var app = builder.Build();
 

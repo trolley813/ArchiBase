@@ -43,6 +43,22 @@
                 <RadzenButton Text=@Loc["Mark up to this comment as read"] Icon="check" Size="ButtonSize.Small"
                     Click="args => OnMark(comment.PublicationDate)" />
             }
+            @if (comment.IsRecorded)
+            {
+                <RadzenText class="rz-color-success" TextStyle="TextStyle.Subtitle2">
+                    <RadzenIcon Icon="check" />
+                    @Loc["Thank you! Comment was recorded."]
+                </RadzenText>
+            }
+            <CascadingAuthenticationState>
+                <AuthorizeView Roles="Admin, Editor, Local Editor">
+                    <RadzenToggleButton @bind-Value="comment.IsRecorded" 
+                        Text=@(comment.IsRecorded ? Loc["Unmark as recorded"] : Loc["Mark as recorded"])
+                        ButtonStyle="ButtonStyle.Success" ToggleButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small"
+                        Click="args => OnRecord(comment)" ToggleShade="Shade.Darker" Shade="Shade.Lighter" Icon="toggle_off"
+                        ToggleIcon="toggle_on" />
+                </AuthorizeView>
+            </CascadingAuthenticationState>
         </RadzenCard>
     </Template>
 </RadzenDataList>
@@ -183,5 +199,10 @@
                     });
             }
         }
+    }
+
+    void OnRecord(Comment comment)
+    {
+        ModelContext.SaveChanges();
     }
 }

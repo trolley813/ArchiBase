@@ -7,17 +7,14 @@ namespace ArchiBase.Components.Utils;
 public sealed class LocalTime : ComponentBase, IDisposable
 {
     [Inject]
-    public TimeProvider TimeProvider { get; set; } = default!;
+    public BrowserTimeProvider TimeProvider { get; set; } = default!;
 
     [Parameter]
     public DateTime? DateTime { get; set; }
 
     protected override void OnInitialized()
     {
-        if (TimeProvider is BrowserTimeProvider browserTimeProvider)
-        {
-            browserTimeProvider.LocalTimeZoneChanged += LocalTimeZoneChanged;
-        }
+        TimeProvider.LocalTimeZoneChanged += LocalTimeZoneChanged;
     }
 
     protected override void BuildRenderTree(RenderTreeBuilder builder)
@@ -30,10 +27,7 @@ public sealed class LocalTime : ComponentBase, IDisposable
 
     public void Dispose()
     {
-        if (TimeProvider is BrowserTimeProvider browserTimeProvider)
-        {
-            browserTimeProvider.LocalTimeZoneChanged -= LocalTimeZoneChanged;
-        }
+        TimeProvider.LocalTimeZoneChanged -= LocalTimeZoneChanged;
     }
 
     private void LocalTimeZoneChanged(object? sender, EventArgs e)

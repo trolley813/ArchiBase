@@ -1,5 +1,7 @@
+@inject IStringLocalizer<ImpreciseDateInput> Loc
+
 <RadzenFormField Name="@FieldName">
-    <RadzenDatePicker Ref="@picker" @bind-Value=@(Value.Date) DateFormat="dd.MM.yyyy" YearRange="1:2100"
+    <RadzenDatePicker Ref="@picker" @bind-Value=@(Value.Date) DateFormat=@dateFormat YearRange="1:2100"
         ShowCalendarWeek />
 </RadzenFormField>
 <RadzenFormField Name="Precision">
@@ -9,20 +11,25 @@
 
 @code
 {
-    Dictionary<DatePrecision, String> precisionDescriptions = new()
-        {
-            [DatePrecision.None] = "Do not show date",
-            [DatePrecision.Full] = "Show full date (day, month and year)",
-            [DatePrecision.YearAndMonthOnly] = "Show year and month only",
-            [DatePrecision.YearOnly] = "Show year only",
-            [DatePrecision.Circa] = "Show \"circa\" + year",
-            [DatePrecision.Decade] = "Show decade (early/mid/late)",
-            [DatePrecision.DecadeOnly] = "Show decade only",
-            [DatePrecision.Century] = "Show century (early/mid/late)",
-            [DatePrecision.CenturyOnly] = "Show century only",
-            [DatePrecision.YearOrEarlier] = "Show year and \"or earlier\"",
-            [DatePrecision.YearOrLater] = "Show year and \"or later\"",
-        };
+    Dictionary<DatePrecision, String> precisionDescriptions = [];
+
+    protected override void OnInitialized()
+    {
+        precisionDescriptions = new()
+            {
+                [DatePrecision.None] = Loc["Do not show date"],
+                [DatePrecision.Full] = Loc["Show full date (day, month and year)"],
+                [DatePrecision.YearAndMonthOnly] = Loc["Show year and month only"],
+                [DatePrecision.YearOnly] = Loc["Show year only"],
+                [DatePrecision.Circa] = Loc["Show \"circa\" + year"],
+                [DatePrecision.Decade] = Loc["Show decade (early/mid/late)"],
+                [DatePrecision.DecadeOnly] = Loc["Show decade only"],
+                [DatePrecision.Century] = Loc["Show century (early/mid/late)"],
+                [DatePrecision.CenturyOnly] = Loc["Show century only"],
+                [DatePrecision.YearOrEarlier] = Loc["Show year and \"or earlier\""],
+                [DatePrecision.YearOrLater] = Loc["Show year and \"or later\""],
+            };
+    }
 
     [Parameter]
     public string FieldName { get; set; } = "Date";
@@ -35,15 +42,17 @@
 
     RadzenDatePicker<DateTime> picker = default!;
 
+    string dateFormat = "dd.MM.yyyy";
+
     public void OnChange()
     {
-        var dateFormat = Value.Precision switch
+        dateFormat = Value.Precision switch
         {
             DatePrecision.Full => "dd.MM.yyyy",
             DatePrecision.YearAndMonthOnly => "MM.yyyy",
             _ => "yyyy"
         };
-        if (picker is not null) picker.DateFormat = dateFormat;
+        this.StateHasChanged();
     }
 
 }

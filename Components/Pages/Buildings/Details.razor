@@ -1,8 +1,11 @@
 @page "/buildings/{id:guid}"
 @using Microsoft.EntityFrameworkCore
+@using SmartFormat
 @inject ModelContext ModelContext
 @inject UserManager<ArchiBaseUser> UserManager
 @inject IStringLocalizer<Details> Loc
+@inject IStringLocalizer<BuildingEvent> ELoc
+@inject Archibase.Utils.CadastreRecordService Cadastre
 
 
 @if (building != null)
@@ -16,7 +19,7 @@
     <RadzenLink Text="Edit" Icon="edit" Path=@($"buildings/{building.Id}/edit") />
     <RadzenRow>
         <RadzenColumn>
-            <RadzenText TextStyle="TextStyle.H6">Timeline</RadzenText>
+            <RadzenText TextStyle="TextStyle.H6">@Loc["Timeline"]</RadzenText>
             <RadzenCard>
                 <RadzenTimeline>
                     <Items>
@@ -24,11 +27,13 @@
                         {
                             <RadzenTimelineItem PointStyle="GetPointStyleByEventType(ev.Type)">
                                 <LabelContent>
-                                    <RadzenText TextStyle="TextStyle.H5" Class="@(GetTextStyleByEventType(ev.Type))">@(ev.Date)
+                                    <RadzenText TextStyle="TextStyle.H5" Class="@(GetTextStyleByEventType(ev.Type))">
+                                        <ImpreciseDateDisplay Value="ev.Date" />
                                     </RadzenText>
                                 </LabelContent>
                                 <ChildContent>
-                                    <RadzenText Class="@(GetTextStyleByEventType(ev.Type))">@(ev.Type)</RadzenText>
+                                    <RadzenText Class="@(GetTextStyleByEventType(ev.Type))">@(ELoc[ev.Type.GetDisplayName()])
+                                    </RadzenText>
                                 </ChildContent>
                             </RadzenTimelineItem>
                         }
@@ -37,7 +42,7 @@
             </RadzenCard>
         </RadzenColumn>
         <RadzenColumn>
-            <RadzenText TextStyle="TextStyle.H6">Map</RadzenText>
+            <RadzenText TextStyle="TextStyle.H6">@Loc["Building on map"]</RadzenText>
             <RadzenCard>
                 <OpenStreetMap Style="height:300px; width:300px"
                     Center="new Coordinate(building.Longitude, building.Latitude)" Zoom="15">
@@ -50,7 +55,21 @@
             </RadzenCard>
         </RadzenColumn>
     </RadzenRow>
-    <RadzenText TextStyle="TextStyle.H6">Details</RadzenText>
+    <RadzenText TextStyle="TextStyle.H6">@Loc["Details"]</RadzenText>
+    @if (building.CadastreRecordNumber is not null)
+    {
+        <RadzenText />
+        <RadzenRow>
+            <RadzenColumn>
+                <RadzenText TextStyle="TextStyle.Overline">@Loc["Cadastre record number"]</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body1">
+                    <RadzenLink Path=@(Cadastre.GetLink(building))>
+                        <b>@(building.CadastreRecordNumber)</b>
+                    </RadzenLink>
+                </RadzenText>
+            </RadzenColumn>
+        </RadzenRow>
+    }
     <RadzenRow>
         <RadzenText>@((MarkupString)building.Description)</RadzenText>
     </RadzenRow>
@@ -59,14 +78,15 @@
             @foreach (var (card, index) in building.Cards.OrderBy(c => c.ActualFrom.Date)
            .Select((item, index) => (item, index + 1)))
             {
-                <RadzenTabsItem Text=@($"Card #{index} actual from {card.ActualFrom}")>
+                <RadzenTabsItem Text=@(Smart.Format(Loc["Card #{Index} actual from {ActualFrom}"], new { Index = index,
+            ActualFrom = card.ActualFrom}))>
                     <RadzenCard>
                         <RadzenRow>
                             @if (card.Parts.Any())
                             {
                                 <RadzenColumn>
 
-                                    <RadzenText TextStyle="TextStyle.Overline">Design</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Overline">@Loc["Design"]</RadzenText>
                                     <RadzenRow>
                                         @foreach (var part in card.Parts.OrderBy(p => p.Name))
                                         {
@@ -90,7 +110,7 @@
                                 </RadzenColumn>
                             }
                             <RadzenColumn>
-                                <RadzenText TextStyle="TextStyle.Overline">Floor count</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Overline">@Loc["Floor count"]</RadzenText>
                                 <RadzenText TextStyle="TextStyle.Body1">
                                     <b>@(String.Join("; ", card.FloorCount))</b>
                                 </RadzenText>
@@ -98,21 +118,21 @@
                         </RadzenRow>
                         <RadzenRow>
                             <RadzenColumn>
-                                <RadzenText TextStyle="TextStyle.Overline">Building name</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Overline">@Loc["Name"]</RadzenText>
                                 <RadzenText TextStyle="TextStyle.Body1"><b>@(card.Name)</b></RadzenText>
                             </RadzenColumn>
                         </RadzenRow>
                         <RadzenRow>
                             <RadzenColumn>
-                                <RadzenText TextStyle="TextStyle.Overline">Categories</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Overline">@Loc["Categories"]</RadzenText>
                                 <RadzenStack Orientation="Orientation.Horizontal">
                                     @foreach (var cat in card.Categories)
                                     {
-                                        <RadzenBadge Text=@(cat.Name) BadgeStyle="BadgeStyle.Primary" />
+                                        <RadzenBadge Text=@(cat.Name) BadgeStyle="BadgeStyle.Info" Shade="Shade.Darker" />
                                     }
                                     @foreach (var cat in card.CategoriesOfDesigns)
                                     {
-                                        <RadzenBadge Text=@(cat.Name) BadgeStyle="BadgeStyle.Secondary" />
+                                        <RadzenBadge Text=@(cat.Name) BadgeStyle="BadgeStyle.Info" Shade="Shade.Lighter" />
                                     }
                                 </RadzenStack>
                             </RadzenColumn>
@@ -122,10 +142,10 @@
             }
         </Tabs>
     </RadzenTabs>
-    <RadzenText TextStyle="TextStyle.H6">Photos (@(photos.Count))</RadzenText>
+    <RadzenText TextStyle="TextStyle.H6">@Loc["Photos"] (@(photos.Count))</RadzenText>
     <RadzenDataGrid Data="photos">
         <Columns>
-            <RadzenDataGridColumn Title="Photo">
+            <RadzenDataGridColumn Title=@Loc["Photo"]>
                 <Template Context="photo">
                     <RadzenLink Path="@($"/photos/{photo.Id}")" Text="Photo" Target="_blank">
                         <RadzenImage Path=@(photo.PhotoLink)
@@ -134,11 +154,11 @@
                     </RadzenLink>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Details">
+            <RadzenDataGridColumn Title=@Loc["Details"]>
                 <Template Context="photo">
                     <RadzenText TextStyle="TextStyle.Body1"><b>@(photo.ShootingDate)</b></RadzenText>
                     <RadzenText TextStyle="TextStyle.Overline">
-                        @(photo.NonAuthor ? "Sent" : "Author"):
+                        @(photo.NonAuthor ? @Loc["Sent by"] : @Loc["Author"]):
                         @(UserManager.Users.FirstOrDefault(u => u.Id == photo.AuthorId)?.UserName)
                     </RadzenText>
                 </Template>
@@ -184,7 +204,9 @@
         if (building is not null)
         {
             buildingDisplayString = building.Location.Name + ", " + String.Join(" / ",
-            building.ActualCard?.StreetAddresses.Select(a => $"{a.Street.Name}, {a.HouseNumber}") ?? []);
+            building.ActualCard?.StreetAddresses
+            .OrderByDescending(a => a.HouseNumber, StringComparison.OrdinalIgnoreCase.WithNaturalSort())
+            .Select(a => $"{a.Street.Name}, {a.HouseNumber}") ?? []);
         }
 
     }

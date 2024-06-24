@@ -63,12 +63,13 @@
 
     Map map = null!;
 
-    IEnumerable<Location> Locations { get; set; }
+    List<Location> Locations { get; set; }
 
     protected override void OnInitialized()
     {
-        Locations = ModelContext.Locations;
+        Locations = ModelContext.Locations.ToList();
         parentLocation = Locations.FirstOrDefault(loc => loc.Id == ParentId);
+        map?.SetCenter(new Coordinate(parentLocation?.Longitude ?? 0.0, parentLocation?.Latitude ?? 0.0));
     }
 
     public async Task AddNew()
@@ -86,7 +87,7 @@
         await TreeRepo.SetParentAsync(location, parentLocation);
         try
         {
-            ModelContext.SaveChanges();
+            await ModelContext.SaveChangesAsync();
             NotificationService.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Success,
@@ -112,4 +113,4 @@
         longitude = coordinate.Longitude;
         latitude = coordinate.Latitude;
     }
-} using EFMaterializedPath;
+}

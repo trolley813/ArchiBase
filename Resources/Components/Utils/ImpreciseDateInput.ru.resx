@@ -117,34 +117,37 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="All news" xml:space="preserve">
-    <value>Все новости</value>
-    <comment> </comment>
+  <data name="Do not show date" xml:space="preserve">
+    <value>Не показывать дату</value>
   </data>
-  <data name="News" xml:space="preserve">
-    <value>Новости</value>
-    <comment> </comment>
+  <data name="Show &quot;circa&quot; + year" xml:space="preserve">
+    <value>Показывать "около" + год</value>
   </data>
-  <data name="Recent photos" xml:space="preserve">
-    <value>Недавние фотографии</value>
+  <data name="Show century (early/mid/late)" xml:space="preserve">
+    <value>Показывать век (начало/середина/конец)</value>
   </data>
-  <data name="Total buildings" xml:space="preserve">
-    <value>Всего зданий</value>
-    <comment/>
+  <data name="Show century only" xml:space="preserve">
+    <value>Показывать только век </value>
   </data>
-  <data name="Total designs" xml:space="preserve">
-    <value>Всего проектов</value>
-    <comment/>
+  <data name="Show decade (early/mid/late)" xml:space="preserve">
+    <value>Показывать десятилетие (начало/середина/конец)</value>
   </data>
-  <data name="Total locations" xml:space="preserve">
-    <value>Всего местоположений</value>
-    <comment/>
+  <data name="Show decade only" xml:space="preserve">
+    <value>Показывать только десятилетие</value>
   </data>
-  <data name="Total photos" xml:space="preserve">
-    <value>Всего фотографий</value>
+  <data name="Show full date (day, month and year)" xml:space="preserve">
+    <value>Показывать дату полностью (день, месяц и год)</value>
   </data>
-  <data name="Welcome to USSR (and other countries) Architectural Database" xml:space="preserve">
-    <value>Добро пожаловать на сайт архитектурной базы СССР и других стран</value>
-    <comment> </comment>
+  <data name="Show year and &quot;or earlier&quot;" xml:space="preserve">
+    <value>Показывать год + "или ранее"</value>
+  </data>
+  <data name="Show year and &quot;or later&quot;" xml:space="preserve">
+    <value>Показывать год + "или позднее"</value>
+  </data>
+  <data name="Show year and month only" xml:space="preserve">
+    <value>Показывать только месяц и год</value>
+  </data>
+  <data name="Show year only" xml:space="preserve">
+    <value>Показывать только год</value>
   </data>
 </root>

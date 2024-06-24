@@ -13,7 +13,10 @@
             <RadzenRow>
                 <RadzenColumn>
                     <RadzenText TextStyle="TextStyle.Overline">@Loc["Total locations"]</RadzenText>
-                    <RadzenText TextStyle="TextStyle.H1">@locationsCount</RadzenText>
+                    <RadzenText TextStyle="TextStyle.H1">
+                        <RadzenIcon Icon="location_on" Style="font-size:36px" />
+                        @locationsCount
+                    </RadzenText>
                 </RadzenColumn>
             </RadzenRow>
         </RadzenCard>
@@ -24,7 +27,10 @@
             <RadzenRow>
                 <RadzenColumn>
                     <RadzenText TextStyle="TextStyle.Overline">@Loc["Total buildings"]</RadzenText>
-                    <RadzenText TextStyle="TextStyle.H1">@buildingsCount</RadzenText>
+                    <RadzenText TextStyle="TextStyle.H1">
+                        <RadzenIcon Icon="apartment" Style="font-size:36px" />
+                        @buildingsCount
+                    </RadzenText>
                 </RadzenColumn>
             </RadzenRow>
         </RadzenCard>
@@ -35,7 +41,24 @@
             <RadzenRow>
                 <RadzenColumn>
                     <RadzenText TextStyle="TextStyle.Overline">@Loc["Total designs"]</RadzenText>
-                    <RadzenText TextStyle="TextStyle.H1">@designsCount</RadzenText>
+                    <RadzenText TextStyle="TextStyle.H1">
+                        <RadzenIcon Icon="architecture" Style="font-size:36px" />
+                        @designsCount
+                    </RadzenText>
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenCard>
+    </RadzenColumn>
+
+    <RadzenColumn>
+        <RadzenCard>
+            <RadzenRow>
+                <RadzenColumn>
+                    <RadzenText TextStyle="TextStyle.Overline">@Loc["Total photos"]</RadzenText>
+                    <RadzenText TextStyle="TextStyle.H1">
+                        <RadzenIcon Icon="photo_camera" Style="font-size:36px" />
+                        @photosCount
+                    </RadzenText>
                 </RadzenColumn>
             </RadzenRow>
         </RadzenCard>
@@ -52,10 +75,18 @@
         @((MarkupString)n.Text)
     </RadzenText>
 }
-
+<RadzenText TextStyle="TextStyle.H4" class="mx-4 my-4">@Loc["Recent photos"]</RadzenText>
+<RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
+@foreach(var photo in recentPhotos)
+{
+    <RadzenImage Path=@(photo.PhotoLink) Style="height:200px;max-width:400px" />
+}
+</RadzenStack>
 @code
 {
-    int locationsCount, designsCount, buildingsCount;
+    int locationsCount, designsCount, buildingsCount, photosCount;
+
+    List<Photo> recentPhotos = [];
 
     List<NewsItem> news = [];
 
@@ -64,6 +95,8 @@
         locationsCount = ModelContext.Locations.Count();
         designsCount = ModelContext.Designs.Count();
         buildingsCount = ModelContext.Buildings.Count();
+        photosCount = ModelContext.ActivePhotos.Count();
         news = ModelContext.NewsItems.OrderByDescending(n => n.PublicationDate).Take(5).ToList();
+        recentPhotos = ModelContext.Photos.OrderByDescending(p => p.PublicationDate).Take(10).ToList();
     }
 }

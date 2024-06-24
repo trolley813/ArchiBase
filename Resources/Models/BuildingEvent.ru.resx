@@ -117,34 +117,22 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="All news" xml:space="preserve">
-    <value>Все новости</value>
-    <comment> </comment>
+  <data name="Abandoned" xml:space="preserve">
+    <value>Заброшено</value>
   </data>
-  <data name="News" xml:space="preserve">
-    <value>Новости</value>
-    <comment> </comment>
+  <data name="Construction finished" xml:space="preserve">
+    <value>Окончание строительства</value>
   </data>
-  <data name="Recent photos" xml:space="preserve">
-    <value>Недавние фотографии</value>
+  <data name="Construction started" xml:space="preserve">
+    <value>Начало строительства</value>
   </data>
-  <data name="Total buildings" xml:space="preserve">
-    <value>Всего зданий</value>
-    <comment/>
+  <data name="Demolished" xml:space="preserve">
+    <value>Снесено</value>
   </data>
-  <data name="Total designs" xml:space="preserve">
-    <value>Всего проектов</value>
-    <comment/>
+  <data name="Rebuilding finished" xml:space="preserve">
+    <value>Окончание реконструкции</value>
   </data>
-  <data name="Total locations" xml:space="preserve">
-    <value>Всего местоположений</value>
-    <comment/>
-  </data>
-  <data name="Total photos" xml:space="preserve">
-    <value>Всего фотографий</value>
-  </data>
-  <data name="Welcome to USSR (and other countries) Architectural Database" xml:space="preserve">
-    <value>Добро пожаловать на сайт архитектурной базы СССР и других стран</value>
-    <comment> </comment>
+  <data name="Rebuilding started" xml:space="preserve">
+    <value>Начало реконструкции</value>
   </data>
 </root>

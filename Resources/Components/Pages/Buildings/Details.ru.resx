@@ -117,34 +117,44 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="All news" xml:space="preserve">
-    <value>Все новости</value>
-    <comment> </comment>
+  <data name="Author" xml:space="preserve">
+    <value>Автор</value>
   </data>
-  <data name="News" xml:space="preserve">
-    <value>Новости</value>
-    <comment> </comment>
+  <data name="Building on map" xml:space="preserve">
+    <value>Здание на карте</value>
   </data>
-  <data name="Recent photos" xml:space="preserve">
-    <value>Недавние фотографии</value>
+  <data name="Cadastre record number" xml:space="preserve">
+    <value>Кадастровый номер</value>
   </data>
-  <data name="Total buildings" xml:space="preserve">
-    <value>Всего зданий</value>
-    <comment/>
+  <data name="Card #{Index} actual from {ActualFrom}" xml:space="preserve">
+    <value>Карточка № {Index} (с {ActualFrom})</value>
   </data>
-  <data name="Total designs" xml:space="preserve">
-    <value>Всего проектов</value>
-    <comment/>
+  <data name="Categories" xml:space="preserve">
+    <value>Категории</value>
   </data>
-  <data name="Total locations" xml:space="preserve">
-    <value>Всего местоположений</value>
-    <comment/>
+  <data name="Design" xml:space="preserve">
+    <value>Проект</value>
   </data>
-  <data name="Total photos" xml:space="preserve">
-    <value>Всего фотографий</value>
+  <data name="Details" xml:space="preserve">
+    <value>Подробности</value>
   </data>
-  <data name="Welcome to USSR (and other countries) Architectural Database" xml:space="preserve">
-    <value>Добро пожаловать на сайт архитектурной базы СССР и других стран</value>
+  <data name="Floor count" xml:space="preserve">
+    <value>Этажность</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="Photo" xml:space="preserve">
+    <value>Фото</value>
+  </data>
+  <data name="Photos" xml:space="preserve">
+    <value>Фотографии</value>
+  </data>
+  <data name="Sent by" xml:space="preserve">
+    <value>Прислал</value>
+  </data>
+  <data name="Timeline" xml:space="preserve">
+    <value>Хронология</value>
     <comment> </comment>
   </data>
 </root>

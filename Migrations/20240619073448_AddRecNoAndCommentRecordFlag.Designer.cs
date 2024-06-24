@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using ArchiBase.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ArchiBase.Migrations
 {
     [DbContext(typeof(ModelContext))]
-    partial class ModelContextModelSnapshot : ModelSnapshot
+    [Migration("20240619073448_AddRecNoAndCommentRecordFlag")]
+    partial class AddRecNoAndCommentRecordFlag
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -872,70 +875,6 @@ namespace ArchiBase.Migrations
                         .WithMany()
                         .HasForeignKey("LicenseId");
 
-                    b.OwnsOne("ArchiBase.Models.ExifData", "Exif", b1 =>
-                        {
-                            b1.Property<Guid>("PhotoId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<string>("AName")
-                                .HasColumnType("text");
-
-                            b1.Property<string>("AV")
-                                .HasColumnType("text");
-
-                            b1.Property<string>("CameraModel")
-                                .HasColumnType("text");
-
-                            b1.Property<string>("Cameraman")
-                                .HasColumnType("text");
-
-                            b1.Property<string>("Copy")
-                                .HasColumnType("text");
-
-                            b1.Property<string>("DZoom")
-                                .HasColumnType("text");
-
-                            b1.Property<string>("EFL")
-                                .HasColumnType("text");
-
-                            b1.Property<int?>("EMeter")
-                                .HasColumnType("integer");
-
-                            b1.Property<string>("EV")
-                                .HasColumnType("text");
-
-                            b1.Property<string>("Editor")
-                                .HasColumnType("text");
-
-                            b1.Property<string>("FL")
-                                .HasColumnType("text");
-
-                            b1.Property<int?>("Flash")
-                                .HasColumnType("integer");
-
-                            b1.Property<int?>("ISO")
-                                .HasColumnType("integer");
-
-                            b1.Property<DateTime?>("PhotoDate")
-                                .HasColumnType("timestamp without time zone");
-
-                            b1.Property<int?>("SMode")
-                                .HasColumnType("integer");
-
-                            b1.Property<string>("TV")
-                                .HasColumnType("text");
-
-                            b1.Property<int?>("WB")
-                                .HasColumnType("integer");
-
-                            b1.HasKey("PhotoId");
-
-                            b1.ToTable("Photos");
-
-                            b1.WithOwner()
-                                .HasForeignKey("PhotoId");
-                        });
-
                     b.OwnsOne("ArchiBase.Models.ImpreciseDate", "ShootingDate", b1 =>
                         {
                             b1.Property<Guid>("PhotoId")
@@ -954,9 +893,6 @@ namespace ArchiBase.Migrations
                             b1.WithOwner()
                                 .HasForeignKey("PhotoId");
                         });
-
-                    b.Navigation("Exif")
-                        .IsRequired();
 
                     b.Navigation("License");
 
