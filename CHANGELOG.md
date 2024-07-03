@@ -1,3 +1,8 @@
+## 0.1.5 (2024-07-03)
+- local editor features
+- quick building creation upon adding a street
+- photo uploading (experimental, direct only)
+
 ## 0.1.4 (2024-06-24)
 - another set of new features
 - more Russian localization

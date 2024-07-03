@@ -10,12 +10,18 @@ using EFMaterializedPath.Extensions;
 using EFMaterializedPath;
 using Archibase.Utils;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddServerSideBlazor().AddHubOptions(options =>
+        {
+            options.MaximumReceiveMessageSize = 10 * 1024 * 1024;
+        });
 
 builder.Services.AddRadzenComponents();
 
@@ -51,6 +57,10 @@ builder.Services.AddScoped<IUserConfirmation<ArchiBaseUser>, UserConfirmation>()
 builder.Services.AddTransient<UserResolverService>();
 builder.Services.AddTransient<CommentService>();
 builder.Services.AddScoped<CadastreRecordService>();
+
+builder.Services.AddScoped<LocalEditorService>();
+builder.Services.AddScoped<IAuthorizationHandler, LocalEditorRequirementHandler>();
+builder.Services.AddSingleton<IAuthorizationPolicyProvider, LocalEditorPolicyProvider>();
 
 
 var emailConfig = builder.Configuration

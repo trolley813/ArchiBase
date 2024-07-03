@@ -6,107 +6,97 @@
 @using ArchiBase.Components.Utils
 @using System.Text.RegularExpressions
 
-<CascadingAuthenticationState>
-    <AuthorizeView>
-        <Authorized>
-            <RadzenText TextStyle="TextStyle.H4">Add building</RadzenText>
+<EditorOnly Location=@LocId>
+    <RadzenText TextStyle="TextStyle.H4">Add building</RadzenText>
 
-            <RadzenFormField Text="Location">
-                <RadzenDropDown @bind-Value="@location" Data="Locations" TextProperty="Name" Change="SelectStreets" />
-            </RadzenFormField>
+    <RadzenFormField Text="Location">
+        <RadzenDropDown @bind-Value="@location" Data="Locations" TextProperty="Name" Change="SelectStreets" />
+    </RadzenFormField>
 
-            <RadzenRow>
-                <RadzenFormField Text="Latitude">
-                    <RadzenNumeric ShowUpDown="false" @bind-Value="latitude" />
-                </RadzenFormField>
-                <RadzenFormField Text="Longitude">
-                    <RadzenNumeric ShowUpDown="false" @bind-Value="longitude" />
-                </RadzenFormField>
-            </RadzenRow>
-            <OpenStreetMap @ref="map" Style="height:480px; width:640px" OnClick="OnMapClick">
-            </OpenStreetMap>
+    <RadzenRow>
+        <RadzenFormField Text="Latitude">
+            <RadzenNumeric ShowUpDown="false" @bind-Value="latitude" />
+        </RadzenFormField>
+        <RadzenFormField Text="Longitude">
+            <RadzenNumeric ShowUpDown="false" @bind-Value="longitude" />
+        </RadzenFormField>
+    </RadzenRow>
+    <OpenStreetMap @ref="map" Style="height:480px; width:640px" OnClick="OnMapClick">
+    </OpenStreetMap>
 
-            <RadzenText TextStyle="TextStyle.H6">Timeline</RadzenText>
+    <RadzenText TextStyle="TextStyle.H6">Timeline</RadzenText>
+    <RadzenFormField>
+        <RadzenButton Icon="add" Click="AddEvent"></RadzenButton>
+    </RadzenFormField>
+    @for (int index = 0; index < events.Count; index++)
+    {
+        var i = index;
+        <RadzenRow>
+            <ImpreciseDateInput @bind-Value="events[i].Date" FieldName="Date" />
+            <RadzenDropDown @bind-Value="events[i].Type" Data="eventTypes">
+                <Template Context="type">
+                    @(ELoc[ArchiBase.Utils.EnumExtensions.GetDisplayName(type)])
+                </Template>
+            </RadzenDropDown>
             <RadzenFormField>
-                <RadzenButton Icon="add" Click="AddEvent"></RadzenButton>
+                <RadzenButton Icon="delete" Click="args => RemoveEvent(i)"></RadzenButton>
             </RadzenFormField>
-            @for (int index = 0; index < events.Count; index++)
-            {
-                var i = index;
-                <RadzenRow>
-                    <ImpreciseDateInput @bind-Value="events[i].Date" FieldName="Date" />
-                    <RadzenDropDown @bind-Value="events[i].Type" Data="eventTypes">
-                        <Template Context="type">
-                            @(ELoc[ArchiBase.Utils.EnumExtensions.GetDisplayName(type)])
-                        </Template>
-                    </RadzenDropDown>
-                    <RadzenFormField>
-                        <RadzenButton Icon="delete" Click="args => RemoveEvent(i)"></RadzenButton>
-                    </RadzenFormField>
-                </RadzenRow>
-            }
+        </RadzenRow>
+    }
 
-            <RadzenText TextStyle="TextStyle.H6">Addresses</RadzenText>
+    <RadzenText TextStyle="TextStyle.H6">Addresses</RadzenText>
+    <RadzenFormField>
+        <RadzenButton Icon="add" Click="AddAddress"></RadzenButton>
+    </RadzenFormField>
+
+    @for (int index = 0; index < addresses.Count; index++)
+    {
+        var i = index;
+        <RadzenRow>
+            <RadzenFormField Text="Street name">
+                <RadzenDropDown AllowFiltering="true" @bind-SearchText="searchText"
+                    @bind-Value="addresses[i].Street" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                    Data="Streets" TextProperty="Name" />
+            </RadzenFormField>
+            <RadzenFormField Text="House number">
+                <RadzenTextBox @bind-Value="addresses[i].HouseNumber" />
+            </RadzenFormField>
             <RadzenFormField>
-                <RadzenButton Icon="add" Click="AddAddress"></RadzenButton>
+                <RadzenButton Icon="delete" Click="args => RemoveAddress(i)"></RadzenButton>
             </RadzenFormField>
 
-            @for (int index = 0; index < addresses.Count; index++)
-            {
-                var i = index;
-                <RadzenRow>
-                    <RadzenFormField Text="Street name">
-                        <RadzenDropDown AllowFiltering="true" @bind-SearchText="searchText"
-                            @bind-Value="addresses[i].Street" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                            Data="Streets" TextProperty="Name" />
-                    </RadzenFormField>
-                    <RadzenFormField Text="House number">
-                        <RadzenTextBox @bind-Value="addresses[i].HouseNumber" />
-                    </RadzenFormField>
-                    <RadzenFormField>
-                        <RadzenButton Icon="delete" Click="args => RemoveAddress(i)"></RadzenButton>
-                    </RadzenFormField>
-
-                </RadzenRow>
-            }
+        </RadzenRow>
+    }
 
 
-            <RadzenText TextStyle="TextStyle.H6">Details</RadzenText>
-            <RadzenStack Orientation="Orientation.Vertical">
-                <RadzenFormField Text="Name">
-                    <RadzenTextBox @bind-Value="@name" />
-                </RadzenFormField>
-                <RadzenFormField Text="Description">
-                    <RadzenHtmlEditor @bind-Value="@description" style="height: 300px;" />
-                </RadzenFormField>
-                <RadzenRow>
-                    <RadzenFormField Text="Design">
-                        <RadzenDropDown @bind-Value="design" Data="Designs" TextProperty="Name"
-                            AllowClear=true AllowFiltering=true />
-                    </RadzenFormField>
-                    <RadzenFormField Text="Categories">
-                        <RadzenDropDown @bind-Value="selectedCategories" Data="Categories" TextProperty="Name"
-                            AllowClear=true AllowFiltering=true Multiple=true />
-                    </RadzenFormField>
-                    <RadzenFormField Text="Floor count">
-                        <RadzenTextBox @bind-Value="@floorCount" />
-                    </RadzenFormField>
-                </RadzenRow>
-                <RadzenFormField>
-                    <RadzenButton Text="Submit" Icon="add_circle_outline" Click="@AddBuilding" />
-                </RadzenFormField>
+    <RadzenText TextStyle="TextStyle.H6">Details</RadzenText>
+    <RadzenStack Orientation="Orientation.Vertical">
+        <RadzenFormField Text="Name">
+            <RadzenTextBox @bind-Value="@name" />
+        </RadzenFormField>
+        <RadzenFormField Text="Description">
+            <RadzenHtmlEditor @bind-Value="@description" style="height: 300px;" />
+        </RadzenFormField>
+        <RadzenRow>
+            <RadzenFormField Text="Design">
+                <RadzenDropDown @bind-Value="design" Data="Designs" TextProperty="Name"
+                    AllowClear=true AllowFiltering=true />
+            </RadzenFormField>
+            <RadzenFormField Text="Categories">
+                <RadzenDropDown @bind-Value="selectedCategories" Data="Categories" TextProperty="Name"
+                    AllowClear=true AllowFiltering=true Multiple=true />
+            </RadzenFormField>
+            <RadzenFormField Text="Floor count">
+                <RadzenTextBox @bind-Value="@floorCount" />
+            </RadzenFormField>
+        </RadzenRow>
+        <RadzenFormField>
+            <RadzenButton Text="Submit" Icon="add_circle_outline" Click="@AddBuilding" />
+        </RadzenFormField>
 
-            </RadzenStack>
-        </Authorized>
-        <NotAuthorized>
-            <RadzenAlert AllowClose="false" Title="Unauthorized" AlertStyle="AlertStyle.Danger" Variant="Variant.Flat"
-                Shade="Shade.Lighter">
-                To create or edit items, you must be authorized as admin/editor.
-                <RadzenLink Path="login" Text="Log in" />
-            </RadzenAlert>
-        </NotAuthorized>
-    </AuthorizeView>
-</CascadingAuthenticationState>
+    </RadzenStack>
+
+</EditorOnly>
 
 
 

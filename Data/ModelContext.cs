@@ -70,6 +70,10 @@ public class ModelContext : DbContext
             .Property(e => e.Extension)
             .HasDefaultValue("jpg");
 
+        modelBuilder.Entity<BuildingBind>()
+            .Property(b => b.Order)
+            .HasDefaultValue(0);
+
         modelBuilder.Entity<BuildingCard>().HasMany(e => e.Categories).WithMany(e => e.BuildingCards);
 
         modelBuilder.Entity<BuildingEvent>().OwnsOne(e => e.Date);

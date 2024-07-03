@@ -16,4 +16,7 @@ public class ArchiBaseUser : IdentityUser<Guid>
     public Guid? MyLocation { get; set; }
 
     public DateTime? LastReadCommentTime { get; set; }
+
+    public int? UploadLimitOverride { get; set; }
+    public int? DirectUploadLimitOverride { get; set; }
 }

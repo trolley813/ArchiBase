@@ -1,0 +1,29 @@
+@using static ArchiBase.Components.Pages.Locations.AddStreet
+@inject DialogService DialogService
+
+<RadzenStack>
+    <OpenStreetMap @ref="map" Style="height:480px; width:640px" OnClick="OnMapClick"
+        Zoom="Model.Latitude is null ? 10 : 16"
+        Center="new Coordinate(Model.Longitude ?? Location.Longitude, Model.Latitude ?? Location.Latitude)">
+
+    </OpenStreetMap>
+    <RadzenButton Click="@((args) => DialogService.Close(true))" Variant="Variant.Flat" Text="Close" />
+</RadzenStack>
+
+@code
+{
+    [Parameter]
+    public BuildingInputModel Model { get; set; }
+    [Parameter]
+    public Location Location { get; set; }
+
+    OpenStreetMap map;
+
+    void OnMapClick(Coordinate coordinate)
+    {
+        map.MarkersList.Clear();
+        map.MarkersList.Add(new Marker(OpenLayers.Blazor.MarkerType.MarkerPin, coordinate));
+        Model.Longitude = coordinate.Longitude;
+        Model.Latitude = coordinate.Latitude;
+    }
+}

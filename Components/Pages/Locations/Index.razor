@@ -82,8 +82,7 @@
         <RadzenText TextStyle="TextStyle.DisplayH5">@Loc["Streets"]</RadzenText>
         <RadzenRow>
 
-            <RadzenLink Text=@Loc["Add Street"] Path=@($"locations/addstreet?parentid={location.Id}")
-                Icon="add_circle_outline" />
+            <RadzenLink Text=@Loc["Add Street"] Path=@($"locations/addstreet?locid={location.Id}") Icon="add_circle_outline" />
             <RadzenLink Text=@Loc["Add Building"] Path=@($"buildings/add?locid={location.Id}") Icon="add_circle_outline" />
             <RadzenDataGrid Data="location.Streets">
                 <Columns>

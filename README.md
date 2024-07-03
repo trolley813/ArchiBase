@@ -16,7 +16,7 @@ openssl pkcs12 -export -in cert.pem -inkey key.pem -out pkcs12.pfx
 ```yaml
 services:
   archibase:
-    image: ghcr.io/trolley813/archibase:0.1.1 # or later version if available
+    image: ghcr.io/trolley813/archibase:0.1.5 # or later version if available
     environment:
       - ASPNETCORE_Kestrel__Certificates__Default__Password=<YOUR EXPORT PASSWORD HERE>
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/pkcs12.pfx 
@@ -125,3 +125,7 @@ ArchiBase is licensed under GNU Affero Public License version 3.0:
 
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+##### Other content
+Uses [Camera Top View Icon](https://www.svgrepo.com/svg/96447/camera-top-view), licensed unter CC0.
+Uses [Circle Flags](https://github.com/HatScripts/circle-flags), licensed under MIT.

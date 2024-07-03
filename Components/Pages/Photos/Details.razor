@@ -15,17 +15,21 @@
                 AlternateText=@Loc["Photo not available"] />
 
             <ul>
-                @foreach (var b in photo.BuildingBinds)
-
+                @foreach (var g in photo.BuildingBinds.OrderBy(b => b.Order).GroupBy(b => b.Building.Location))
                     {
                         <li>
                             <RadzenText TextStyle="TextStyle.Body1">
-                                <RadzenLink Text="@(b.Building.Location.Name)" Path=@($"/locations/{b.Building.Location.Id}") />
-                                ,
-                                <RadzenLink
-                                    Text="@(String.Join(" / ",
-                                    b.Building.ActualCard?.StreetAddresses.Select(a => $"{a.Street?.Name}, {a.HouseNumber}") ?? []))"
-                                    Path=@($"/buildings/{b.Building.Id}") />
+                                <RadzenLink Text="@(g.Key.Name)" Path=@($"/locations/{g.Key.Id}") />:
+                                <RadzenStack Orientation="Orientation.Horizontal" Gap="10">
+                                    @foreach (var b in g)
+                                    {
+                                        <RadzenLink
+                                            Text="@(String.Join(" / ",
+                                b.Building.ActualCard?.StreetAddresses.Select(a => $"{a.Street?.Name}, {a.HouseNumber}") ?? []))"
+                                            Path=@($"/buildings/{b.Building.Id}") style=@(b.IsMain ? "font-weight:bold" :
+                                "font-style:italic") />
+                                    }
+                                </RadzenStack>
                             </RadzenText>
                         </li>
                     }
@@ -86,6 +90,11 @@
         </RadzenColumn>
         <RadzenColumn Width="6">
             <OpenStreetMap @ref="map" Center="new Coordinate(photo.Longitude, photo.Latitude)">
+                <Features>
+                    <Marker Type="OpenLayers.Blazor.MarkerType.MarkerCustomImage" Scale="0.04"
+                        Rotation="Math.PI / 180.0 * photo.Direction" Content="/icons/camera.svg" Size="[800, 800]"
+                        Anchor="[400, 400]" Coordinate="new Coordinate(photo.Longitude, photo.Latitude)" />
+                </Features>
             </OpenStreetMap>
         </RadzenColumn>
     </RadzenRow>
@@ -119,17 +128,5 @@ else
         .Include(p => p.License)
         .FirstOrDefaultAsync(p => p.Id == Id);
         author = await UserManager.FindByIdAsync(photo?.AuthorId.ToString());
-    }
-
-    protected override void OnParametersSet()
-    {
-        if (map != null)
-        {
-            map.MarkersList.Clear();
-            map.MarkersList.Add(new Marker(
-            OpenLayers.Blazor.MarkerType.MarkerPin,
-            new Coordinate(photo?.Longitude ?? 0.0, photo?.Latitude ?? 0.0)
-            ));
-        }
     }
 }

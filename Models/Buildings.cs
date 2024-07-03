@@ -65,6 +65,11 @@ public class StreetAddress
     public BuildingCard BuildingCard { get; set; }
     public Street Street { get; set; }
     public string HouseNumber { get; set; }
+
+    public override string ToString()
+    {
+        return $"{Street.Name}, {HouseNumber}";
+    }
 }
 
 public class BuildingCard

@@ -1,0 +1,314 @@
+@page "/photos/upload"
+@using MetadataExtractor.Formats.Exif
+@using Microsoft.EntityFrameworkCore
+@using SmartFormat
+@using IronSoftware.Drawing
+@using MetadataExtractor
+@inject NotificationService NotificationService
+@inject UserManager<ArchiBaseUser> UserManager
+@inject UserResolverService UserResolverService
+@inject ModelContext ModelContext
+@inject IStringLocalizer<Upload> Loc
+
+<CascadingAuthenticationState>
+    <AuthorizeView>
+        <Authorized Context="actx">
+            @if (limit > 0)
+            {
+                <RadzenText TextStyle="TextStyle.H4">@Loc["Photo upload"]</RadzenText>
+                <RadzenText TextStyle="TextStyle.Subtitle1">
+                    @(Smart.Format(Loc["You can upload {Limit} more photos today."], new { Limit = limit }))
+                </RadzenText>
+                <RadzenFieldset Text=@Loc["Upload form"]>
+                    <RadzenRow>
+                        <RadzenColumn>
+                            <RadzenCard>
+                                <RadzenFileInput @bind-Value="model.File" @bind-FileName="model.FileName" TValue="string"
+                                    @bind-FileSize="model.FileSize" class="w-100" ChooseText=@Loc["Select image"]
+                                    Change="args => OnPhotoChanged(args)" />
+                            </RadzenCard>
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenRow>
+                        <RadzenColumn>
+                            <ImpreciseDateInput Value="@model.ShootingDate" />
+                        </RadzenColumn>
+                        <RadzenColumn>
+                            <RadzenLabel Component="NonAuthor" Text=@Loc["I'm not the photo author"] />
+                            <RadzenCheckBox Name="NonAuthor" @bind-Value="model.NonAuthor" />
+                        </RadzenColumn>
+                        <RadzenColumn>
+                            <RadzenFormField Text=@Loc["License"]>
+                                <RadzenDropDown Data="licenses" @bind-Value="model.License" TextProperty="Name" />
+                            </RadzenFormField>
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenRow>
+                        <RadzenFieldset Text=@Loc["Buildings"]>
+                            <RadzenRow>
+                                <RadzenDropDown TValue="Location" Value=@(model.Location) Data="locations"
+                                    Change="args => OnLocationChanged(args as Location)" TextProperty="Name" />
+                                <RadzenButton Icon="add" Text=@Loc["Bind a building"] Size="ButtonSize.Small"
+                                    Click="AddBuilding" />
+                            </RadzenRow>
+                            @for (int index = 0; index < model.Binds.Count; index++)
+                            {
+                                int i = index;
+                                <RadzenRow>
+                                    <RadzenDropDown Data="buildings" @bind-Value=@(model.Binds[i].Building)
+                                        TextProperty="Address" ValueProperty="Building" AllowFiltering=true>
+                                    </RadzenDropDown>
+                                    <RadzenLabel Text=@Loc["Main"] Component=@($"IsMain{i}") />
+                                    <RadzenCheckBox @bind-Value=@(model.Binds[i].IsMain) Name=@($"IsMain{i}") />
+                                </RadzenRow>
+                            }
+                        </RadzenFieldset>
+                    </RadzenRow>
+                    <RadzenRow>
+                        <RadzenFieldset Text=@Loc["On map"]>
+                            <OpenStreetMap @ref="map" OnClick="OnMapClick" Style="height:300px; width:300px" />
+                            <RadzenLabel Component="Dir" Text=@Loc["Direction"] />
+                            <RadzenNumeric Name="Dir" Min="1" Max="360" Value="model.Direction" TValue="int"
+                                Change="args => OnDirectionChange(args)" Format="0 °" />
+                            <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
+                                <RadzenButton Size="ButtonSize.ExtraSmall" Text="N" Icon="north"
+                                    Click="args => OnDirectionChange(360)" />
+                                <RadzenButton Size="ButtonSize.ExtraSmall" Text="NE" Icon="north_east"
+                                    Click="args => OnDirectionChange(45)" />
+                                <RadzenButton Size="ButtonSize.ExtraSmall" Text="E" Icon="east"
+                                    Click="args => OnDirectionChange(90)" />
+                                <RadzenButton Size="ButtonSize.ExtraSmall" Text="SE" Icon="south_east"
+                                    Click="args => OnDirectionChange(135)" />
+                                <RadzenButton Size="ButtonSize.ExtraSmall" Text="S" Icon="south"
+                                    Click="args => OnDirectionChange(180)" />
+                                <RadzenButton Size="ButtonSize.ExtraSmall" Text="SW" Icon="south_west"
+                                    Click="args => OnDirectionChange(225)" />
+                                <RadzenButton Size="ButtonSize.ExtraSmall" Text="W" Icon="west"
+                                    Click="args => OnDirectionChange(270)" />
+                                <RadzenButton Size="ButtonSize.ExtraSmall" Text="NW" Icon="north_west"
+                                    Click="args => OnDirectionChange(315)" />
+                            </RadzenStack>
+                        </RadzenFieldset>
+                    </RadzenRow>
+                    <RadzenRow>
+                        <RadzenButton ButtonType="ButtonType.Submit" Text=@Loc["Upload"] Click="UploadPhoto" />
+                    </RadzenRow>
+                </RadzenFieldset>
+            }
+            else
+            {
+                <RadzenAlert AllowClose="false" Title=@Loc["Limit exhausted"] AlertStyle="AlertStyle.Danger"
+                    Variant="Variant.Flat" Shade="Shade.Lighter">
+                    @Loc["You have exhausted your direct upload limit for today."]
+                </RadzenAlert>
+            }
+        </Authorized>
+        <NotAuthorized>
+            <RadzenAlert AllowClose="false" Title=@Loc["Unauthorized"] AlertStyle="AlertStyle.Danger"
+                Variant="Variant.Flat" Shade="Shade.Lighter">
+                @Loc["To upload photos, you must be authorized."]
+            </RadzenAlert>
+        </NotAuthorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>
+
+@code
+{
+    ArchiBaseUser? user;
+    int limit = 0;
+
+    class BuildingWithAddress
+    {
+        public Building Building { get; set; }
+        public string Address { get; set; }
+    }
+
+    class BuildingBindModel
+    {
+        public Building Building { get; set; }
+        public bool IsMain { get; set; } = true;
+    }
+
+    class UploadModel
+    {
+        public string? File { get; set; }
+        public string? FileName { get; set; }
+        public long? FileSize { get; set; }
+        public List<BuildingBindModel> Binds { get; set; } = [];
+        public ImpreciseDate ShootingDate { get; set; } = new();
+
+        public Location Location { get; set; }
+        public License License { get; set; }
+        public bool NonAuthor { get; set; } = false;
+        public int Direction { get; set; } = 360;
+
+        public ExifData ExifData { get; set; } = new();
+
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+    }
+
+    UploadModel model = new();
+    List<BuildingWithAddress> buildings;
+    List<Location> locations;
+
+    List<License> licenses;
+
+    OpenStreetMap map;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = UserResolverService.GetUser();
+        user = await UserManager.FindByIdAsync(userId.ToString());
+        var userPhotosCountToday = ModelContext.Photos.Where(p => p.AuthorId == userId && p.PublicationDate.Date ==
+        DateTime.UtcNow.Date).Count();
+        limit = Math.Max((user?.DirectUploadLimitOverride - userPhotosCountToday) ?? 0, 0);
+        locations = ModelContext.Locations.Where(loc => loc.AllowStreets).OrderBy(loc => loc.Name).ToList();
+        licenses = ModelContext.Licenses.ToList();
+    }
+
+    public void AddBuilding()
+    {
+        model.Binds.Add(new());
+    }
+
+    public void RemoveBuilding(int index)
+    {
+        model.Binds.RemoveAt(index);
+    }
+
+    public void OnLocationChanged(Location newLocation)
+    {
+        model.Location = newLocation;
+        buildings = ModelContext.Buildings.Where(b => b.Location == newLocation)
+        .Include(b => b.Cards)
+        .ThenInclude(c => c.StreetAddresses)
+        .ThenInclude(a => a.Street)
+        .Select(b => new BuildingWithAddress
+            {
+                Building = b,
+                Address = String.Join(" / ", b.Cards.OrderByDescending(c => c.ActualFrom.Date).First().StreetAddresses)
+            })
+        .ToList();
+    }
+
+    public void OnPhotoChanged(string photo)
+    {
+        if (photo is null) return;
+        try
+        {
+            var p = photo[(photo.IndexOf(",") + 1)..];
+            byte[] bytes = Convert.FromBase64String(p);
+            using (MemoryStream ms = new MemoryStream(bytes))
+            {
+                var directories = ImageMetadataReader.ReadMetadata(ms);
+                var exifIFD0 = directories.OfType<ExifIfd0Directory>().FirstOrDefault();
+                var dateTimeTag = exifIFD0?.Tags.Where(t => t.Name == "Date/Time").FirstOrDefault();
+                try
+                {
+                    DateTime photoDate = DateTime.ParseExact(dateTimeTag?.Description ?? "", "yyyy:MM:dd HH:mm:ss", null);
+                    model.ShootingDate = new ImpreciseDate { Date = photoDate, Precision = DatePrecision.Full };
+                    model.ExifData.PhotoDate = photoDate;
+                }
+                catch (System.FormatException ex)
+                {
+                    model.ShootingDate = new ImpreciseDate { Date = DateTime.MinValue, Precision = DatePrecision.None };
+                }
+                var isoTag = exifIFD0?.Tags.Where(t => t.Name == "ISO Speed").FirstOrDefault();
+                if (isoTag is not null) model.ExifData.ISO = Int32.Parse(isoTag.Description ?? "0");
+                var expTimeTag = exifIFD0?.Tags.Where(t => t.Name == "Exposure Time").FirstOrDefault();
+                if (expTimeTag is not null) model.ExifData.EV = expTimeTag.Description;
+
+            }
+
+        }
+        catch (Exception ex)
+        {
+            //TODO: Notification
+            Console.WriteLine(ex);
+            model.File = null;
+            model.FileName = null;
+            model.FileSize = null;
+        }
+    }
+
+    public void UploadPhoto()
+    {
+        if (model.File is null) return;
+        try
+        {
+            if (model.License is null) throw new ArgumentNullException("License");
+            var p = model.File[(model.File.IndexOf(",") + 1)..];
+            byte[] bytes = Convert.FromBase64String(p);
+            AnyBitmap bitmap;
+            using (MemoryStream ms = new MemoryStream(bytes))
+            {
+                bitmap = AnyBitmap.FromStream(ms);
+            }
+            Guid photoId = Guid.NewGuid();
+            Photo photo = new Photo
+                {
+                    Id = photoId,
+                    AuthorId = UserResolverService.GetUser(),
+                    Exif = model.ExifData,
+                    NonAuthor = model.NonAuthor,
+                    License = model.License,
+                    PublicationDate = DateTime.Now,
+                    ShootingDate = model.ShootingDate,
+                    Direction = model.Direction,
+                    Extension = "jpg",
+                    BuildingBinds = model.Binds.Select((b, idx) => new BuildingBind
+                    {
+                        Building = b.Building,
+                        IsMain = b.IsMain,
+                        Order = idx + 1
+                    }).ToList(),
+                    Latitude = model.Latitude,
+                    Longitude = model.Longitude,
+                    Description = "", // TODO: Description input
+                };
+            ModelContext.Photos.Add(photo);
+            System.IO.Directory.CreateDirectory("/app/wwwroot" + photo.PhotoDir);
+            bitmap.ExportFile("/app/wwwroot" + photo.PhotoLink, AnyBitmap.ImageFormat.Jpeg, 95);
+            ModelContext.SaveChanges();
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Photo uploaded!",
+                    Detail = $"Photo ID: {photoId}"
+                });
+        }
+        catch (Exception e)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"{e.Message}"
+                });
+        }
+    }
+
+    void OnMapClick(Coordinate coordinate)
+    {
+        map.MarkersList.Clear();
+        map.MarkersList.Add(new Marker(coordinate, "/icons/camera.svg", 800, 800, 400, 400)
+            {
+                Scale = 0.05,
+                Rotation = Math.PI / 180.0 * model.Direction
+            });
+        model.Longitude = coordinate.Longitude;
+        model.Latitude = coordinate.Latitude;
+    }
+
+    void OnDirectionChange(int newDirection)
+    {
+        model.Direction = newDirection;
+        var marker = map.MarkersList.FirstOrDefault();
+        if (marker is not null)
+        {
+            marker.Rotation = Math.PI / 180.0 * model.Direction;
+            marker.UpdateShape();
+        }
+    }
+}

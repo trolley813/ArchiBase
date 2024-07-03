@@ -79,7 +79,9 @@
 <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
 @foreach(var photo in recentPhotos)
 {
-    <RadzenImage Path=@(photo.PhotoLink) Style="height:200px;max-width:400px" />
+    <RadzenLink Path=@($"/photos/{photo.Id}")>
+        <RadzenImage Path=@(photo.PhotoLink) Style="height:200px;max-width:400px" />
+    </RadzenLink>
 }
 </RadzenStack>
 @code

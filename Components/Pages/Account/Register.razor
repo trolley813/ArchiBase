@@ -8,7 +8,7 @@
 
 <ArchibasePageTitle Title=@Loc["Register"] />
 
-@if (!Configuration.GetValue<bool>("DisableRegistration", true))
+@if (!Configuration.GetValue<bool>("DisableRegistration", false))
 {
     <RadzenCard>
     <RadzenText TextStyle="TextStyle.H4">Register</RadzenText>

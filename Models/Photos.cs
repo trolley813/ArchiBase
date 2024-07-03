@@ -24,6 +24,8 @@ public class BuildingBind
     public Photo Photo { get; set; }
     public Building Building { get; set; }
     public BindMarkup? Markup { get; set; }
+    public bool IsMain { get; set; }
+    public int Order { get; set; }
 }
 
 public class Gallery : IAuditable
@@ -80,9 +82,8 @@ public class Photo : IAuditable
     public int VotesCount => Votes.Select(v => v.Vote).Sum();
     public int UpvotesCount => Votes.Where(v => v.Vote > 0).Count();
     public int DownvotesCount => Votes.Where(v => v.Vote < 0).Count();
-
-
-    public string PhotoLink => $"/data/photos/{Id.ToString()[..8]}/{Id}.{Extension}";
+    public string PhotoLink => $"/data/photos/{Id.ToString()[0..2]}/{Id.ToString()[2..4]}/{Id}.{Extension}";
+    public string PhotoDir => $"/data/photos/{Id.ToString()[0..2]}/{Id.ToString()[2..4]}";
 
     public bool IsHidden { get; set; }
 

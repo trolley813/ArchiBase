@@ -7,8 +7,7 @@
 
 @if (location is not null)
 {
-
-    <EditorOnly>
+    <EditorOnly Location=@(location.Id)>
     <RadzenText TextStyle="TextStyle.H3">Edit location</RadzenText>
     <RadzenStack Orientation="Orientation.Vertical">
         <RadzenFormField Text="Name">
@@ -31,6 +30,10 @@
             <RadzenFormField Text="Longitude">
                 <RadzenNumeric ShowUpDown="false" @bind-Value="location.Longitude" />
             </RadzenFormField>
+        </RadzenRow>
+        <RadzenRow>
+            <RadzenLabel Text="Allow streets" Component="AllowStreets" />
+            <RadzenCheckBox Name="AllowStreets" @bind-Value="location.AllowStreets" />
         </RadzenRow>
         <OpenStreetMap @ref="map" Style="height:480px; width:640px" OnClick="OnMapClick">
         </OpenStreetMap>
@@ -66,7 +69,7 @@
     {
         if (firstRender)
         {
-            map.SetCenter(new Coordinate(location?.Longitude ?? 0.0, location?.Latitude ?? 0.0));
+            map?.SetCenter(new Coordinate(location?.Longitude ?? 0.0, location?.Latitude ?? 0.0));
         }
     }
 

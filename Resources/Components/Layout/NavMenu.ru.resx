@@ -158,4 +158,12 @@
     <value>Новые</value>
     <comment> </comment>
   </data>
+  <data name="Photos" xml:space="preserve">
+    <value>Фотографии</value>
+    <comment> </comment>
+  </data>
+  <data name="Upload photo" xml:space="preserve">
+    <value>Загрузить фото</value>
+    <comment> </comment>
+  </data>
 </root>

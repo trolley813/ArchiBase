@@ -2,14 +2,18 @@
 @using ArchiBase.Components.Utils
 @inject ModelContext ModelContext
 @inject NotificationService NotificationService
+@inject DialogService DialogService
+@inject LocalEditorService LocalEditorService
+@inject UserResolverService UserResolverService
+@inject UserManager<ArchiBaseUser> UserManager
 
 
-<EditorOnly>
+<EditorOnly Location=@LocId>
     <RadzenFormField Text="Name">
         <RadzenTextBox @bind-Value="@name" />
     </RadzenFormField>
     <RadzenFormField Text="Location">
-        <RadzenDropDown @bind-Value="@location" Data="Locations" TextProperty="Name">
+        <RadzenDropDown @bind-Value="@location" Data="Locations" TextProperty="Name" AllowFiltering=true>
         </RadzenDropDown>
     </RadzenFormField>
     <RadzenText TextStyle="TextStyle.H5">Add Buildings</RadzenText>
@@ -27,6 +31,12 @@
                     <RadzenFormField Text="Design">
                         <RadzenDropDown Data="Designs" AllowFiltering=true @bind-Value="buildingEntry.Item.Design"
                             TextProperty="Name" />
+                    </RadzenFormField>
+                </RadzenColumn>
+                <RadzenColumn>
+                    <RadzenFormField Text="Categories">
+                        <RadzenDropDown Data="Categories" AllowFiltering=true Multiple=true
+                            @bind-Value="buildingEntry.Item.Categories" TextProperty="Name" />
                     </RadzenFormField>
                 </RadzenColumn>
                 <RadzenColumn>
@@ -51,7 +61,7 @@
                 </RadzenColumn>
                 <RadzenColumn>
                     <RadzenFormField>
-                        <RadzenButton Icon="pin_drop" Text="On map" Disabled=true />
+                        <RadzenButton Icon="pin_drop" Text="On map" Click="args => OpenMapDialog(buildingEntry.Item)" />
                     </RadzenFormField>
                 </RadzenColumn>
                 <RadzenColumn>
@@ -69,15 +79,18 @@
 
 @code
 {
-    IEnumerable<Location> Locations { get; set; }
-    IEnumerable<Design> Designs { get; set; }
+    List<Location> Locations { get; set; }
+    List<Design> Designs { get; set; }
+    List<DesignCategory> Categories { get; set; }
 
     Location? location;
 
-    class BuildingInputModel
+    public class BuildingInputModel
     {
         public string Number { get; set; } = "";
         public Design? Design { get; set; }
+
+        public List<DesignCategory> Categories { get; set; } = [];
         public int? ConstructionYear { get; set; }
         public int? DemolitionYear { get; set; }
 
@@ -88,8 +101,9 @@
     List<BuildingInputModel> buildingsToAdd = [];
     protected override void OnInitialized()
     {
-        Locations = ModelContext.Locations;
-        Designs = ModelContext.Designs;
+        Locations = ModelContext.Locations.Where(loc => loc.AllowStreets).ToList();
+        Designs = ModelContext.Designs.ToList();
+        Categories = ModelContext.DesignCategories.ToList();
         location = Locations.FirstOrDefault(loc => loc.Id == LocId);
     }
 
@@ -109,9 +123,22 @@
         buildingsToAdd.RemoveAt(index);
     }
 
-    public void Add()
+    public async Task Add()
     {
-        if (buildingsToAdd.Any(b => b.Design is null))
+        var user = UserManager.Users.FirstOrDefault(u => u.Id == UserResolverService.GetUser());
+        var isEditor = user is not null && (await UserManager.IsInRoleAsync(user, "Admin") || await
+        UserManager.IsInRoleAsync(user, "Editor"));
+        if (!isEditor && !LocalEditorService.CanEdit(user, location?.Id ?? default))
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = "As a local editor, you cannot add a street to this location."
+                });
+            return;
+        }
+        if (buildingsToAdd.Any(b => b.Design is null && !b.Categories.Any()))
         {
             NotificationService.Notify(new NotificationMessage
                 {
@@ -145,8 +172,11 @@
                 {
                     ActualFrom = events.FirstOrDefault(e => e.Type == BuildingEventType.ConstructionFinished)?.Date.Clone() ?? new(),
                     Name = name,
-                    Parts = [new BuildingPart() { Design = buildingEntry.Design }],
-                    StreetAddresses = [new StreetAddress { Street = street, HouseNumber = buildingEntry.Number }]
+                    Parts = buildingEntry.Design is not null ? [new BuildingPart() { Design = buildingEntry.Design }] : [],
+                    Categories = buildingEntry.Categories,
+                    StreetAddresses = [new StreetAddress { Street = street, HouseNumber = buildingEntry.Number }],
+                    Builder = "",
+                    Customer = "",
                 };
             Building building = new()
                 {
@@ -161,7 +191,7 @@
         }
         try
         {
-            ModelContext.SaveChanges();
+            await ModelContext.SaveChangesAsync();
             NotificationService.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Success,
@@ -178,5 +208,11 @@
                     Detail = $"{ex.Message} {ex.InnerException?.Message}"
                 });
         }
+    }
+
+    public async Task OpenMapDialog(BuildingInputModel model)
+    {
+        var result = await DialogService.OpenAsync<MapDialog>("Select the location on map",
+        new Dictionary<string, object> { ["Model"] = model, ["Location"] = location });
     }
 }

@@ -1,6 +1,7 @@
 @page "/buildings/{id:guid}/edit"
 @using Microsoft.EntityFrameworkCore
 @using ArchiBase.Components.Utils
+@using System.Text.RegularExpressions
 @inject NotificationService NotificationService
 @inject ModelContext ModelContext
 @inject IStringLocalizer<BuildingEvent> ELoc
@@ -103,25 +104,50 @@
                                         <RadzenRow>
                                             <ImpreciseDateInput @bind-Value="card.ActualFrom" FieldName="Actual from" />
                                         </RadzenRow>
-                                        @* <RadzenRow>
-                                <RadzenColumn>
-                                <RadzenFormField Text="Design">
-                                <RadzenDropDown @bind-Value="card.Design" Data="Designs"
-                                TextProperty="Name" />
-                                </RadzenFormField>
-                                </RadzenColumn>
-                                <RadzenColumn>
-                                <RadzenFormField Text="Floor count">
-                                <RadzenTextBox @bind-Value="card.FloorCount" />
-                                </RadzenFormField>
-                                </RadzenColumn>
-                                </RadzenRow> *@
                                         <RadzenRow>
+                                            <RadzenColumn>
+                                                <RadzenFormField Text="Categories">
+                                                    <RadzenDropDown @bind-Value="card.Categories" Data="Categories"
+                                                        TextProperty="Name" Multiple=true />
+                                                </RadzenFormField>
+                                            </RadzenColumn>
+                                            <RadzenColumn>
+                                                <RadzenFormField Text="Floor count">
+                                                    <RadzenTextBox Change="args => OnFloorCountChanged(card, args)"
+                                                        Value=@(String.Join(", ", card.FloorCount)) />
+                                                </RadzenFormField>
+                                            </RadzenColumn>
                                             <RadzenColumn>
                                                 <RadzenFormField Text="Name">
                                                     <RadzenTextBox @bind-Value="card.Name" />
                                                 </RadzenFormField>
                                             </RadzenColumn>
+                                        </RadzenRow>
+                                        <RadzenRow>
+                                            <RadzenRow>
+                                                <RadzenText TextStyle="TextStyle.Subtitle1">Parts</RadzenText>
+                                                <RadzenButton Icon="add" Text="Add" Size="ButtonSize.ExtraSmall"
+                                                    Click="args => AddPart(i)" />
+                                            </RadzenRow>
+                                            <RadzenRow>
+                                                @for (int pindex = 0; pindex < card.Parts.Count; pindex++)
+                                                {
+                                                    var pi = pindex;
+                                                    <RadzenRow>
+                                                        <RadzenFormField Text="Part name">
+                                                            <RadzenTextBox @bind-Value="card.Parts[pi].Name" />
+                                                        </RadzenFormField>
+                                                        <RadzenFormField Text="Design">
+                                                            <RadzenDropDown Data="Designs" @bind-Value="card.Parts[pi].Design"
+                                                                TextProperty="Name" AllowFiltering=true AllowClear=true />
+                                                        </RadzenFormField>
+                                                        <RadzenFormField>
+                                                            <RadzenButton Icon="delete" Click="args => RemovePart(i, pi)">
+                                                            </RadzenButton>
+                                                        </RadzenFormField>
+                                                    </RadzenRow>
+                                                }
+                                            </RadzenRow>
                                         </RadzenRow>
                                     </RadzenCard>
                                 </ChildContent>
@@ -158,6 +184,7 @@
     public List<Street> Streets { get; set; } = [];
 
     public List<Design> Designs { get; set; } = [];
+    public List<DesignCategory> Categories { get; set; } = [];
 
     string searchText = "";
 
@@ -169,14 +196,17 @@
         .ThenInclude(c => c.StreetAddresses)
         .ThenInclude(a => a.Street)
         .Include(b => b.Cards)
+        .ThenInclude(c => c.Categories)
+        .Include(b => b.Cards)
         .ThenInclude(c => c.Parts)
         .ThenInclude(p => p.Design)
         .ThenInclude(d => d.CatalogueEntries)
-        .ThenInclude(e => e.Catalogue).FirstOrDefault(b => b.Id == Id);
+        .ThenInclude(e => e.Catalogue).AsSplitQuery().FirstOrDefault(b => b.Id == Id);
 
         if (building != null)
         {
             Designs = ModelContext.Designs.ToList();
+            Categories = ModelContext.DesignCategories.ToList();
             Streets = ModelContext.Streets.ToList();
         }
 
@@ -208,6 +238,16 @@
     public void RemoveAddress(int cardIndex, int index)
     {
         building.Cards[cardIndex].StreetAddresses.RemoveAt(index);
+    }
+
+    public void AddPart(int cardIndex)
+    {
+        building.Cards[cardIndex].Parts.Add(new());
+    }
+
+    public void RemovePart(int cardIndex, int index)
+    {
+        building.Cards[cardIndex].Parts.RemoveAt(index);
     }
 
     public void AddCard()
@@ -242,5 +282,11 @@
                     Detail = $"{e.Message}"
                 });
         }
+    }
+
+    public void OnFloorCountChanged(BuildingCard card, string value)
+    {
+        card.FloorCount = Array.ConvertAll(Regex.Matches(value ?? "", "\\d+").Select(m =>
+        m.Value).ToArray(), Int32.Parse).ToList();
     }
 }

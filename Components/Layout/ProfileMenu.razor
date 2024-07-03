@@ -11,6 +11,7 @@
                 <ChildContent>
                     <RadzenProfileMenuItem Text="My page"
                         Path=@($"users/{context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value}") />
+                    <RadzenProfileMenuItem Text="My stats" Path="my-stats" />
                     <RadzenProfileMenuItem Text="Log out" Path="account/logout" />
                 </ChildContent>
             </RadzenProfileMenu>
