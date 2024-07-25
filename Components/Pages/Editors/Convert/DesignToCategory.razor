@@ -1,0 +1,55 @@
+@page "/convert/designtocategory"
+@inject IStringLocalizer<DesignToCategory> Loc
+@inject ITreeRepository<DesignCategory, Guid> TreeRepo
+@inject ModelContext ModelContext
+
+<ArchibasePageTitle Title=@Loc["Convert design to category"] />
+
+<RadzenText TextStyle="TextStyle.H4">@Loc["Convert design to category"]</RadzenText>
+
+
+<RadzenFormField Text=@Loc["Select a design"]>
+    <RadzenDropDown Value="designToConvert" TValue="Design" Change="args => OnDesignChanged(args as Design)"
+        Data="designs" TextProperty="Name" AllowFiltering=true AllowClear=false />
+</RadzenFormField>
+
+<RadzenFieldset>
+    <RadzenFormField Text=@Loc["New category name"]>
+        <RadzenTextBox @bind-Value="convertedCategory.Name" />
+    </RadzenFormField>
+    <RadzenFormField Text=@Loc["Choose parent category"]>
+        <RadzenDropDown @bind-Value="convertedCategory.ParentId" Data="categories" TextProperty="Name"
+            ValueProperty="Id" AllowFiltering=true />
+    </RadzenFormField>
+    <RadzenButton ButtonType="ButtonType.Submit" Text=@Loc["Convert"] Click="Convert" />
+</RadzenFieldset>
+
+
+
+@code
+{
+    List<Design> designs;
+    List<DesignCategory> categories;
+
+    Design? designToConvert;
+
+    DesignCategory convertedCategory = new();
+
+    protected override void OnInitialized()
+    {
+        designs = ModelContext.Designs.ToList();
+        categories = ModelContext.DesignCategories.ToList();
+    }
+
+    void OnDesignChanged(Design design)
+    {
+        designToConvert = design;
+        convertedCategory.Name = design.Name;
+        categories = categories.OrderByDescending(cat => design.Categories.Contains(cat)).ToList();
+    }
+
+    void Convert()
+    {
+
+    }
+}

@@ -11,7 +11,7 @@
     <RadzenPanelMenuItem Text=@Loc["Comments"] Icon="comment" Path="comments">
         <CascadingAuthenticationState>
             <AuthorizeView>
-                <RadzenPanelMenuItem Icon="new" Path="comments/new">
+                <RadzenPanelMenuItem Icon="mark_unread_chat_alt" Path="comments/new">
                     <Template>
                         @Loc["New"]&emsp;
                         <RadzenBadge IsPill=true Text=@(CommentService.GetNewCommentsCount().ToString()) />
@@ -26,4 +26,17 @@
     </RadzenPanelMenuItem>
     <RadzenPanelMenuItem Text=@Loc["Editorial board"] Icon="groups" Path="editorial" />
     <RadzenPanelMenuItem Text=@Loc["Pages"] Icon="description" Path="pages" />
+    <EditorOnly ShowAlert=false>
+        <RadzenPanelMenuItem Text=@Loc["For editors"] Icon="design_services">
+            <RadzenPanelMenuItem Text=@Loc["Bulk editing"]>
+                <RadzenPanelMenuItem Text=@Loc["Split designs"] Path="series/split" />
+                <RadzenPanelMenuItem Text=@Loc["Split categories"] Path="categories/split" />
+            </RadzenPanelMenuItem>
+            <RadzenPanelMenuItem Text=@Loc["Conversions"]>
+                <RadzenPanelMenuItem Text=@Loc["Design to category"] Path="convert/designtocategory" />
+                <RadzenPanelMenuItem Text=@Loc["Category to design"] Path="convert/categorytodesign" />
+            </RadzenPanelMenuItem>
+
+        </RadzenPanelMenuItem>
+    </EditorOnly>
 </RadzenPanelMenu>

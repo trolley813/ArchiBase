@@ -117,69 +117,7 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Bulk editing" xml:space="preserve">
-    <value>Массовое редактирование</value>
-  </data>
-  <data name="Catalogues" xml:space="preserve">
-    <value>Каталоги</value>
-    <comment/>
-  </data>
-  <data name="Categories" xml:space="preserve">
-    <value>Категории</value>
-    <comment/>
-  </data>
-  <data name="Category to design" xml:space="preserve">
-    <value>Категорию в проект</value>
-  </data>
-  <data name="Comments" xml:space="preserve">
-    <value>Комментарии</value>
-    <comment> </comment>
-  </data>
-  <data name="Conversions" xml:space="preserve">
-    <value>Преобразования</value>
-  </data>
-  <data name="Design to category" xml:space="preserve">
-    <value>Проект в категорию</value>
-  </data>
-  <data name="Editorial board" xml:space="preserve">
-    <value>Редколлегия</value>
-    <comment/>
-  </data>
-  <data name="For editors" xml:space="preserve">
-    <value>Для редакторов</value>
-  </data>
-  <data name="Home" xml:space="preserve">
-    <value>Главная</value>
-    <comment/>
-  </data>
-  <data name="Locations" xml:space="preserve">
-    <value>Населенные пункты</value>
-    <comment/>
-  </data>
-  <data name="New" xml:space="preserve">
-    <value>Новые</value>
-    <comment> </comment>
-  </data>
-  <data name="Pages" xml:space="preserve">
-    <value>Страницы</value>
-    <comment/>
-  </data>
-  <data name="Photos" xml:space="preserve">
-    <value>Фотографии</value>
-    <comment> </comment>
-  </data>
-  <data name="Series and Designs" xml:space="preserve">
-    <value>Серии и проекты</value>
-    <comment/>
-  </data>
-  <data name="Split categories" xml:space="preserve">
-    <value>Разделить категории</value>
-  </data>
-  <data name="Split designs" xml:space="preserve">
-    <value>Разделить проекты</value>
-  </data>
-  <data name="Upload photo" xml:space="preserve">
-    <value>Загрузить фото</value>
-    <comment> </comment>
+  <data name="Convert design to category" xml:space="preserve">
+    <value>Преобразовать проект в категорию</value>
   </data>
 </root>

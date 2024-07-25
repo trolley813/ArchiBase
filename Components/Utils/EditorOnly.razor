@@ -26,14 +26,17 @@ else
             @ChildContent
         </Authorized>
         <NotAuthorized>
-            <RadzenAlert AllowClose="false" Title="Unauthorized" AlertStyle="AlertStyle.Danger" Variant="Variant.Flat"
-                Shade="Shade.Lighter">
-                @AlertText
-                @if (ShowLoginLink)
-                    {
-                        <RadzenLink Path="login" Text="Log in" />
-                    }
-                </RadzenAlert>
+            @if (ShowAlert)
+                {
+                    <RadzenAlert AllowClose="false" Title="Unauthorized" AlertStyle="AlertStyle.Danger" Variant="Variant.Flat"
+                        Shade="Shade.Lighter">
+                        @AlertText
+                        @if (ShowLoginLink)
+                        {
+                            <RadzenLink Path="login" Text="Log in" />
+                        }
+                    </RadzenAlert>
+                }
             </NotAuthorized>
         </AuthorizeView>
     </CascadingAuthenticationState>
@@ -50,6 +53,9 @@ else
 
     [Parameter]
     public string AlertText { get; set; } = "";
+
+    [Parameter]
+    public bool ShowAlert { get; set; } = true;
 
     [Parameter]
     public bool ShowLoginLink { get; set; } = true;

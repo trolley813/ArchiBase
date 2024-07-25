@@ -1,3 +1,7 @@
+## 0.1.6 (2024-07-25)
+- removed certificate revocation check in email client
+- stubs for bulk edit features
+
 ## 0.1.5 (2024-07-03)
 - local editor features
 - quick building creation upon adding a street

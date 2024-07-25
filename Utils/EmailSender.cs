@@ -33,24 +33,23 @@ public class EmailSender : IEmailSender
         message.Subject = subject;
         message.Body = new TextPart("html") { Text = htmlMessage };
 
-        using (var client = new SmtpClient())
+        using var client = new SmtpClient();
+        try
         {
-            try
-            {
-                await client.ConnectAsync(emailConfiguration.SmtpServer, emailConfiguration.Port);
-                client.AuthenticationMechanisms.Remove("XOAUTH2");
-                client.Authenticate(emailConfiguration.Username, emailConfiguration.Password);
-                client.Send(message);
-            }
-            catch
-            {
-                throw;
-            }
-            finally
-            {
-                client.Disconnect(true);
-                client.Dispose();
-            }
+            client.CheckCertificateRevocation = false;
+            await client.ConnectAsync(emailConfiguration.SmtpServer, emailConfiguration.Port);
+            client.AuthenticationMechanisms.Remove("XOAUTH2");
+            client.Authenticate(emailConfiguration.Username, emailConfiguration.Password);
+            client.Send(message);
+        }
+        catch
+        {
+            throw;
+        }
+        finally
+        {
+            client.Disconnect(true);
+            client.Dispose();
         }
     }
 }
