@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using EFMaterializedPath.Entity;
 using SmartFormat;
 
@@ -69,5 +70,15 @@ public class Architect : IAuditable
     public ImpreciseDate? DateOfDeath { get; set; }
 
     public List<Design> Designs { get; set; } = [];
-    public List<Building> Buildings { get; set; } = [];
+    public List<BuildingCard> BuildingCards { get; set; } = [];
+
+    [NotMapped]
+    public List<Building> Buildings => BuildingCards.Select(c => c.Building).Distinct().ToList();
+}
+
+public class Style
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; }
+    public string? Desctiption { get; set; }
 }

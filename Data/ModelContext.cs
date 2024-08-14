@@ -33,6 +33,7 @@ public class ModelContext : DbContext
     public DbSet<License> Licenses { get; set; }
     public DbSet<BuildingBind> BuildingBinds { get; set; }
     public DbSet<Photo> Photos { get; set; }
+    public DbSet<Group> Groups { get; set; }
 
     public IQueryable<Photo> ActivePhotos => Photos.Where(p => !p.IsHidden);
 

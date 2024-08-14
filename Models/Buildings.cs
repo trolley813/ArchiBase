@@ -47,7 +47,12 @@ public class Street : IAuditable
     public Guid Id { get; set; }
     public string Name { get; set; }
 
+    public string? Description { get; set; }
+
     public Location Location { get; set; }
+
+    public ImpreciseDate? From { get; set; }
+    public ImpreciseDate? To { get; set; }
 }
 
 public class BuildingEvent
@@ -121,4 +126,15 @@ public class Building : IAuditable
     public Location Location { get; set; }
 
     public string? CadastreRecordNumber { get; set; }
+}
+
+
+public class Group
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; }
+
+    public string? Description { get; set; }
+    public Location Location { get; set; }
+    public List<Building> Buildings { get; set; }
 }
