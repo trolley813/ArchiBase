@@ -34,6 +34,7 @@ public class ModelContext : DbContext
     public DbSet<BuildingBind> BuildingBinds { get; set; }
     public DbSet<Photo> Photos { get; set; }
     public DbSet<Group> Groups { get; set; }
+    public DbSet<Style> Styles { get; set; }
 
     public IQueryable<Photo> ActivePhotos => Photos.Where(p => !p.IsHidden);
 

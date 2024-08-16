@@ -99,6 +99,6 @@
         buildingsCount = ModelContext.Buildings.Count();
         photosCount = ModelContext.ActivePhotos.Count();
         news = ModelContext.NewsItems.OrderByDescending(n => n.PublicationDate).Take(5).ToList();
-        recentPhotos = ModelContext.Photos.OrderByDescending(p => p.PublicationDate).Take(10).ToList();
+        recentPhotos = ModelContext.ActivePhotos.OrderByDescending(p => p.PublicationDate).Take(10).ToList();
     }
 }

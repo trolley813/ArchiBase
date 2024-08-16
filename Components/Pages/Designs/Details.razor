@@ -14,7 +14,9 @@
     </RadzenRow>
     <RadzenText TextStyle="TextStyle.H5">@Loc["Description"]</RadzenText>
     <RadzenStack>
-
+        <RadzenRow>
+            @((MarkupString)(design.Description ?? ""))
+        </RadzenRow>
         @if (design.BuildingArea != null)
         {
             <RadzenRow>
@@ -41,7 +43,9 @@
 
         @foreach (var cat in design.Categories)
         {
-            <RadzenBadge Text="@(cat.Name)" IsPill=true />
+            <RadzenBadge IsPill=true>
+                <RadzenLink Path=@($"/categories/{cat.Id}")>@(cat.Name)</RadzenLink>
+            </RadzenBadge>
         }
 
     </RadzenRow>

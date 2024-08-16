@@ -8,6 +8,9 @@
     <RadzenFormField Text=@Loc["Name"]>
         <RadzenTextBox @bind-Value="@name" />
     </RadzenFormField>
+    <RadzenFormField Text=@Loc["Description"]>
+        <RadzenHtmlEditor Style="height: 300px" @bind-Value="@description" />
+    </RadzenFormField>
     <RadzenText TextStyle="TextStyle.H6">@Loc["Technical data"]</RadzenText>
     <RadzenFormField Text=@Loc["Building area"]>
         <RadzenNumeric @bind-Value="buildingArea" Format="0 m²" />
@@ -67,6 +70,7 @@
 @code
 {
     string name = "";
+    string description = "";
     IEnumerable<DesignCatalogue> designCatalogues = [];
     IEnumerable<DesignCategory> categories = [];
     List<DesignCategory> selectedCategories = [];
@@ -123,6 +127,7 @@
             {
                 Id = Guid.NewGuid(),
                 Name = name,
+                Description = description,
                 CatalogueEntries = catalogueEntries,
                 Categories = selectedCategories
             };

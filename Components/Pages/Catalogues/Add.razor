@@ -20,7 +20,7 @@
                     <RadzenFormField Text="Abbreviated Format">
                         <RadzenTextBox Name="Abbr" @bind-Value="@cat.AbbreviatedFormat" />
                         <RadzenRegexValidator Component="Abbr" Text="Format must include {Code} placeholder"
-                            Pattern="\{Code\}">
+                            Pattern=".*?\{Code\}.*">
                         </RadzenRegexValidator>
                     </RadzenFormField>
                     <RadzenFormField>

@@ -95,6 +95,7 @@ public class BuildingCard
     public string? Customer { get; set; }
     public string? Builder { get; set; }
     public List<Architect> Architects { get; set; }
+    public Style? Style { get; set; }
 
     [NotMapped]
     public List<DesignCategory> CategoriesOfDesigns => Parts.SelectMany(p => p.Design.Categories).Distinct().ToList();
@@ -126,6 +127,8 @@ public class Building : IAuditable
     public Location Location { get; set; }
 
     public string? CadastreRecordNumber { get; set; }
+
+    public List<Group> Groups { get; set; }
 }
 
 

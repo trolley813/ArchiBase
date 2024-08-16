@@ -13,6 +13,9 @@
             <RadzenFormField Text=@Loc["Name"]>
                 <RadzenTextBox @bind-Value="design.Name" />
             </RadzenFormField>
+            <RadzenFormField Text=@Loc["Description"]>
+                <RadzenHtmlEditor Style="height: 300px" @bind-Value="@design.Description" />
+            </RadzenFormField>
             <RadzenText TextStyle="TextStyle.H6">@Loc["Technical data"]</RadzenText>
             <RadzenFormField Text=@Loc["Building area"]>
                 <RadzenNumeric @bind-Value="design.BuildingArea" Format="0 m²" />
@@ -69,10 +72,10 @@
 
         </RadzenStack>
     }
-    </EditorOnly>
+</EditorOnly>
 
-    @code
-    {
+@code
+{
     [Parameter]
     public Guid Id { get; set; }
 

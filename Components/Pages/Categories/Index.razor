@@ -25,6 +25,10 @@
     <ArchibasePageTitle Title=@(category.Name) />
     <RadzenLink Text="Edit" Icon="edit" Path="@($"categories/{category.Id}/edit")" />
     <RadzenLink Text="Delete" Icon="delete" Path="@($"categories/{category.Id}/delete")" />
+    <RadzenCard>
+        <RadzenText TextStyle="TextStyle.H4">@category.Name</RadzenText>
+        <RadzenText>@((MarkupString)(category.Description ?? ""))</RadzenText>
+    </RadzenCard>
 }
 
 @if (ChildCategories.Any())

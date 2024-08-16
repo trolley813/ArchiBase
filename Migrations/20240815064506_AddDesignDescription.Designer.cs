@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using ArchiBase.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ArchiBase.Migrations
 {
     [DbContext(typeof(ModelContext))]
-    partial class ModelContextModelSnapshot : ModelSnapshot
+    [Migration("20240815064506_AddDesignDescription")]
+    partial class AddDesignDescription
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -81,6 +84,9 @@ namespace ArchiBase.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("GroupId")
+                        .HasColumnType("uuid");
+
                     b.Property<double>("Latitude")
                         .HasColumnType("double precision");
 
@@ -91,6 +97,8 @@ namespace ArchiBase.Migrations
                         .HasColumnType("double precision");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("GroupId");
 
                     b.HasIndex("LocationId");
 
@@ -148,14 +156,9 @@ namespace ArchiBase.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("StyleId")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
 
                     b.HasIndex("BuildingId");
-
-                    b.HasIndex("StyleId");
 
                     b.ToTable("BuildingCards");
                 });
@@ -337,9 +340,6 @@ namespace ArchiBase.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
 
                     b.Property<int>("Level")
                         .HasColumnType("integer");
@@ -590,24 +590,6 @@ namespace ArchiBase.Migrations
                     b.ToTable("StreetAddress");
                 });
 
-            modelBuilder.Entity("ArchiBase.Models.Style", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Styles");
-                });
-
             modelBuilder.Entity("ArchitectBuildingCard", b =>
                 {
                     b.Property<Guid>("ArchitectsId")
@@ -651,21 +633,6 @@ namespace ArchiBase.Migrations
                     b.HasIndex("CategoriesId");
 
                     b.ToTable("BuildingCardDesignCategory");
-                });
-
-            modelBuilder.Entity("BuildingGroup", b =>
-                {
-                    b.Property<Guid>("BuildingsId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("GroupsId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("BuildingsId", "GroupsId");
-
-                    b.HasIndex("GroupsId");
-
-                    b.ToTable("BuildingGroup");
                 });
 
             modelBuilder.Entity("DesignDesignCategory", b =>
@@ -771,6 +738,10 @@ namespace ArchiBase.Migrations
 
             modelBuilder.Entity("ArchiBase.Models.Building", b =>
                 {
+                    b.HasOne("ArchiBase.Models.Group", null)
+                        .WithMany("Buildings")
+                        .HasForeignKey("GroupId");
+
                     b.HasOne("ArchiBase.Models.Location", "Location")
                         .WithMany()
                         .HasForeignKey("LocationId")
@@ -834,10 +805,6 @@ namespace ArchiBase.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ArchiBase.Models.Style", "Style")
-                        .WithMany()
-                        .HasForeignKey("StyleId");
-
                     b.OwnsOne("ArchiBase.Models.ImpreciseDate", "ActualFrom", b1 =>
                         {
                             b1.Property<Guid>("BuildingCardId")
@@ -861,8 +828,6 @@ namespace ArchiBase.Migrations
                         .IsRequired();
 
                     b.Navigation("Building");
-
-                    b.Navigation("Style");
                 });
 
             modelBuilder.Entity("ArchiBase.Models.BuildingEvent", b =>
@@ -1184,21 +1149,6 @@ namespace ArchiBase.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("BuildingGroup", b =>
-                {
-                    b.HasOne("ArchiBase.Models.Building", null)
-                        .WithMany()
-                        .HasForeignKey("BuildingsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ArchiBase.Models.Group", null)
-                        .WithMany()
-                        .HasForeignKey("GroupsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("DesignDesignCategory", b =>
                 {
                     b.HasOne("ArchiBase.Models.DesignCategory", null)
@@ -1256,6 +1206,11 @@ namespace ArchiBase.Migrations
             modelBuilder.Entity("ArchiBase.Models.DesignCatalogue", b =>
                 {
                     b.Navigation("Entries");
+                });
+
+            modelBuilder.Entity("ArchiBase.Models.Group", b =>
+                {
+                    b.Navigation("Buildings");
                 });
 
             modelBuilder.Entity("ArchiBase.Models.Location", b =>

@@ -22,8 +22,10 @@
     <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
         <value>[base64 mime encoded serialized .NET Framework object]</value>
     </data>
-    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing"
+  mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework
+  object]</value>
         <comment>This is a comment</comment>
     </data>
 
@@ -59,46 +61,47 @@
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
-  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
-    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
       <xsd:complexType>
         <xsd:choice maxOccurs="unbounded">
           <xsd:element name="metadata">
             <xsd:complexType>
               <xsd:sequence>
-                <xsd:element name="value" type="xsd:string" minOccurs="0"/>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
               </xsd:sequence>
-              <xsd:attribute name="name" use="required" type="xsd:string"/>
-              <xsd:attribute name="type" type="xsd:string"/>
-              <xsd:attribute name="mimetype" type="xsd:string"/>
-              <xsd:attribute ref="xml:space"/>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
             </xsd:complexType>
           </xsd:element>
           <xsd:element name="assembly">
             <xsd:complexType>
-              <xsd:attribute name="alias" type="xsd:string"/>
-              <xsd:attribute name="name" type="xsd:string"/>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
             </xsd:complexType>
           </xsd:element>
           <xsd:element name="data">
             <xsd:complexType>
               <xsd:sequence>
-                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
-                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2"/>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
               </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1"/>
-              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3"/>
-              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4"/>
-              <xsd:attribute ref="xml:space"/>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
             </xsd:complexType>
           </xsd:element>
           <xsd:element name="resheader">
             <xsd:complexType>
               <xsd:sequence>
-                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
               </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" use="required"/>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
             </xsd:complexType>
           </xsd:element>
         </xsd:choice>
@@ -112,49 +115,60 @@
     <value>2.0</value>
   </resheader>
   <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0,
+      Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0,
+      Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="Author" xml:space="preserve">
-    <value>Автор</value>
-  </data>
+        <value>Автор</value>
+    </data>
   <data name="Building on map" xml:space="preserve">
-    <value>Здание на карте</value>
-  </data>
+        <value>Здание на карте</value>
+    </data>
   <data name="Cadastre record number" xml:space="preserve">
-    <value>Кадастровый номер</value>
-  </data>
+        <value>Кадастровый номер</value>
+    </data>
   <data name="Card #{Index} actual from {ActualFrom}" xml:space="preserve">
-    <value>Карточка № {Index} (с {ActualFrom})</value>
-  </data>
+        <value>Карточка № {Index} (с {ActualFrom})</value>
+    </data>
   <data name="Categories" xml:space="preserve">
-    <value>Категории</value>
-  </data>
+        <value>Категории</value>
+    </data>
   <data name="Design" xml:space="preserve">
-    <value>Проект</value>
-  </data>
+        <value>Проект</value>
+    </data>
   <data name="Details" xml:space="preserve">
-    <value>Подробности</value>
-  </data>
+        <value>Подробности</value>
+    </data>
   <data name="Floor count" xml:space="preserve">
-    <value>Этажность</value>
-  </data>
+        <value>Этажность</value>
+    </data>
   <data name="Name" xml:space="preserve">
-    <value>Название</value>
-  </data>
+        <value>Название</value>
+    </data>
   <data name="Photo" xml:space="preserve">
-    <value>Фото</value>
-  </data>
+        <value>Фото</value>
+    </data>
   <data name="Photos" xml:space="preserve">
-    <value>Фотографии</value>
-  </data>
+        <value>Фотографии</value>
+    </data>
   <data name="Sent by" xml:space="preserve">
-    <value>Прислал</value>
-  </data>
+        <value>Прислал</value>
+    </data>
   <data name="Timeline" xml:space="preserve">
-    <value>Хронология</value>
-    <comment> </comment>
-  </data>
+        <value>Хронология</value>
+        <comment/>
+    </data>
+  <data name="Architects" xml:space="preserve">
+        <value>Архитекторы</value>
+    </data>
+  <data name="Card #{Index}" xml:space="preserve">
+        <value>Карточка № {Index}</value>
+    </data>
+  <data name="Style" xml:space="preserve">
+        <value>Стиль</value>
+    </data>
 </root>

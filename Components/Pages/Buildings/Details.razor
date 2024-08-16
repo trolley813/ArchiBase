@@ -78,7 +78,8 @@
             @foreach (var (card, index) in building.Cards.OrderBy(c => c.ActualFrom.Date)
            .Select((item, index) => (item, index + 1)))
             {
-                <RadzenTabsItem Text=@(Smart.Format(Loc["Card #{Index} actual from {ActualFrom}"], new { Index = index,
+                <RadzenTabsItem Text=@( card.ActualFrom.Precision == DatePrecision.None ? Smart.Format(Loc["Card #{Index}"], new
+            { Index = index}) : Smart.Format(Loc["Card #{Index} actual from {ActualFrom}"], new { Index = index,
             ActualFrom = card.ActualFrom}))>
                     <RadzenCard>
                         <RadzenRow>
@@ -110,6 +111,16 @@
                                 </RadzenColumn>
                             }
                             <RadzenColumn>
+                                <RadzenText TextStyle="TextStyle.Overline">@Loc["Address"]</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1">
+                                    <b>@(String.Join(" / ",
+                                             card.StreetAddresses
+                                             .OrderByDescending(a => a.HouseNumber,
+                                             StringComparison.OrdinalIgnoreCase.WithNaturalSort())
+                                             .Select(a => $"{a.Street.Name}, {a.HouseNumber}") ?? []))</b>
+                                </RadzenText>
+                            </RadzenColumn>
+                            <RadzenColumn>
                                 <RadzenText TextStyle="TextStyle.Overline">@Loc["Floor count"]</RadzenText>
                                 <RadzenText TextStyle="TextStyle.Body1">
                                     <b>@(String.Join("; ", card.FloorCount))</b>
@@ -120,6 +131,28 @@
                             <RadzenColumn>
                                 <RadzenText TextStyle="TextStyle.Overline">@Loc["Name"]</RadzenText>
                                 <RadzenText TextStyle="TextStyle.Body1"><b>@(card.Name)</b></RadzenText>
+                            </RadzenColumn>
+                        </RadzenRow>
+                        @if (card.Architects.Count > 0)
+                        {
+                            <RadzenRow>
+                                <RadzenColumn>
+                                    <RadzenText TextStyle="TextStyle.Overline">@Loc["Architects"]</RadzenText>
+                                    <RadzenStack Orientation="Orientation.Horizontal">
+                                        @foreach (var architect in card.Architects)
+                                        {
+                                            <RadzenLink Path=@($"/architects/{architect.Id}")>
+                                                <b>@(architect.AbbreviatedName)</b>
+                                            </RadzenLink>
+                                        }
+                                    </RadzenStack>
+                                </RadzenColumn>
+                            </RadzenRow>
+                        }
+                        <RadzenRow>
+                            <RadzenColumn>
+                                <RadzenText TextStyle="TextStyle.Overline">@Loc["Style"]</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1"><b>@(card.Style.Name)</b></RadzenText>
                             </RadzenColumn>
                         </RadzenRow>
                         <RadzenRow>
@@ -190,6 +223,10 @@
         .ThenInclude(c => c.StreetAddresses)
         .ThenInclude(a => a.Street)
         .Include(b => b.Cards)
+        .ThenInclude(c => c.Architects)
+        .Include(b => b.Cards)
+        .ThenInclude(c => c.Style)
+        .Include(b => b.Cards)
         .ThenInclude(c => c.Parts)
         .ThenInclude(p => p.Design)
         .ThenInclude(d => d.Categories)
@@ -199,7 +236,8 @@
         .ThenInclude(d => d.CatalogueEntries)
         .ThenInclude(e => e.Catalogue).AsSplitQuery().FirstOrDefault(b => b.Id == Id);
         photos = ModelContext.BuildingBinds.Where(b => b.Building == building)
-        .Select(b => b.Photo).OrderByDescending(p => p.ShootingDate.Date).ToList();
+        .Select(b => b.Photo).Where(p => ModelContext.ActivePhotos.Contains(p))
+        .OrderByDescending(p => p.ShootingDate.Date).ToList();
 
         if (building is not null)
         {

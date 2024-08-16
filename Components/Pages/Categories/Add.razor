@@ -15,6 +15,9 @@
                 TextProperty="Name" AllowFiltering="true" AllowClear="true">
             </RadzenDropDown>
         </RadzenFormField>
+        <RadzenFormField Text="Description">
+            <RadzenHtmlEditor Style="height: 300px" @bind-Value="@description" />
+        </RadzenFormField>
         <RadzenFormField>
             <RadzenButton Text="Submit" Icon="add_circle_outline" Click="@AddNew" />
         </RadzenFormField>
@@ -28,6 +31,7 @@
     [SupplyParameterFromQuery]
     public Guid? ParentId { get; set; }
     string name = "";
+    string description = "";
     string searchText;
 
     DesignCategory? parentCategory;
@@ -48,7 +52,8 @@
         DesignCategory category = new()
             {
                 Id = Guid.NewGuid(),
-                Name = name
+                Name = name,
+                Description = description
             };
         ModelContext.DesignCategories.Add(category);
         await TreeRepo.SetParentAsync(category, parentCategory);

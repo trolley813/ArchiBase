@@ -9,6 +9,8 @@ public class DesignCategory : IAuditable, IMaterializedPathEntity<Guid>
     public Guid Id { get; set; }
 
     public string Name { get; set; }
+
+    public string? Description { get; set; }
     public List<Design> Designs { get; set; }
     public List<BuildingCard> BuildingCards { get; set; }
     public string Path { get; set; }
@@ -48,6 +50,8 @@ public class Design : IAuditable
     public Guid Id { get; set; }
     public string Name { get; set; }
 
+    public string? Description { get; set; }
+
     public decimal? TotalArea { get; set; }
 
     public decimal? BuildingArea { get; set; }
@@ -80,5 +84,5 @@ public class Style
 {
     public Guid Id { get; set; }
     public string Name { get; set; }
-    public string? Desctiption { get; set; }
+    public string? Description { get; set; }
 }

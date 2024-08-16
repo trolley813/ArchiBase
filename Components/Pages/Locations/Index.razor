@@ -53,7 +53,7 @@
                 <RadzenText TextStyle="TextStyle.DisplayH5">@Loc["Sub-locations"]</RadzenText>
 
 
-                <RadzenDataGrid Data="ChildLocations" Density="Density.Compact">
+                <RadzenDataGrid Data="ChildLocations.OrderBy(loc => loc.Name)" Density="Density.Compact">
                     <Columns>
                         <RadzenDataGridColumn Title=@Loc["Name"] Width="80%">
                             <Template Context="loc">
@@ -84,7 +84,7 @@
 
             <RadzenLink Text=@Loc["Add Street"] Path=@($"locations/addstreet?locid={location.Id}") Icon="add_circle_outline" />
             <RadzenLink Text=@Loc["Add Building"] Path=@($"buildings/add?locid={location.Id}") Icon="add_circle_outline" />
-            <RadzenDataGrid Data="location.Streets">
+            <RadzenDataGrid Data="location.Streets.OrderBy(s => s.Name)">
                 <Columns>
                     <RadzenDataGridColumn Title=@Loc["Street Name"]>
                         <Template Context="street">
