@@ -27,8 +27,10 @@
     @ref="commentsList">
     <Template Context="comment">
         <RadzenCard>
-            <RadzenText TextStyle="TextStyle.Subtitle1">
-                @(commentAuthors.GetValueOrDefault(comment.AuthorId, Loc["(unknown author)"])):
+            <RadzenLink Path=@($"/users/{comment.AuthorId}") >
+                @(commentAuthors.GetValueOrDefault(comment.AuthorId, Loc["(unknown author)"]))
+            </RadzenLink>
+            <RadzenText TextStyle="TextStyle.Subtitle2">
                 <LocalTime DateTime="comment.PublicationDate" />
             </RadzenText>
             <RadzenText>@((MarkupString)comment.Text)</RadzenText>

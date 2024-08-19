@@ -13,7 +13,7 @@
     <RadzenCheckBox @bind-Value=@showPhotos Name="ShowPhotos" />
     <RadzenLabel Text=@Loc["Show photos"] Component="ShowPhotos" />
 
-    <RadzenDataGrid Data="buildings" AllowPaging="true" AllowSorting="true" PageSize="100">
+    <RadzenDataGrid Data="buildings" AllowPaging="true" AllowSorting="true" PageSize="100" CellRender="@CellRender">
         <Columns>
             @if (showPhotos)
             {
@@ -36,7 +36,7 @@
                     </RadzenLink>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title=@Loc["Design"] Sortable=false>
+            <RadzenDataGridColumn Title=@Loc["Design"] Sortable=false Width="30%">
                 <Template Context="building">
                     <RadzenText>
                         @(String.Join(" ⋅ ", building.Building.ActualCard?.Parts?.Select(p => p.Design.Name).Distinct() ??
@@ -54,22 +54,22 @@
                     </RadzenStack>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title=@Loc["Floor count"] Property="FloorCount">
+            <RadzenDataGridColumn Title=@Loc["Floor count"] Property="FloorCount" Width="10%">
                 <Template Context="building">
                     <RadzenText>@(building.FloorCount)</RadzenText>
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title=@Loc["Name"] Property="Name">
                 <Template Context="building">
-                    <RadzenText>@(building.Name)</RadzenText>
+                    <RadzenText Style="white-space: normal">@((MarkupString)building.Name)</RadzenText>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title=@Loc["Built"] Property="Built">
+            <RadzenDataGridColumn Title=@Loc["Built"] Property="Built" Width="10%">
                 <Template Context="building">
                     <RadzenText>@(building.Building.GetDateOfStatus(BuildingEventType.ConstructionFinished))</RadzenText>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title=@Loc["Demolished"] Property="Demolished">
+            <RadzenDataGridColumn Title=@Loc["Demolished"] Property="Demolished" Width="10%">
                 <Template Context="building">
                     <RadzenText>@(building.Building.GetDateOfStatus(BuildingEventType.Demolished))</RadzenText>
                 </Template>
@@ -146,5 +146,20 @@ else
         .Where(p => p.BuildingBinds.Any(b => b.Building == building))
         .OrderByDescending(p => p.ShootingDate.Date)
         .FirstOrDefault()?.PhotoLink;
+    }
+
+    void CellRender(DataGridCellRenderEventArgs<BuildingInfo> args)
+    {
+        var actualAddress = args.Data.Building.ActualCard?.StreetAddresses.Any(a => a.Street == street) ?? false;
+        var color = args.Data.Building.Events.OrderBy(e => (e.Date.Date)).ThenBy(e => e.Type).LastOrDefault()?.Type switch
+        {
+            BuildingEventType.ConstructionStarted => "--rz-success-lighter",
+            BuildingEventType.RebuildingStarted => "--rz-warning-lighter",
+            BuildingEventType.Abandoned => "--rz-base",
+            BuildingEventType.Demolished => "--rz-danger-lighter",
+            _ => "--rz-base-background-color"
+        };
+        if (!actualAddress) color = "--rz-info-lighter";
+        args.Attributes.Add("style", $"background-color: var({color});");
     }
 }

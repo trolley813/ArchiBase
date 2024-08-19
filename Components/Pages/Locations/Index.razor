@@ -1,6 +1,7 @@
 @page "/locations/{id:guid?}"
 @using Microsoft.EntityFrameworkCore
 @inject ModelContext ModelContext
+@inject UsersContext UsersContext
 @inject IStringLocalizer<Index> Loc
 @inject ITreeRepository<Location, Guid> TreeRepo
 
@@ -28,6 +29,23 @@
     <RadzenRow>
         <img src=@($"flags/{location.Flag ?? "xx"}.svg") width="48px" />
         <RadzenText TextStyle="TextStyle.H3">@(location.Name)</RadzenText>
+    </RadzenRow>
+    <RadzenRow>
+        @{
+            var localEditorText = LocalEditors.Count switch
+            {
+                0 => Loc["No local editors."],
+                1 => Loc["Local editor:"],
+                _ => Loc["Local editors:"],
+            };
+        }
+        <RadzenText>@localEditorText</RadzenText>
+        <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" Gap="8">
+            @foreach (var editor in LocalEditors)
+            {
+                <RadzenLink Text=@(editor.UserName) Path=@($"/users/{editor.Id}") />
+            }
+        </RadzenStack>
     </RadzenRow>
     <RadzenRow>
         <RadzenLink Path=@($"locations/{Id}/edit") Text=@Loc["Edit"] Icon="edit" />
@@ -131,6 +149,7 @@ else
     public Dictionary<Location, int> SublocationCounts { get; set; }
 
     public List<Location> HierarchyPath { get; set; } = [];
+    public List<ArchiBaseUser> LocalEditors { get; set; } = [];
 
     OpenStreetMap map = null!;
 
@@ -148,6 +167,12 @@ else
         else
         {
             HierarchyPath.Clear();
+        }
+        if (location is not null)
+        {
+            LocalEditors = UsersContext.Users
+            .Where(u => u.Locations.Any(id => HierarchyPath.Select(loc => loc.Id).Contains(id)))
+            .ToList();
         }
         base.OnParametersSet();
         if (map != null)

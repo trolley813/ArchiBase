@@ -11,10 +11,11 @@
     @if (dataLoaded)
     {
         <RadzenText TextStyle="TextStyle.H3">Manage users</RadzenText>
-        <RadzenDataGrid Data="users">
+        <RadzenDataGrid Data="users" AllowPaging=true AllowSorting=true AllowFiltering=true PageSize="50" ShowPagingSummary=true>
             <Columns>
-                <RadzenDataGridColumn Title="Username" Property="Name"></RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Date of birth" Property="DateOfBirth" FormatString="{0:dd.MM.yyyy}" />
+                <RadzenDataGridColumn Title="Username" Property="UserName" Sortable=true></RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Date of birth" Property="DateOfBirth"
+                    Sortable=true FormatString="{0:dd.MM.yyyy}" />
                 <RadzenDataGridColumn Title="Admin?" Width="10%">
                     <Template Context="user">
                         <RadzenCheckBox TValue="bool" Value="@(userRoles[user].Admin)"
@@ -55,9 +56,21 @@
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn Title="Locations to edit">
                     <Template Context="user">
-                        <RadzenDropDown @bind-Value="user.Locations" Data="locations" TextProperty="Name" ValueProperty="Id"
-                            Multiple=true AllowClear=true AllowFiltering=true />
-                        <RadzenButton Icon="save" Click="args => Save(user)" />
+                        @if (user.Locations.Count > 0)
+                        {
+                            <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
+                            @foreach (var locId in user.Locations)
+                            {
+                                <RadzenLink Path=@($"/locations/{locId}") 
+                                Text=@(locations.FirstOrDefault(loc => loc.Id == locId)?.Name) />
+                            }
+                            </RadzenStack>
+                        }
+                        else
+                        {
+                            <RadzenText>No locations.</RadzenText>
+                        }
+                        <RadzenLink Path=@($"/admin/user/{user.Id}/access") Text="Manage" />
                     </Template>
                 </RadzenDataGridColumn>
             </Columns>
@@ -88,16 +101,19 @@
     {
         users = UserManager.Users.ToList().OrderBy(u => u.UserName,
         StringComparison.OrdinalIgnoreCase.WithNaturalSort()).ToList();
+        var admins = await UserManager.GetUsersInRoleAsync("Admin");
+        var editors = await UserManager.GetUsersInRoleAsync("Editor");
+        var localEditors = await UserManager.GetUsersInRoleAsync("Local Editor");
         foreach (var user in users)
         {
             userRoles[user] = new()
                 {
-                    Admin = await UserManager.IsInRoleAsync(user, "Admin"),
-                    Editor = await UserManager.IsInRoleAsync(user, "Editor"),
-                    LocalEditor = await UserManager.IsInRoleAsync(user, "Local Editor"),
+                    Admin = admins.Contains(user),
+                    Editor = editors.Contains(user),
+                    LocalEditor = localEditors.Contains(user),
                 };
         }
-        locations = ModelContext.Locations;
+        locations = ModelContext.Locations.ToList();
         dataLoaded = true;
         await base.OnInitializedAsync();
     }
@@ -141,16 +157,5 @@
         userRoles[user].LocalEditor = value;
     }
 
-    public void Save(ArchiBaseUser user)
-    {
-        try
-        {
-
-            UsersContext.SaveChanges();
-        }
-        catch (Exception e)
-        {
-            ///
-        }
-    }
+    
 }

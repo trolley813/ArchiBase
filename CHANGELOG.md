@@ -1,3 +1,14 @@
+## 0.1.9 (2024-08-19)
+- reworked admin panel (less queries)
+- added building table row coloring based on status
+
+## 0.1.8 (2024-08-16)
+- enriched data structure (new migrations)
+- added code for editing new fields
+
+## 0.1.7 (2024-08-14)
+- enriched data structure (new migrations)
+
 ## 0.1.6 (2024-07-25)
 - removed certificate revocation check in email client
 - stubs for bulk edit features

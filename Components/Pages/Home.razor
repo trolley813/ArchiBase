@@ -2,10 +2,35 @@
 @using ArchiBase.Components.Utils
 @inject IStringLocalizer<Home> Loc
 @inject ModelContext ModelContext
+@inject UsersContext UsersContext
+@inject UserResolverService UserResolverService
 
 <ArchibasePageTitle Title=@Loc["Home"] />
 
 <RadzenText TextStyle="TextStyle.H3" class="mx-4 my-4">@Loc["Welcome to USSR (and other countries) Architectural Database"]</RadzenText>
+
+<RadzenRow>
+    <CascadingAuthenticationState>
+        <AuthorizeView Context="actx">
+            <Authorized>
+                <RadzenStack Orientation="Orientation.Horizontal">
+                    @if (myLocation is not null)
+                    {
+                        <RadzenCard Variant="Variant.Text" Style="font-weight:bold">
+                            <RadzenLink Text=@(myLocation.Name) Path=@($"/locations/{myLocation.Id}") />
+                        </RadzenCard>
+                    }
+                @foreach(var loc in ModelContext.Locations.Where(loc => user.Locations.Contains(loc.Id)))
+                {
+                    <RadzenCard Variant="Variant.Text">
+                        <RadzenLink Text=@(loc.Name) Path=@($"/locations/{loc.Id}") />
+                    </RadzenCard>
+                }
+                </RadzenStack>
+            </Authorized>
+        </AuthorizeView>
+    </CascadingAuthenticationState>
+</RadzenRow>
 
 <RadzenRow>
     <RadzenColumn>
@@ -92,6 +117,9 @@
 
     List<NewsItem> news = [];
 
+    ArchiBaseUser? user;
+    Location? myLocation;
+
     protected override void OnInitialized()
     {
         locationsCount = ModelContext.Locations.Count();
@@ -100,5 +128,7 @@
         photosCount = ModelContext.ActivePhotos.Count();
         news = ModelContext.NewsItems.OrderByDescending(n => n.PublicationDate).Take(5).ToList();
         recentPhotos = ModelContext.ActivePhotos.OrderByDescending(p => p.PublicationDate).Take(10).ToList();
+        user = UsersContext.Users.FirstOrDefault(u => u.Id == UserResolverService.GetUser());
+        myLocation = user is not null ? ModelContext.Locations.FirstOrDefault(loc => loc.Id == user.MyLocation) : null;
     }
 }
