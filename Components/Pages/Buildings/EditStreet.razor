@@ -1,0 +1,53 @@
+@page "/streets/{id:guid}/edit"
+@inject ModelContext ModelContext
+@inject IStringLocalizer<EditStreet> Loc
+@using Microsoft.EntityFrameworkCore
+
+@if (street is not null && location is not null)
+{
+    <EditorOnly Location=@(location.Id) ShowAlert=false>
+    <RadzenText TextStyle="TextStyle.H3">@Loc["Edit street"]</RadzenText>
+
+    <RadzenStack Orientation="Orientation.Vertical">
+        <RadzenFormField Text="Name">
+            <RadzenTextBox @bind-Value="@street.Name" />
+        </RadzenFormField>
+        <RadzenFormField Text="Description">
+            <RadzenHtmlEditor @bind-Value="@street.Description" />
+        </RadzenFormField>
+        <RadzenFormField Text="From (optional)">
+            <ChildContent>
+                <ImpreciseDateInput Value="@(street.From ?? new())" ValueChanged="args => street.From = args"
+                    FieldName="From date (optional)" />
+            </ChildContent>
+            <End>
+                <RadzenButton Icon="delete" Click="args => street.From = null" />
+            </End>
+        </RadzenFormField>
+        <RadzenFormField Text="To (optional)">
+            <ChildContent>
+                <ImpreciseDateInput Value="@(street.To ?? new())" ValueChanged="args => street.To = args"
+                    FieldName="To date (optional)" />
+            </ChildContent>
+            <End>
+                <RadzenButton Icon="delete" Click="args => street.To = null" />
+            </End>
+        </RadzenFormField>
+    </RadzenStack>
+</EditorOnly>
+}
+
+@code
+{
+    [Parameter]
+    public Guid Id { get; set; }
+
+    Street? street;
+    Location? location;
+
+    protected override void OnInitialized()
+    {
+        street = ModelContext.Streets.Include(s => s.Location).FirstOrDefault(s => s.Id == Id);
+        location = street?.Location;
+    }
+}

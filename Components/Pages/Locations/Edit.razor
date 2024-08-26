@@ -63,6 +63,10 @@
     {
         Locations = ModelContext.Locations.ToList();
         location = await TreeRepo.GetByIdAsync(Id);
+        if (location is not null)
+        {
+            parent = await TreeRepo.GetParentAsync(location);
+        }
     }
 
     protected override void OnAfterRender(bool firstRender)

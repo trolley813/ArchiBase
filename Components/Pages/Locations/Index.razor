@@ -95,6 +95,21 @@
 
     </RadzenRow>
 
+    if (recentPhotos.Any())
+    {
+        <RadzenText TextStyle="TextStyle.H4" class="mx-4 my-4">@Loc["Recent photos"]</RadzenText>
+        <RadzenRow>
+            <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
+                @foreach (var photo in recentPhotos)
+                {
+                    <RadzenLink Path=@($"/photos/{photo.Id}")>
+                        <RadzenImage Path=@(photo.PhotoLink) Style="height:200px;max-width:400px" />
+                    </RadzenLink>
+                }
+            </RadzenStack>
+        </RadzenRow>
+    }
+
     if (location.AllowStreets)
     {
         <RadzenText TextStyle="TextStyle.DisplayH5">@Loc["Streets"]</RadzenText>
@@ -151,6 +166,8 @@ else
     public List<Location> HierarchyPath { get; set; } = [];
     public List<ArchiBaseUser> LocalEditors { get; set; } = [];
 
+    public List<Photo> recentPhotos;
+
     OpenStreetMap map = null!;
 
     protected override async Task OnParametersSetAsync()
@@ -173,6 +190,9 @@ else
             LocalEditors = UsersContext.Users
             .Where(u => u.Locations.Any(id => HierarchyPath.Select(loc => loc.Id).Contains(id)))
             .ToList();
+            recentPhotos = ModelContext.ActivePhotos.Include(p => p.BuildingBinds).ThenInclude(b => b.Building)
+            .Where(p => p.BuildingBinds.Any(b => b.Building.Location == location))
+            .OrderByDescending(p => p.PublicationDate).Take(10).ToList();
         }
         base.OnParametersSet();
         if (map != null)
