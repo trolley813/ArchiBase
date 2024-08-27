@@ -1,17 +1,20 @@
+using Microsoft.AspNetCore.Components.Authorization;
+
 namespace ArchiBase.Users;
 
 public class UserResolverService
 {
-    private readonly IHttpContextAccessor context;
-    public UserResolverService(IHttpContextAccessor context)
+    private readonly AuthenticationStateProvider provider;
+    public UserResolverService(AuthenticationStateProvider provider)
     {
-        this.context = context;
+        this.provider = provider;
     }
 
     public Guid GetUser()
     {
+        var context = provider.GetAuthenticationStateAsync().GetAwaiter().GetResult();
         Guid.TryParse(
-            context.HttpContext?.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value,
+            context.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value,
             out Guid userId
         );
         return userId;

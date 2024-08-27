@@ -1,3 +1,9 @@
+## 0.1.11 (2024-08-27)
+- fixed authentication behind proxy
+
+## 0.1.10 (2024-08-26)
+- improved street view (map, obsolete addresses etc.)
+
 ## 0.1.9 (2024-08-19)
 - reworked admin panel (less queries)
 - added building table row coloring based on status
