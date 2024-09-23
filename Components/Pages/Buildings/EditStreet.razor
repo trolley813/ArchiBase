@@ -1,6 +1,7 @@
 @page "/streets/{id:guid}/edit"
 @inject ModelContext ModelContext
 @inject IStringLocalizer<EditStreet> Loc
+@inject NotificationService NotificationService
 @using Microsoft.EntityFrameworkCore
 
 @if (street is not null && location is not null)
@@ -33,6 +34,9 @@
                 <RadzenButton Icon="delete" Click="args => street.To = null" />
             </End>
         </RadzenFormField>
+        <RadzenFormField>
+            <RadzenButton Text="Save" Icon="save" Click="@Save" />
+        </RadzenFormField>
     </RadzenStack>
 </EditorOnly>
 }
@@ -49,5 +53,28 @@
     {
         street = ModelContext.Streets.Include(s => s.Location).FirstOrDefault(s => s.Id == Id);
         location = street?.Location;
+    }
+
+    public void Save()
+    {
+        try
+        {
+            ModelContext.SaveChanges();
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Street saved",
+                    Detail = $"ID: {street.Id}"
+                });
+        }
+        catch (Exception e)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"{e.Message}"
+                });
+        }
     }
 }

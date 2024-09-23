@@ -152,4 +152,10 @@
   <data name="Photo with this ID does not exist" xml:space="preserve">
         <value>Фото с таким ИД не существует</value>
     </data>
+  <data name="Galleries" xml:space="preserve">
+        <value>Галереи</value>
+    </data>
+  <data name="Coordinates and shooting direction" xml:space="preserve">
+        <value>Координаты и направление съемки</value>
+    </data>
 </root>

@@ -110,6 +110,17 @@
         </RadzenRow>
     }
 
+    if (galleries.Any())
+    {
+        <RadzenText TextStyle="TextStyle.DisplayH5">@Loc["Galleries"]</RadzenText>
+        <RadzenDataList Data="@galleries" Density="Density.Compact">
+            <Template Context="gallery">
+                <RadzenLink Text="@(gallery.Name)" Path=@($"/galleries/{gallery.Id}") />
+            </Template>
+        </RadzenDataList>
+
+    }
+
     if (location.AllowStreets)
     {
         <RadzenText TextStyle="TextStyle.DisplayH5">@Loc["Streets"]</RadzenText>
@@ -167,6 +178,7 @@ else
     public List<ArchiBaseUser> LocalEditors { get; set; } = [];
 
     public List<Photo> recentPhotos;
+    public List<Gallery> galleries;
 
     OpenStreetMap map = null!;
 
@@ -193,6 +205,9 @@ else
             recentPhotos = ModelContext.ActivePhotos.Include(p => p.BuildingBinds).ThenInclude(b => b.Building)
             .Where(p => p.BuildingBinds.Any(b => b.Building.Location == location))
             .OrderByDescending(p => p.PublicationDate).Take(10).ToList();
+            galleries = ModelContext.Galleries
+            .Where(g => g.EntityId == location.Id && g.EntityType == "Location")
+            .OrderBy(g => g.Name).ToList();
         }
         base.OnParametersSet();
         if (map != null)

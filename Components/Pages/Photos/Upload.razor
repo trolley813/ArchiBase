@@ -9,6 +9,9 @@
 @inject UserResolverService UserResolverService
 @inject ModelContext ModelContext
 @inject IStringLocalizer<Upload> Loc
+@inject IWebHostEnvironment WebHostEnvironment
+
+<ArchibasePageTitle Title=@Loc["Upload photo"]/>
 
 <CascadingAuthenticationState>
     <AuthorizeView>
@@ -47,7 +50,8 @@
                         <RadzenFieldset Text=@Loc["Buildings"]>
                             <RadzenRow>
                                 <RadzenDropDown TValue="Location" Value=@(model.Location) Data="locations"
-                                    Change="args => OnLocationChanged(args as Location)" TextProperty="Name" />
+                                    Change="args => OnLocationChanged(args as Location)" TextProperty="Name" 
+                                    AllowFiltering=true FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" />
                                 <RadzenButton Icon="add" Text=@Loc["Bind a building"] Size="ButtonSize.Small"
                                     Click="AddBuilding" />
                             </RadzenRow>
@@ -56,7 +60,8 @@
                                 int i = index;
                                 <RadzenRow>
                                     <RadzenDropDown Data="buildings" @bind-Value=@(model.Binds[i].Building)
-                                        TextProperty="Address" ValueProperty="Building" AllowFiltering=true>
+                                        TextProperty="Address" ValueProperty="Building" 
+                                        AllowFiltering=true FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
                                     </RadzenDropDown>
                                     <RadzenLabel Text=@Loc["Main"] Component=@($"IsMain{i}") />
                                     <RadzenCheckBox @bind-Value=@(model.Binds[i].IsMain) Name=@($"IsMain{i}") />
@@ -156,6 +161,8 @@
 
     OpenStreetMap map;
 
+    int sizeLimit = 2097152; // 2 MiB
+
     protected override async Task OnInitializedAsync()
     {
         var userId = UserResolverService.GetUser();
@@ -189,6 +196,7 @@
                 Building = b,
                 Address = String.Join(" / ", b.Cards.OrderByDescending(c => c.ActualFrom.Date).First().StreetAddresses)
             })
+        .AsSplitQuery()
         .ToList();
     }
 
@@ -199,6 +207,7 @@
         {
             var p = photo[(photo.IndexOf(",") + 1)..];
             byte[] bytes = Convert.FromBase64String(p);
+            if (bytes.Length > sizeLimit) throw new ArgumentOutOfRangeException("File size", $"{bytes.Length} exceeds the limit of {sizeLimit}");
             using (MemoryStream ms = new MemoryStream(bytes))
             {
                 var directories = ImageMetadataReader.ReadMetadata(ms);
@@ -224,8 +233,12 @@
         }
         catch (Exception ex)
         {
-            //TODO: Notification
-            Console.WriteLine(ex);
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"{ex.Message}"
+                });
             model.File = null;
             model.FileName = null;
             model.FileSize = null;
@@ -268,8 +281,9 @@
                     Description = "", // TODO: Description input
                 };
             ModelContext.Photos.Add(photo);
-            System.IO.Directory.CreateDirectory("/app/wwwroot" + photo.PhotoDir);
-            bitmap.ExportFile("/app/wwwroot" + photo.PhotoLink, AnyBitmap.ImageFormat.Jpeg, 95);
+            var wwwroot = WebHostEnvironment.WebRootPath;
+            System.IO.Directory.CreateDirectory(wwwroot + photo.PhotoDir);
+            bitmap.ExportFile(wwwroot + photo.PhotoLink, AnyBitmap.ImageFormat.Jpeg, 95);
             ModelContext.SaveChanges();
             NotificationService.Notify(new NotificationMessage
                 {

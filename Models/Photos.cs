@@ -32,6 +32,8 @@ public class Gallery : IAuditable
 {
     public Guid Id { get; set; }
     public string Name { get; set; }
+    public Guid? EntityId { get; set; }
+    public string? EntityType { get; set; }
     public List<Photo> Photos { get; set; }
 }
 

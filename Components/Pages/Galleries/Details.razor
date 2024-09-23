@@ -1,0 +1,73 @@
+@page "/galleries/{id:guid}"
+@using Microsoft.EntityFrameworkCore
+@inject ModelContext ModelContext
+@inject IStringLocalizer<Details> Loc
+@inject UserManager<ArchiBaseUser> UserManager
+
+
+<ArchibasePageTitle Title="@($"{Loc["Gallery"]} {gallery?.Name}")" />
+
+@if (gallery is not null)
+{
+    <RadzenText TextStyle="TextStyle.H3">@(gallery.Name)</RadzenText>
+    switch (gallery.EntityType)
+    {
+        case "Location":
+            <RadzenLink Text=@(ModelContext.Locations.FirstOrDefault(loc => loc.Id == gallery.EntityId)?.Name)
+    Path=@($"/locations/{gallery.EntityId}") />
+            break;
+        case "Design":
+            <RadzenLink Text=@(ModelContext.Designs.FirstOrDefault(d => d.Id == gallery.EntityId)?.Name)
+    Path=@($"/series/{gallery.EntityId}") />
+            break;
+        case "DesignCategory":
+            <RadzenLink Text=@(ModelContext.DesignCategories.FirstOrDefault(c => c.Id == gallery.EntityId)?.Name)
+    Path=@($"/categories/{gallery.EntityId}") />
+            break;
+    }
+
+    <RadzenText TextStyle="TextStyle.H6">@Loc["Photos"] (@(photos.Count))</RadzenText>
+    <RadzenDataGrid Data="photos" AllowPaging=true PageSize=10 ShowPagingSummary=true>
+        <Columns>
+            <RadzenDataGridColumn Title=@Loc["Photo"]>
+                <Template Context="photo">
+                    <RadzenLink Path="@($"/photos/{photo.Id}")" Text="Photo" Target="_blank">
+                        <RadzenImage Path=@(photo.PhotoLink)
+                            Style="display:block;margin:auto;max-height:200px;max-width:400px;height:auto;width:auto;"
+                            AlternateText="Photo not available" />
+                    </RadzenLink>
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title=@Loc["Details"]>
+                <Template Context="photo">
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@(photo.ShootingDate)</b></RadzenText>
+                    <RadzenText TextStyle="TextStyle.Overline">
+                        @(photo.NonAuthor ? @Loc["Sent by"] : @Loc["Author"]):
+                        @(UserManager.Users.FirstOrDefault(u => u.Id == photo.AuthorId)?.UserName)
+                    </RadzenText>
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+}
+
+
+
+@code
+{
+    [Parameter]
+    public Guid Id { get; set; }
+
+    Gallery? gallery = null;
+
+    List<Photo>? photos;
+
+    protected override void OnInitialized()
+    {
+        gallery = ModelContext.Galleries
+        .Include(g => g.Photos)
+        .FirstOrDefault(g => g.Id == Id);
+
+        photos = gallery?.Photos.Where(p => !p.IsHidden).OrderByDescending(p => p.ShootingDate.Date).ToList();
+    }
+}

@@ -1,3 +1,9 @@
+## 0.1.12 (2024-09-24)
+- fixed street editing (no save button)
+- fixed design editing (catalogue entries now adding properly)
+- added galleries
+- added photo upload limit to 2 MiB (2097152 bytes)
+
 ## 0.1.11 (2024-08-27)
 - fixed authentication behind proxy
 

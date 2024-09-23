@@ -38,8 +38,8 @@
                 <RadzenRow Gap="10">
                     <RadzenColumn Size="3">
                         <RadzenFormField Text=@Loc["Catalogue"]>
-                            <RadzenDropDown Data="@designCatalogues" @bind-Value="design.CatalogueEntries[i].Id"
-                                TextProperty="Name" ValueProperty="Id" Style="width: 350px;">
+                            <RadzenDropDown Data="@designCatalogues" @bind-Value="design.CatalogueEntries[i].Catalogue"
+                                TextProperty="Name" Style="width: 350px;">
                             </RadzenDropDown>
                         </RadzenFormField>
                     </RadzenColumn>
@@ -80,8 +80,8 @@
     public Guid Id { get; set; }
 
     Design? design;
-    IEnumerable<DesignCatalogue> designCatalogues = [];
-    IEnumerable<DesignCategory> categories = [];
+    List<DesignCatalogue> designCatalogues = [];
+    List<DesignCategory> categories = [];
 
     string categorySearchText = "";
 
@@ -94,7 +94,7 @@
         .Include(c => c.Categories)
         .Include(c => c.CatalogueEntries)
         .ThenInclude(e => e.Catalogue)
-        .FirstOrDefault(c => c.Id == Id);
+        .FirstOrDefault(d => d.Id == Id);
     }
 
     public void AddEntry()

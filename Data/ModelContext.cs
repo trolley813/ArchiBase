@@ -45,6 +45,7 @@ public class ModelContext : DbContext
     public DbSet<NewsItem> NewsItems { get; set; }
 
     public DbSet<AuditRecord> AuditRecords { get; set; }
+    public DbSet<Gallery> Galleries { get; set; }
 
     override protected void OnModelCreating(ModelBuilder modelBuilder)
     {

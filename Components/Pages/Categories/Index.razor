@@ -1,6 +1,7 @@
 @page "/categories/{id:guid?}"
 @using Microsoft.EntityFrameworkCore
 @inject ModelContext ModelContext
+@inject IStringLocalizer<Index> Loc
 @inject ITreeRepository<DesignCategory, Guid> TreeRepo
 
 <RadzenBreadCrumb>
@@ -46,6 +47,17 @@
 
 @if (category != null)
 {
+    if (galleries.Any())
+    {
+        <RadzenText TextStyle="TextStyle.DisplayH6">@Loc["Galleries"]</RadzenText>
+        <RadzenDataList Data="@galleries" Density="Density.Compact">
+            <Template Context="gallery">
+                <RadzenLink Text="@(gallery.Name)" Path=@($"/galleries/{gallery.Id}") />
+            </Template>
+        </RadzenDataList>
+
+    }
+
     <RadzenDataGrid AllowFiltering="true" Density="Density.Compact"
     Data="@(category.Designs.OrderBy(d => d.Name, StringComparison.OrdinalIgnoreCase.WithNaturalSort()))"
     AllowPaging=true PageSize="10">
@@ -82,6 +94,7 @@
     public List<DesignCategory?> ChildCategories { get; set; } = [];
 
     DesignCategory? category;
+    List<Gallery> galleries = [];
 
     protected override async Task OnParametersSetAsync()
     {
@@ -91,6 +104,9 @@
         {
             HierarchyPath = (await TreeRepo.GetPathFromRootAsync(category)).ToList();
             HierarchyPath.Add(category);
+            galleries = ModelContext.Galleries
+            .Where(g => g.EntityId == category.Id && g.EntityType == "DesignCategory")
+            .OrderBy(g => g.Name).ToList();
         }
     }
 }
