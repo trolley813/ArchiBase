@@ -84,7 +84,7 @@ public class Photo : IAuditable
     public int VotesCount => Votes.Select(v => v.Vote).Sum();
     public int UpvotesCount => Votes.Where(v => v.Vote > 0).Count();
     public int DownvotesCount => Votes.Where(v => v.Vote < 0).Count();
-    public string PhotoLink => $"/data/photos/{Id.ToString()[0..2]}/{Id.ToString()[2..4]}/{Id}.{Extension}";
+    public string PhotoLink => IsHidden ? "/images/hidden.png" : $"/data/photos/{Id.ToString()[0..2]}/{Id.ToString()[2..4]}/{Id}.{Extension}";
     public string PhotoDir => $"/data/photos/{Id.ToString()[0..2]}/{Id.ToString()[2..4]}";
 
     public bool IsHidden { get; set; }

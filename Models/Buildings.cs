@@ -121,6 +121,9 @@ public class Building : IAuditable
 
     public BuildingCard? ActualCard => Cards.MaxBy(c => c.ActualFrom.Date);
 
+    public string ActualAddress => String.Join(" / ", ActualCard?.StreetAddresses ?? []);
+    public string ActualAddressWithLocation => $"{Location.Name}, {ActualAddress}";
+
     public ImpreciseDate? GetDateOfStatus(BuildingEventType type) =>
         Events.FirstOrDefault(e => e.Type == type)?.Date;
 

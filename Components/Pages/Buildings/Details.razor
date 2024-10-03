@@ -183,7 +183,7 @@
                     <RadzenLink Path="@($"/photos/{photo.Id}")" Text="Photo" Target="_blank">
                         <RadzenImage Path=@(photo.PhotoLink)
                             Style="display:block;margin:auto;max-height:200px;max-width:400px;height:auto;width:auto;"
-                            AlternateText="Photo not available" />
+                            AlternateText="Photo not available" onerror="this.src='/images/unavailable.png'" />
                     </RadzenLink>
                 </Template>
             </RadzenDataGridColumn>
@@ -199,7 +199,7 @@
         </Columns>
     </RadzenDataGrid>
 
-    <CommentView EntityId="building.Id" />
+    <CommentView EntityId="building.Id" EntityType="Building" />
 }
 
 @code

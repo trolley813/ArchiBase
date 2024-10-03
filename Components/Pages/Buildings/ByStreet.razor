@@ -55,7 +55,7 @@
                     <Template Context="building">
                         <RadzenImage Path=@(GetPhotoLink(building.Building))
                             Style="display:block;margin:auto;max-height:150px;max-width:300px;height:auto;width:auto;"
-                            AlternateText=@Loc["Photo not available"] />
+                            AlternateText=@Loc["Photo not available"] onerror="this.src='/images/unavailable.png'" />
                     </Template>
                 </RadzenDataGridColumn>
             }
@@ -81,7 +81,8 @@
             <RadzenDataGridColumn Title=@Loc["Design"] Sortable=false Width="30%">
                 <Template Context="building">
                     <RadzenText>
-                        @(String.Join(" ⋅ ", building.Building.ActualCard?.Parts?.Select(p => p.Design.Name).Distinct() ??
+                        @(String.Join(" ⋅ ", building.Building.ActualCard?.Parts?.Select(p => p.Design.Name).Distinct()
+                        ??
                         []))
                     </RadzenText>
                     <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
@@ -108,7 +109,8 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title=@Loc["Built"] Property="Built" Width="10%">
                 <Template Context="building">
-                    <RadzenText>@(building.Building.GetDateOfStatus(BuildingEventType.ConstructionFinished))</RadzenText>
+                    <RadzenText>@(building.Building.GetDateOfStatus(BuildingEventType.ConstructionFinished))
+                    </RadzenText>
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title=@Loc["Demolished"] Property="Demolished" Width="10%">
@@ -123,6 +125,7 @@ else
 {
 
 }
+
 
 @code
 {

@@ -1,3 +1,11 @@
+## 0.1.13 (2024-10-03)
+- added EXIF view and uploading
+- added design display upon photo upload (when binding a building)
+- added photo list view
+- added link to the commented entity in comment view
+- added loading screen for some "heavy" pages (photos, comments)
+- added some Estonian localization
+
 ## 0.1.12 (2024-09-24)
 - fixed street editing (no save button)
 - fixed design editing (catalogue entries now adding properly)

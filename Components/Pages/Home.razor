@@ -105,7 +105,7 @@
 @foreach(var photo in recentPhotos)
 {
     <RadzenLink Path=@($"/photos/{photo.Id}")>
-        <RadzenImage Path=@(photo.PhotoLink) Style="height:200px;max-width:400px" />
+        <RadzenImage Path=@(photo.PhotoLink) Style="height:200px;max-width:400px" onerror="this.src='/images/unavailable.png'" />
     </RadzenLink>
 }
 </RadzenStack>

@@ -1,0 +1,23 @@
+@inject IStringLocalizer<LoadingScreen> Loc
+
+@if (Loaded)
+{
+    @ChildContent
+}
+else
+{
+    <RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.Center" Wrap="FlexWrap.Wrap">
+    <RadzenText>@Loc["Loading..."]</RadzenText>
+    <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Primary" Value="100" ShowValue="false"
+        Mode="ProgressBarMode.Indeterminate" />
+</RadzenStack>
+}
+
+@code
+{
+    [Parameter]
+    public bool Loaded { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+}

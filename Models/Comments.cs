@@ -3,6 +3,7 @@ namespace ArchiBase.Models;
 public class Comment
 {
     public Guid Id { get; set; }
+    public string? EntityType { get; set; }
     public Guid EntityId { get; set; }
     public Guid AuthorId { get; set; }
     public string Text { get; set; }

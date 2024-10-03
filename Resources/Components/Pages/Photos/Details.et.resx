@@ -122,56 +122,40 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0,
       Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Author" xml:space="preserve">
-        <value>Автор</value>
-    </data>
-  <data name="Building on map" xml:space="preserve">
-        <value>Здание на карте</value>
-    </data>
-  <data name="Cadastre record number" xml:space="preserve">
-        <value>Кадастровый номер</value>
-    </data>
-  <data name="Card #{Index} actual from {ActualFrom}" xml:space="preserve">
-        <value>Карточка № {Index} (с {ActualFrom})</value>
-    </data>
-  <data name="Categories" xml:space="preserve">
-        <value>Категории</value>
-    </data>
-  <data name="Design" xml:space="preserve">
-        <value>Проект</value>
-    </data>
-  <data name="Details" xml:space="preserve">
-        <value>Подробности</value>
-    </data>
-  <data name="Floor count" xml:space="preserve">
-        <value>Этажность</value>
-    </data>
-  <data name="Name" xml:space="preserve">
-        <value>Название</value>
-    </data>
   <data name="Photo" xml:space="preserve">
-        <value>Фото</value>
+        <value>Foto</value>
     </data>
-  <data name="Photos" xml:space="preserve">
-        <value>Фотографии</value>
+  <data name="Photo not available" xml:space="preserve">
+        <value>Foto ei ole saadaval</value>
+    </data>
+  <data name="Shooting date" xml:space="preserve">
+        <value>Ülesvõtte kuupäev</value>
     </data>
   <data name="Sent by" xml:space="preserve">
-        <value>Прислал</value>
+        <value>Saadetud</value>
     </data>
-  <data name="Timeline" xml:space="preserve">
-        <value>Хронология</value>
-        <comment/>
+  <data name="Author" xml:space="preserve">
+        <value>Autor</value>
     </data>
-  <data name="Architects" xml:space="preserve">
-        <value>Архитекторы</value>
+  <data name="Details" xml:space="preserve">
+        <value>Üksikasjad</value>
     </data>
-  <data name="Card #{Index}" xml:space="preserve">
-        <value>Карточка № {Index}</value>
+  <data name="License" xml:space="preserve">
+        <value>Litsents</value>
     </data>
-  <data name="Style" xml:space="preserve">
-        <value>Стиль</value>
+  <data name="Published" xml:space="preserve">
+        <value>Publitseeritud</value>
     </data>
-  <data name="Address" xml:space="preserve">
-        <value>Адрес</value>
+  <data name="Photo not found" xml:space="preserve">
+        <value>Fotot ei leitud</value>
+    </data>
+  <data name="Photo with this ID does not exist" xml:space="preserve">
+        <value>Seesugune identifikaatoriga foto ei ole olemas</value>
+    </data>
+  <data name="Galleries" xml:space="preserve">
+        <value>Galleriid</value>
+    </data>
+  <data name="Coordinates and shooting direction" xml:space="preserve">
+        <value>Koordinaadid ja suund</value>
     </data>
 </root>
