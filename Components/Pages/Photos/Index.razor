@@ -1,6 +1,8 @@
 @page "/photos"
 @using Microsoft.EntityFrameworkCore
+@using System.Linq.Dynamic.Core
 @inject ModelContext ModelContext
+@inject UserManager<ArchiBaseUser> UserManager
 @inject IStringLocalizer<Index> Loc
 
 <ArchibasePageTitle Title=@Loc["Photos"] />
@@ -8,54 +10,97 @@
 
 <RadzenText TextStyle="TextStyle.H4">@Loc["Photos"]</RadzenText>
 
-<LoadingScreen Loaded="loaded">
-    <RadzenDataGrid AllowPaging=true PageSize=20 PagerAlwaysVisible=true ShowPagingSummary=true Data="photos"
-        AllowSorting=true AllowFiltering=true>
-        <Columns>
-            <RadzenDataGridColumn Title=@Loc["Photo"] Sortable=false Filterable=false>
-                <Template Context="photo">
-                    <RadzenLink Path=@($"/photos/{photo.Id}")>
-                        <RadzenImage Path=@(photo.PhotoLink)
-                            Style="display:block;margin:auto;max-height:150px;max-width:300px;height:auto;width:auto;"
-                            AlternateText=@Loc["Photo not available"] onerror="this.src='/images/unavailable.png'" />
+<RadzenDataGrid @ref="grid" AllowPaging=true PageSize=20 PagerAlwaysVisible=true ShowPagingSummary=true Data="photos" Count="count"
+    AllowSorting=true AllowFiltering=true LoadData="@LoadData" IsLoading=@(!loaded)>
+    <Columns>
+        <RadzenDataGridColumn Title=@Loc["Photo"] Sortable=false Filterable=false>
+            <Template Context="photo">
+                <RadzenLink Path=@($"/photos/{photo.Id}")>
+                    <RadzenImage Path=@(photo.PhotoLink)
+                        Style="display:block;margin:auto;max-height:150px;max-width:300px;height:auto;width:auto;"
+                        AlternateText=@Loc["Photo not available"] onerror="this.src='/images/unavailable.png'" />
+                </RadzenLink>
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title=@Loc["Published"] Property="PublicationDate" SortOrder="SortOrder.Descending">
+            <Template Context="photo">
+                <RadzenText TextStyle="TextStyle.Body1">
+                    <b><LocalTime DateTime="photo.PublicationDate" /></b>
+                </RadzenText>
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title=@Loc["Shooting date"] Property="ShootingDate.Date">
+            <Template Context="photo">
+                <RadzenText TextStyle="TextStyle.Body1">
+                    <b><ImpreciseDateDisplay Value="photo.ShootingDate"></ImpreciseDateDisplay></b>
+                </RadzenText>
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title=@Loc["Author"] Sortable=false Filterable=false>
+            <Template Context="photo">
+                @if (photo.NonAuthor)
+                {
+                    <RadzenText TextStyle="TextStyle.Overline">@Loc["Sent by"]</RadzenText>
+                }
+                else
+                {
+                    <RadzenText TextStyle="TextStyle.Overline">@Loc["Author"]</RadzenText>
+                }
+
+                <RadzenText TextStyle="TextStyle.Body1">
+                    <RadzenLink Path=@($"/users/{photo.AuthorId}")>
+                        <b>@(authors?[photo.AuthorId])</b>
                     </RadzenLink>
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title=@Loc["Published"] Property="PublicationDate">
-                <Template Context="photo">
-                    <LocalTime DateTime="photo.PublicationDate" />
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title=@Loc["Shooting date"] Property="ShootingDate.Date">
-                <Template Context="photo">
-                    <ImpreciseDateDisplay Value="photo.ShootingDate"></ImpreciseDateDisplay>
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title=@Loc["Buildings"] Sortable=false Filterable=false>
-                <Template Context="photo">
-                    <RadzenStack>
-                    @foreach (var b in photo.BuildingBinds)
-                    {
-                        
-                        <RadzenLink Path=@($"/buildings/{b.Building.Id}") 
-                        Text=@($"{b.Building.Location.Name}, {String.Join(" / ", b.Building.ActualCard.StreetAddresses)}") />
-                    }
-                    </RadzenStack>
-                </Template>
-            </RadzenDataGridColumn>
-        </Columns>
-    </RadzenDataGrid>
-</LoadingScreen>
+                </RadzenText>
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title=@Loc["Buildings and galleries"] Sortable=false Filterable=false>
+            <Template Context="photo">
+                <RadzenStack>
+                @foreach (var b in photo.BuildingBinds)
+                {
+                    <RadzenText TextStyle="TextStyle.Body1">
+                    <RadzenLink Path=@($"/buildings/{b.Building.Id}") 
+                    Text=@($"{b.Building.Location.Name}, {String.Join(" / ", b.Building.ActualCard.StreetAddresses)}") />
+                    </RadzenText>
+                }
+                </RadzenStack>
+                <RadzenStack>
+                @foreach (var g in photo.Galleries)
+                {
+                    <RadzenText TextStyle="TextStyle.Body1">
+                    <RadzenLink Path=@($"/galleries/{g.Id}") Text=@(g.Name) />
+                    </RadzenText>
+                }
+                </RadzenStack>
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
 
 @code
 {
     List<Photo> photos;
 
-    bool loaded = false;
+    bool loaded;
+    int count;
+
+    RadzenDataGrid<Photo> grid;
+
+    Dictionary<Guid, string> authors = [];
 
     protected override async Task OnInitializedAsync()
     {
-        photos = await ModelContext.ActivePhotos
+        authors = await UserManager.Users.Select(u => new { u.Id, u.UserName }).ToDictionaryAsync(x => x.Id, x => x.UserName ?? "(unnamed)");
+    }
+
+    async Task LoadData(LoadDataArgs args)
+    {
+        loaded = false;
+
+        await Task.Yield();
+
+        IQueryable<Photo> query = ModelContext.ActivePhotos
         .Include(p => p.BuildingBinds)
         .ThenInclude(b => b.Building)
         .ThenInclude(b => b.Location)
@@ -63,10 +108,20 @@
         .ThenInclude(b => b.Building)
         .ThenInclude(b => b.Cards)
         .ThenInclude(c => c.StreetAddresses)
-        .ThenInclude(a => a.Street)
-        .AsSplitQuery()
-        .OrderByDescending(p => p.PublicationDate).ToListAsync();
+        .ThenInclude(a => a.Street).AsQueryable();
+        if (!string.IsNullOrEmpty(args.Filter))
+        {
+            query = query.Where(args.Filter);
+        }
+
+        if (!string.IsNullOrEmpty(args.OrderBy))
+        {
+            query = query.OrderBy(args.OrderBy);
+        }
+
+        // Important!!! Make sure the Count property of RadzenDataGrid is set.
+        count = query.Count();
+        photos = query.Skip(args.Skip ?? 0).Take(args.Top ?? 20).ToList();
         loaded = true;
-        this.StateHasChanged();
     }
 }

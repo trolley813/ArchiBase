@@ -23,9 +23,12 @@
         <RadzenButton Text=@Loc["Mark all as read"] Icon="done_all" Click="args => OnMark()" />
     }
 
-    <RadzenDataList Data="comments" AllowPaging=@(ShowMode != CommentShowMode.ByEntity) ShowPagingSummary=@(ShowMode !=
-        CommentShowMode.ByEntity) PageSize="20" PagerAlwaysVisible=@(ShowMode != CommentShowMode.ByEntity)
-        @ref="commentsList">
+    @if(ShowMode != CommentShowMode.ByEntity)
+    {
+        <RadzenPager ShowPagingSummary="true" PagingSummaryFormat=@Loc["Page {0} of {1} (total comments: {2})"] HorizontalAlign="HorizontalAlign.Right" Count="count" PageSize="@pageSize" PageChanged="@PageChanged" AlwaysVisible=true />
+    }
+
+    <RadzenDataList Data="comments" @ref="commentsList">
         <Template Context="comment">
             <RadzenCard>
                 <RadzenStack Orientation="Orientation.Horizontal">
@@ -149,20 +152,38 @@
 
     DateTime? lastReadTime;
 
+    int pageSize = 20;
+
+    int count = 200;
+
     protected override async Task OnParametersSetAsync()
     {
         if (ShowMode == CommentShowMode.New)
         {
             lastReadTime = CommentService.GetLastReadTimeForCurrentUser();
         }
+        count = ShowMode switch
+        {
+            CommentShowMode.ByEntity =>  await ModelContext.Comments.Where(c => c.EntityId == EntityId).CountAsync(),
+            CommentShowMode.All => await ModelContext.Comments.CountAsync(),
+            CommentShowMode.New => await ModelContext.Comments.Where(c => c.PublicationDate > lastReadTime).CountAsync(),
+            _ => 0
+        };
+        await LoadComments(0, pageSize);
+        loaded = true;
+        this.StateHasChanged();
+    }
+
+    async Task LoadComments(int skip, int take)
+    {
         comments = ShowMode switch
         {
             CommentShowMode.ByEntity => await ModelContext.Comments.Where(c => c.EntityId == EntityId).OrderBy(c
             => c.PublicationDate).Include(c => c.Votes).ToListAsync(),
             CommentShowMode.All => await ModelContext.Comments.OrderByDescending(c
-            => c.PublicationDate).Include(c => c.Votes).ToListAsync(),
+            => c.PublicationDate).Include(c => c.Votes).Skip(skip).Take(take).ToListAsync(),
             CommentShowMode.New => await ModelContext.Comments.Where(c => c.PublicationDate > lastReadTime)
-            .OrderBy(c => c.PublicationDate).Include(c => c.Votes).ToListAsync(),
+            .OrderBy(c => c.PublicationDate).Include(c => c.Votes).Skip(skip).Take(take).ToListAsync(),
             _ => []
         };
         var authorIds = comments.Select(c => c.AuthorId).Distinct();
@@ -195,9 +216,8 @@
             .ThenInclude(b => b.Building)
             .Select(p => new { p.Id, p.BuildingBinds })
             .ToDictionaryAsync(p => p.Id, p => String.Join("; ", p.BuildingBinds.Select(b => buildingAddresses.GetValueOrDefault(b.Building.Id, "Address"))));
+            
         }
-        loaded = true;
-        this.StateHasChanged();
     }
 
     void AddComment()
@@ -271,6 +291,11 @@
                     });
             }
         }
+    }
+
+    async Task PageChanged(PagerEventArgs args)
+    {
+        await LoadComments(args.Skip, args.Top);
     }
 
     void OnRecord(Comment comment)

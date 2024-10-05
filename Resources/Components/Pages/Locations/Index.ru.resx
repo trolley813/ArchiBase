@@ -158,4 +158,7 @@
   <data name="Recent photos" xml:space="preserve">
         <value>Недавние фото</value>
     </data>
+  <data name="Large map" xml:space="preserve">
+        <value>Большая карта</value>
+    </data>
 </root>

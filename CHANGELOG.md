@@ -1,3 +1,8 @@
+## 0.1.14 (2024-10-05)
+- significantly lowered memory consuption in photos and comments page
+- added large map 
+- added photo counter to user page
+
 ## 0.1.13 (2024-10-03)
 - added EXIF view and uploading
 - added design display upon photo upload (when binding a building)

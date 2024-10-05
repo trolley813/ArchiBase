@@ -48,6 +48,9 @@
         </RadzenStack>
     </RadzenRow>
     <RadzenRow>
+        <RadzenLink Path=@($"locations/{Id}/map") Text=@Loc["Large map"] Icon="map" />
+    </RadzenRow>
+    <RadzenRow>
         <RadzenLink Path=@($"locations/{Id}/edit") Text=@Loc["Edit"] Icon="edit" />
         <RadzenLink Path=@($"locations/{Id}/delete") Text=@Loc["Delete"] Icon="delete" />
     </RadzenRow>

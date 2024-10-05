@@ -1,0 +1,90 @@
+@page "/locations/{id:guid}/map"
+@using Microsoft.EntityFrameworkCore
+@inject ModelContext ModelContext
+@inject IStringLocalizer<LargeMap> Loc
+@inject IJSRuntime JSRuntime
+
+@if (location != null)
+{
+    <ArchibasePageTitle Title=@($"{Loc["Large map for location"]}: {location.Name}") />
+    <OpenStreetMap @ref="map" Style="width: 90%; height: 90%" OnMarkerClick="args => OnMarkerClick(args)">
+
+    </OpenStreetMap>
+}
+
+@code
+{
+    class BuildingInfo
+    {
+        public Building Building { get; set; }
+        public string Label { get; set; }
+    }
+
+    [Parameter]
+    public Guid Id { get; set; }
+
+    Map map;
+
+    Location? location;
+
+    List<BuildingInfo> buildings = [];
+
+    protected override async Task OnParametersSetAsync()
+    {
+        location = ModelContext.Locations.FirstOrDefault(loc => loc.Id == Id);
+        buildings = ModelContext.Buildings
+        .Include(b => b.Cards)
+        .ThenInclude(c => c.StreetAddresses)
+        .ThenInclude(a => a.Street)
+        .Where(b => b.Location == location)
+        .AsSplitQuery()
+        .AsEnumerable()
+        .Select(b => new BuildingInfo
+            {
+                Building = b,
+                Label = String.Join("/", b.ActualCard.StreetAddresses.Select(a => a.HouseNumber))
+            })
+        .ToList();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            double avgLat = 0.0, avgLon = 0.0;
+            foreach (var b in buildings)
+            {
+                map.MarkersList.Add(
+                new Marker(
+                OpenLayers.Blazor.MarkerType.MarkerFlag,
+                new Coordinate(b.Building.Longitude, b.Building.Latitude),
+                b.Label)
+                );
+                avgLat += b.Building.Latitude;
+                avgLon += b.Building.Longitude;
+            }
+            avgLat /= buildings.Count;
+            avgLon /= buildings.Count;
+            map.Center = new Coordinate(avgLon, avgLat);
+            map.Zoom = 15;
+            StateHasChanged();
+        }
+
+        base.OnAfterRender(firstRender);
+    }
+
+    async void OnMarkerClick(Marker marker)
+    {
+        var lat = marker.Coordinate.Latitude;
+        var lon = marker.Coordinate.Longitude;
+        Guid? buildingId = buildings
+        .FirstOrDefault(b => b.Building.Latitude == lat && b.Building.Longitude == lon)?.Building.Id;
+        if (buildingId is not null)
+        {
+            await JSRuntime.InvokeVoidAsync("open", $"/buildings/{buildingId}", "_blank");
+        }
+    }
+
+
+
+}

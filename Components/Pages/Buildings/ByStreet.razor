@@ -1,7 +1,7 @@
 @page "/buildings/by-street/{id:guid}"
 @using Microsoft.EntityFrameworkCore
 @using SmartFormat
-@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 @inject ModelContext ModelContext
 @inject IStringLocalizer<ByStreet> Loc
 
@@ -239,16 +239,15 @@ else
         base.OnAfterRender(firstRender);
     }
 
-    void OnMarkerClick(Marker marker)
+    async void OnMarkerClick(Marker marker)
     {
         var lat = marker.Coordinate.Latitude;
         var lon = marker.Coordinate.Longitude;
-        Guid? buildingId =
-        buildings.FirstOrDefault(b => b.Building.Latitude == lat && b.Building.Longitude == lon)?.Building.Id;
+        Guid? buildingId = buildings
+        .FirstOrDefault(b => b.Building.Latitude == lat && b.Building.Longitude == lon)?.Building.Id;
         if (buildingId is not null)
         {
-            NavigationManager.NavigateTo($"/buildings/{buildingId}");
+            await JSRuntime.InvokeVoidAsync("open", $"/buildings/{buildingId}", "_blank");
         }
-
     }
 }
