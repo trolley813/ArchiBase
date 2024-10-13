@@ -122,46 +122,40 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0,
       Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Add" xml:space="preserve">
-        <value>Добавить</value>
+  <data name="dd/MM/yyyy" xml:space="preserve">
+        <value>dd.MM.yyyy</value>
     </data>
-  <data name="Add Building" xml:space="preserve">
-        <value>Добавить здание</value>
+  <data name="MM/yyyy" xml:space="preserve">
+        <value>MM.yyyy</value>
     </data>
-  <data name="Add Street" xml:space="preserve">
-        <value>Добавить улицу</value>
+  <data name="ca. {Year}" xml:space="preserve">
+        <value>ок. {Year}</value>
     </data>
-  <data name="Count" xml:space="preserve">
-        <value>Количество</value>
+  <data name="{EML} {Decade}s" xml:space="preserve">
+        <value>{EML} {Decade}-х гг.</value>
     </data>
-  <data name="Delete" xml:space="preserve">
-        <value>Удалить</value>
+  <data name="{Decade}s" xml:space="preserve">
+        <value>{Decade}-е гг.</value>
     </data>
-  <data name="Edit" xml:space="preserve">
-        <value>Редактировать</value>
+  <data name="{EML} {Century} century" xml:space="preserve">
+        <value>{Century} в.</value>
     </data>
-  <data name="Locations" xml:space="preserve">
-        <value>Страны, регионы, населенные пункты</value>
+  <data name="{Century} century" xml:space="preserve">
+        <value>{Century} век</value>
     </data>
-  <data name="Name" xml:space="preserve">
-        <value>Название</value>
+  <data name="{Year} or earlier" xml:space="preserve">
+        <value>{Year} или ранее</value>
     </data>
-  <data name="Street Name" xml:space="preserve">
-        <value>Название улицы</value>
+  <data name="{Year} or later" xml:space="preserve">
+        <value>{Year} или позднее</value>
     </data>
-  <data name="Streets" xml:space="preserve">
-        <value>Улицы</value>
+  <data name="early " xml:space="preserve">
+        <value>нач. </value>
     </data>
-  <data name="Sub-locations" xml:space="preserve">
-        <value>Места в составе</value>
+  <data name="mid-" xml:space="preserve">
+        <value>сер. </value>
     </data>
-  <data name="Recent photos" xml:space="preserve">
-        <value>Недавние фото</value>
-    </data>
-  <data name="Large map" xml:space="preserve">
-        <value>Большая карта</value>
-    </data>
-  <data name="No local editors." xml:space="preserve">
-        <value>Нет местных редакторов.</value>
+  <data name="late " xml:space="preserve">
+        <value>кон. </value>
     </data>
 </root>

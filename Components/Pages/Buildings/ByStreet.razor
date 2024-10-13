@@ -1,4 +1,5 @@
 @page "/buildings/by-street/{id:guid}"
+@using ArchiBase.Components.Pages.Utils
 @using Microsoft.EntityFrameworkCore
 @using SmartFormat
 @inject IJSRuntime JSRuntime
@@ -53,7 +54,7 @@
             {
                 <RadzenDataGridColumn Title=@Loc["Photo"] Sortable=false>
                     <Template Context="building">
-                        <RadzenImage Path=@(GetPhotoLink(building.Building))
+                        <RadzenImage Path=@(photoLinks.GetValueOrDefault(building.Building.Id, "/images/unavailable.png"))
                             Style="display:block;margin:auto;max-height:150px;max-width:300px;height:auto;width:auto;"
                             AlternateText=@Loc["Photo not available"] onerror="this.src='/images/unavailable.png'" />
                     </Template>
@@ -88,11 +89,15 @@
                     <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
                         @foreach (var c in building.Building.ActualCard?.Categories ?? [])
                         {
-                            <RadzenBadge Text=@(c.Name) Shade="Shade.Darker" BadgeStyle="BadgeStyle.Info" />
+                            <RadzenLink Path=@($"/categories/{c.Id}")>
+                                <RadzenBadge Style="white-space: normal;" Text=@(c.Name) Shade="Shade.Darker" BadgeStyle="BadgeStyle.Info" />
+                            </RadzenLink>
                         }
                         @foreach (var c in building.Building.ActualCard?.CategoriesOfDesigns ?? [])
                         {
-                            <RadzenBadge Text=@(c.Name) Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" />
+                            <RadzenLink Path=@($"/categories/{c.Id}")>
+                                <RadzenBadge Style="white-space: normal;" Text=@(c.Name) Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" />
+                            </RadzenLink>
                         }
                     </RadzenStack>
                 </Template>
@@ -109,13 +114,12 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title=@Loc["Built"] Property="Built" Width="10%">
                 <Template Context="building">
-                    <RadzenText>@(building.Building.GetDateOfStatus(BuildingEventType.ConstructionFinished))
-                    </RadzenText>
+                    <ImpreciseDateDisplay Value="@(building.Built)"/>
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title=@Loc["Demolished"] Property="Demolished" Width="10%">
                 <Template Context="building">
-                    <RadzenText>@(building.Building.GetDateOfStatus(BuildingEventType.Demolished))</RadzenText>
+                    <ImpreciseDateDisplay Value="@(building.Demolished)"/>
                 </Template>
             </RadzenDataGridColumn>
         </Columns>
@@ -136,21 +140,9 @@ else
 
     List<BuildingInfo> buildings = [];
 
-    class BuildingInfo
-    {
-        public Building Building { get; set; }
-        public BuildingCard ActualCard { get; set; }
-        public BuildingCard LastCardWithAddress { get; set; }
-        public NaturalString HouseNumber { get; set; }
-        public NaturalString FloorCount { get; set; }
-        public string Name { get; set; }
-        public ImpreciseDate? Built { get; set; }
-        public ImpreciseDate? Demolished { get; set; }
-
-        public List<StreetAddress> Addresses { get; set; }
-    }
-
     bool showPhotos;
+
+    Dictionary<Guid, string> photoLinks = [];
 
     OpenStreetMap map;
 
@@ -187,16 +179,19 @@ else
                     LastCardWithAddress = b.Cards.OrderBy(c => c.ActualFrom).Last(c => c.StreetAddresses.Any(a => a.Street == street))
                 }
             ).ToList();
+            photoLinks = ModelContext
+            .BuildingBinds
+            .Include(b => b.Photo)
+            .Include(b => b.Building)
+            .ThenInclude(b => b.Cards)
+            .ThenInclude(c => c.StreetAddresses)
+            .ThenInclude(a => a.Street)
+            .Where(b => b.Building.Cards.Any(c => c.StreetAddresses.Any(a => a.Street == street)))
+            .ToList()
+            .GroupBy(b => b.Building)
+            .Select(g => g.MaxBy(p => p.Photo.PublicationDate))
+            .ToDictionary(b => b.Building.Id, b => b.Photo.PhotoLink);
         }
-    }
-
-    string? GetPhotoLink(Building building)
-    {
-        return ModelContext.Photos
-        .Include(p => p.BuildingBinds)
-        .Where(p => p.BuildingBinds.Any(b => b.Building == building))
-        .OrderByDescending(p => p.ShootingDate.Date)
-        .FirstOrDefault()?.PhotoLink;
     }
 
     void CellRender(DataGridCellRenderEventArgs<BuildingInfo> args)
@@ -211,7 +206,9 @@ else
             _ => "--rz-base-background-color"
         };
         if (!actualAddress) color = "--rz-info-lighter";
-        args.Attributes.Add("style", $"background-color: var({color});");
+        string style = $"background-color: var({color});";
+        if (args.Column.Property == "HouseNumber" && photoLinks.ContainsKey(args.Data.Building.Id)) style += "font-weight: bold;";
+        args.Attributes.Add("style", style);
     }
 
     protected override void OnAfterRender(bool firstRender)
@@ -221,11 +218,20 @@ else
             double avgLat = 0.0, avgLon = 0.0;
             foreach (var b in buildings)
             {
-                map.MarkersList.Add(new Marker(
+                var marker = new Marker(
                 OpenLayers.Blazor.MarkerType.MarkerFlag,
                 new Coordinate(b.Building.Longitude, b.Building.Latitude),
-                String.Join("/", b.Addresses.OrderBy(a => a.Street != street).Select(a => a.HouseNumber))
-                ));
+                String.Join("/", b.Addresses.OrderBy(a => a.Street != street).Select(a => a.HouseNumber)));
+                marker.Fill = b.Building.Events.OrderBy(e => (e.Date.Date)).ThenBy(e => e.Type).LastOrDefault()?.Type switch
+                {
+                    BuildingEventType.ConstructionStarted => "limegreen",
+                    BuildingEventType.RebuildingStarted => "gold",
+                    BuildingEventType.Abandoned => "grey",
+                    BuildingEventType.Demolished => "crimson",
+                    _ => "black"
+                };
+                if (photoLinks.ContainsKey(b.Building.Id)) marker.TextColor = "orange";
+                map.MarkersList.Add(marker);
                 avgLat += b.Building.Latitude;
                 avgLon += b.Building.Longitude;
             }

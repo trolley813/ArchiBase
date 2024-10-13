@@ -58,17 +58,43 @@
             </Columns>
         </RadzenDataGrid>
     </RadzenColumn>
+    <RadzenColumn>
+        <RadzenText TextStyle="TextStyle.H5">@Loc["Photo Moderators"]</RadzenText>
+        <RadzenDataGrid Data="moderators">
+            <Columns>
+                <RadzenDataGridColumn Title=@Loc["Username"]>
+                    <Template Context="user">
+                        @if (user.IsEnabled)
+                        {
+                            <RadzenLink Text="@(user.UserName)" Path=@($"users/{user.Id}") />
+                        }
+                        else
+                        {
+                            <RadzenLink Text="@(user.UserName)" Path=@($"users/{user.Id}")
+                                style="text-decoration: line-through" />
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title=@Loc["Edits for last 30 days"]>
+                    <Template Context="user">
+                        <RadzenText>@(editsCount[user])</RadzenText>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </RadzenColumn>
 </RadzenRow>
 
 @code
 {
-    IList<ArchiBaseUser> admins, editors;
+    IList<ArchiBaseUser> admins, editors, moderators;
     Dictionary<ArchiBaseUser, int> editsCount = [];
 
     protected override async Task OnInitializedAsync()
     {
         admins = await UserManager.GetUsersInRoleAsync("Admin");
         editors = await UserManager.GetUsersInRoleAsync("Editor");
+        moderators = await UserManager.GetUsersInRoleAsync("Photo Moderator");
         var users = UserManager.Users.ToList();
         var now = DateTime.Now;
         foreach (var user in users)

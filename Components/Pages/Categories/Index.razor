@@ -36,7 +36,7 @@
 {
 
     <RadzenRow>
-    <RadzenDataList Data="ChildCategories">
+    <RadzenDataList Data="ChildCategories.OrderBy(c => c.Name, StringComparison.OrdinalIgnoreCase.WithNaturalSort())">
         <Template Context="cat">
             <RadzenLink Text="@(cat.Name)" Path=@($"/categories/{cat.Id}") />
         </Template>
@@ -60,7 +60,7 @@
 
     <RadzenDataGrid AllowFiltering="true" Density="Density.Compact"
     Data="@(category.Designs.OrderBy(d => d.Name, StringComparison.OrdinalIgnoreCase.WithNaturalSort()))"
-    AllowPaging=true PageSize="10">
+    AllowPaging=true PageSize="50">
     <Columns>
         <RadzenDataGridColumn Title="Design" Width="60%">
             <Template Context="design">
@@ -73,13 +73,12 @@
         <RadzenDataGridColumn Title="Codes in catalogues" Width="30%">
             <Template Context="design">
                 <RadzenText>
-                    @(String.Join(", ", ModelContext.DesignCatalogueEntries.Include(e => e.Catalogue).Where(e =>
-                            e.Design == design).OrderBy(e => e.Catalogue.Id).OrderBy(e => e.Code).Select(e => e.Formatted)))
-                    </RadzenText>
-                </Template>
-            </RadzenDataGridColumn>
-        </Columns>
-    </RadzenDataGrid>
+                    @(String.Join(", ", codesInCatalogues.GetValueOrDefault(design, [])))
+                </RadzenText>
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
 
     <CommentView EntityId="category.Id" EntityType="DesignCategory" />
 }
@@ -94,6 +93,8 @@
     public List<DesignCategory?> ChildCategories { get; set; } = [];
 
     DesignCategory? category;
+
+    Dictionary<Design, List<string>> codesInCatalogues;
     List<Gallery> galleries = [];
 
     protected override async Task OnParametersSetAsync()
@@ -107,6 +108,17 @@
             galleries = ModelContext.Galleries
             .Where(g => g.EntityId == category.Id && g.EntityType == "DesignCategory")
             .OrderBy(g => g.Name).ToList();
+            codesInCatalogues = ModelContext.DesignCatalogueEntries
+            .Include(e => e.Catalogue)
+            .Include(e => e.Design)
+            .Where(e => category.Designs.Contains(e.Design))
+            .GroupBy(e => e.Design)
+            .ToDictionary(g => g.Key, g => g.OrderBy(e => e.Catalogue.Id).OrderBy(e => e.Code).Select(e => e.Formatted).ToList());
+            Console.WriteLine("CC Count: {0}", codesInCatalogues.Count);
+            foreach (var cc in codesInCatalogues)
+            {
+                Console.WriteLine("CC {0} {1} - {2}", cc.Key.Id, cc.Key.Name, String.Join(", ", cc.Value));
+            }
         }
     }
 }

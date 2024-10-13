@@ -59,7 +59,7 @@
                 <RadzenStack>
                 @foreach (var b in photo.BuildingBinds)
                 {
-                    <RadzenText TextStyle="TextStyle.Body1">
+                    <RadzenText TextStyle="TextStyle.Body1" Style="white-space: pre-line;">
                     <RadzenLink Path=@($"/buildings/{b.Building.Id}") 
                     Text=@($"{b.Building.Location.Name}, {String.Join(" / ", b.Building.ActualCard.StreetAddresses)}") />
                     </RadzenText>

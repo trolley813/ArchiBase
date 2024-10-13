@@ -1,9 +1,10 @@
 @page "/my-stats"
 @inject UserManager<ArchiBaseUser> UserManager
 @inject UserResolverService UserResolverService
+@inject UploadLimitService UploadLimitService
 @inject IStringLocalizer<Stats> Loc
 
-<ArchibasePageTitle Title=@Loc["My Stats and limits"] />
+<ArchibasePageTitle Title=@Loc["My stats and limits"] />
 @if (user is not null)
 {
     <RadzenText TextStyle="TextStyle.H4">@Loc["My stats and limits"]</RadzenText>
@@ -52,7 +53,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         user = await UserManager.FindByIdAsync(UserResolverService.GetUser().ToString());
-        limit = user?.UploadLimitOverride ?? 0;
-        directLimit = user?.DirectUploadLimitOverride ?? 0;
+        limit = UploadLimitService.GetUploadLimit(user.Id);
+        directLimit = UploadLimitService.GetDirectUploadLimit(user.Id);
     }
 }

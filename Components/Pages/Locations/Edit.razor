@@ -79,26 +79,26 @@
 
     public async Task Save()
     {
-        try
-        {
-            await TreeRepo.SetParentAsync(location, parent);
-            ModelContext.SaveChanges();
-            NotificationService.Notify(new NotificationMessage
-                {
-                    Severity = NotificationSeverity.Success,
-                    Summary = "Location saved",
-                    Detail = $"ID: {location.Id}"
-                });
-        }
-        catch (Exception e)
-        {
-            NotificationService.Notify(new NotificationMessage
-                {
-                    Severity = NotificationSeverity.Error,
-                    Summary = "Error occured",
-                    Detail = $"{e.Message}"
-                });
-        }
+        //try
+        //{
+        await TreeRepo.SetParentAsync(location, parent);
+        ModelContext.SaveChanges();
+        NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "Location saved",
+                Detail = $"ID: {location.Id}"
+            });
+        //}
+        @* catch (Exception e)
+{
+NotificationService.Notify(new NotificationMessage
+{
+Severity = NotificationSeverity.Error,
+Summary = "Error occured",
+Detail = $"{e.Message}"
+});
+} *@
     }
 
     void OnMapClick(Coordinate coordinate)

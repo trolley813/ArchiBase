@@ -28,6 +28,12 @@
                             Change="args => SetEditor(user, args)" />
                     </Template>
                 </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Photo Mod?" Width="10%">
+                    <Template Context="user">
+                        <RadzenCheckBox TValue="bool" Value="@(userRoles[user].PhotoModerator)"
+                            Change="args => SetPhotoModerator(user, args)" />
+                    </Template>
+                </RadzenDataGridColumn>
                 <RadzenDataGridColumn Title="Local Editor?" Width="10%">
                     <Template Context="user">
                         <RadzenCheckBox TValue="bool" Value="@(userRoles[user].LocalEditor)"
@@ -90,6 +96,7 @@
     {
         public bool Admin { get; set; }
         public bool Editor { get; set; }
+        public bool PhotoModerator { get; set; }
         public bool LocalEditor { get; set; }
     }
     Dictionary<ArchiBaseUser, Roles> userRoles = [];
@@ -103,6 +110,7 @@
         StringComparison.OrdinalIgnoreCase.WithNaturalSort()).ToList();
         var admins = await UserManager.GetUsersInRoleAsync("Admin");
         var editors = await UserManager.GetUsersInRoleAsync("Editor");
+        var photoMods = await UserManager.GetUsersInRoleAsync("Photo Moderator");
         var localEditors = await UserManager.GetUsersInRoleAsync("Local Editor");
         foreach (var user in users)
         {
@@ -110,6 +118,7 @@
                 {
                     Admin = admins.Contains(user),
                     Editor = editors.Contains(user),
+                    PhotoModerator = photoMods.Contains(user),
                     LocalEditor = localEditors.Contains(user),
                 };
         }
@@ -142,6 +151,19 @@
             await UserManager.RemoveFromRoleAsync(user, "Editor");
         }
         userRoles[user].Editor = value;
+    }
+
+    public async Task SetPhotoModerator(ArchiBaseUser user, bool value)
+    {
+        if (value)
+        {
+            await UserManager.AddToRoleAsync(user, "Photo Moderator");
+        }
+        else
+        {
+            await UserManager.RemoveFromRoleAsync(user, "Photo Moderator");
+        }
+        userRoles[user].PhotoModerator = value;
     }
 
     public async Task SetLocalEditor(ArchiBaseUser user, bool value)

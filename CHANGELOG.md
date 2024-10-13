@@ -1,3 +1,13 @@
+## 0.2.0 (2024-10-13)
+- new material design theme
+- added light/dark theme switcher
+- added photo moderation
+- added voting
+- added list of building for design
+- map markers ard now colored depending on building status
+- more user-friendly mobile interface
+- several bug fixes
+
 ## 0.1.14 (2024-10-05)
 - significantly lowered memory consuption in photos and comments page
 - added large map 

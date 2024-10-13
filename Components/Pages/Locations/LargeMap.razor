@@ -18,6 +18,7 @@
     {
         public Building Building { get; set; }
         public string Label { get; set; }
+        public bool HasPhotos { get; set; }
     }
 
     [Parameter]
@@ -33,16 +34,23 @@
     {
         location = ModelContext.Locations.FirstOrDefault(loc => loc.Id == Id);
         buildings = ModelContext.Buildings
+        .Include(b => b.Events)
         .Include(b => b.Cards)
         .ThenInclude(c => c.StreetAddresses)
         .ThenInclude(a => a.Street)
         .Where(b => b.Location == location)
+        .Select(b => new
+        {
+            Building = b,
+            HasPhotos = ModelContext.BuildingBinds.Include(bi => bi.Building).Any(bi => bi.Building.Id == b.Id)
+        })
         .AsSplitQuery()
         .AsEnumerable()
         .Select(b => new BuildingInfo
             {
-                Building = b,
-                Label = String.Join("/", b.ActualCard.StreetAddresses.Select(a => a.HouseNumber))
+                Building = b.Building,
+                Label = String.Join("/", b.Building.ActualCard.StreetAddresses.Select(a => a.HouseNumber)),
+                HasPhotos = b.HasPhotos
             })
         .ToList();
     }
@@ -54,12 +62,20 @@
             double avgLat = 0.0, avgLon = 0.0;
             foreach (var b in buildings)
             {
-                map.MarkersList.Add(
-                new Marker(
+                var marker = new Marker(
                 OpenLayers.Blazor.MarkerType.MarkerFlag,
                 new Coordinate(b.Building.Longitude, b.Building.Latitude),
-                b.Label)
-                );
+                b.Label);
+                marker.Fill = b.Building.Events.OrderBy(e => (e.Date.Date)).ThenBy(e => e.Type).LastOrDefault()?.Type switch
+                {
+                    BuildingEventType.ConstructionStarted => "limegreen",
+                    BuildingEventType.RebuildingStarted => "gold",
+                    BuildingEventType.Abandoned => "grey",
+                    BuildingEventType.Demolished => "crimson",
+                    _ => "black"
+                };
+                if (!b.HasPhotos) marker.TextColor = "orange";
+                map.MarkersList.Add(marker);
                 avgLat += b.Building.Latitude;
                 avgLon += b.Building.Longitude;
             }

@@ -1,4 +1,5 @@
 using System.Globalization;
+using Humanizer;
 using Microsoft.EntityFrameworkCore;
 
 namespace ArchiBase.Models;
@@ -88,8 +89,8 @@ public class ImpreciseDate : IComparable<ImpreciseDate>
             $"{Date.GetEarlyMidLate(useCentury: false).GetRepresentation()}{Date.Year / 10 * 10}s",
         DatePrecision.DecadeOnly => $"{Date.Year / 10 * 10}s",
         DatePrecision.Century =>
-            $"{Date.GetEarlyMidLate(useCentury: true).GetRepresentation()}{Date.GetCentury()} century",
-        DatePrecision.CenturyOnly => $"{Date.GetCentury()} century",
+            $"{Date.GetEarlyMidLate(useCentury: true).GetRepresentation()}{Date.GetCentury().Ordinalize()} century",
+        DatePrecision.CenturyOnly => $"{Date.GetCentury().Ordinalize()} century",
         DatePrecision.YearOrEarlier => Date.ToString("yyyy") + " or earlier",
         DatePrecision.YearOrLater => Date.ToString("yyyy") + " or later",
         _ => throw new NotImplementedException()

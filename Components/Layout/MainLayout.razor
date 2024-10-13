@@ -9,6 +9,7 @@
     <RadzenHeader>
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
             <RadzenSidebarToggle Click="@(() => sidebar1Expanded = !sidebar1Expanded)" />
+            <RadzenAppearanceToggle />
             <RadzenLabel Text="@(Configuration.GetValue<string>("SiteName", "ArchiBase"))" />
             <ProfileMenu />
             <CultureSelector />

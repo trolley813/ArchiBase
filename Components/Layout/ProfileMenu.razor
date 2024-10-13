@@ -9,10 +9,11 @@
                     </RadzenStack>
                 </Template>
                 <ChildContent>
-                    <RadzenProfileMenuItem Text="My page"
+                    <RadzenProfileMenuItem Text="My page" Icon="person"
                         Path=@($"users/{context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value}") />
-                    <RadzenProfileMenuItem Text="My stats" Path="my-stats" />
-                    <RadzenProfileMenuItem Text="Log out" Path="account/logout" />
+                    <RadzenProfileMenuItem Text="My stats" Path="my-stats" Icon="analytics" />
+                    <RadzenProfileMenuItem Text="Journal" Path="journal" Icon="summarize" />
+                    <RadzenProfileMenuItem Text="Log out" Path="account/logout" Icon="logout" />
                 </ChildContent>
             </RadzenProfileMenu>
         </Authorized>

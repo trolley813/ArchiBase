@@ -1,6 +1,14 @@
+using ArchiBase.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace ArchiBase.Models;
+
+public enum PhotoStatus
+{
+    Published,
+    Pending,
+    Rejected
+}
 
 public class License : IAuditable
 {
@@ -79,23 +87,17 @@ public class Photo : IAuditable
 
     public List<Gallery> Galleries { get; set; } = [];
 
-    public List<PhotoVote> Votes { get; set; } = [];
+    public VoteData Votes { get; set; } = new();
 
-    public int VotesCount => Votes.Select(v => v.Vote).Sum();
-    public int UpvotesCount => Votes.Where(v => v.Vote > 0).Count();
-    public int DownvotesCount => Votes.Where(v => v.Vote < 0).Count();
+    public int VotesCount => Votes.Votes;
+    public int UpvotesCount => Votes.Upvotes;
+    public int DownvotesCount => Votes.Downvotes;
     public string PhotoLink => IsHidden ? "/images/hidden.png" : $"/data/photos/{Id.ToString()[0..2]}/{Id.ToString()[2..4]}/{Id}.{Extension}";
     public string PhotoDir => $"/data/photos/{Id.ToString()[0..2]}/{Id.ToString()[2..4]}";
 
     public bool IsHidden { get; set; }
 
-    public ExifData Exif { get; set; }
-}
+    public PhotoStatus Status { get; set; }
 
-public class PhotoVote
-{
-    public Guid Id { get; set; }
-    public Guid AuthorId { get; set; }
-    public Photo Photo { get; set; }
-    public int Vote { get; set; }
+    public ExifData Exif { get; set; }
 }

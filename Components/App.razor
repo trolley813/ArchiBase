@@ -2,14 +2,14 @@
 <html lang="en">
 
 <head>
+    <RadzenTheme Theme="material" @rendermode="RenderModeForPage" />
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
     @* <link rel="stylesheet" href="bootstrap/bootstrap.min.css" /> *@
     <link rel="stylesheet" href="app.css" />
     <link rel="stylesheet" href="ArchiBase.styles.css" />
-    <link rel="stylesheet" href="_content/Radzen.Blazor/css/humanistic.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/openlayers/9.2.2/ol.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/openlayers/10.2.1/ol.min.css" rel="stylesheet" />
     <link href="_content/OpenLayers.Blazor/OpenLayers.Blazor.css" rel="stylesheet" />
     <HeadOutlet @rendermode="RenderModeForPage" />
 </head>
@@ -19,7 +19,7 @@
     <script src="_framework/blazor.web.js"></script>
     <script
         src="_content/Radzen.Blazor/Radzen.Blazor.js?v=@(typeof(Radzen.Colors).Assembly.GetName().Version)"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/openlayers/9.2.2/dist/ol.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/openlayers/10.2.1/dist/ol.min.js"></script>
 </body>
 
 </html>

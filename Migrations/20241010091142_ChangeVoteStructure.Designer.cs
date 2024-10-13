@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using ArchiBase.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,13 +13,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ArchiBase.Migrations
 {
     [DbContext(typeof(ModelContext))]
-    partial class ModelContextModelSnapshot : ModelSnapshot
+    [Migration("20241010091142_ChangeVoteStructure")]
+    partial class ChangeVoteStructure
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.10")
+                .HasAnnotation("ProductVersion", "8.0.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -555,7 +558,7 @@ namespace ArchiBase.Migrations
 
                     b.HasIndex("StreetId");
 
-                    b.ToTable("StreetAddresses");
+                    b.ToTable("StreetAddress");
                 });
 
             modelBuilder.Entity("ArchiBase.Models.Style", b =>
@@ -887,7 +890,7 @@ namespace ArchiBase.Migrations
 
             modelBuilder.Entity("ArchiBase.Models.Comment", b =>
                 {
-                    b.OwnsOne("ArchiBase.Utils.VoteData", "Votes", b1 =>
+                    b.OwnsOne("System.Collections.Generic.Dictionary<System.Guid, int>", "Votes", b1 =>
                         {
                             b1.Property<Guid>("CommentId")
                                 .HasColumnType("uuid");
@@ -900,31 +903,6 @@ namespace ArchiBase.Migrations
 
                             b1.WithOwner()
                                 .HasForeignKey("CommentId");
-
-                            b1.OwnsMany("ArchiBase.Utils.Vote", "Values", b2 =>
-                                {
-                                    b2.Property<Guid>("VoteDataCommentId")
-                                        .HasColumnType("uuid");
-
-                                    b2.Property<int>("Id")
-                                        .ValueGeneratedOnAdd()
-                                        .HasColumnType("integer");
-
-                                    b2.Property<Guid>("Author")
-                                        .HasColumnType("uuid");
-
-                                    b2.Property<int>("VoteValue")
-                                        .HasColumnType("integer");
-
-                                    b2.HasKey("VoteDataCommentId", "Id");
-
-                                    b2.ToTable("Comments");
-
-                                    b2.WithOwner()
-                                        .HasForeignKey("VoteDataCommentId");
-                                });
-
-                            b1.Navigation("Values");
                         });
 
                     b.Navigation("Votes")
@@ -1050,7 +1028,7 @@ namespace ArchiBase.Migrations
                                 .HasForeignKey("PhotoId");
                         });
 
-                    b.OwnsOne("ArchiBase.Utils.VoteData", "Votes", b1 =>
+                    b.OwnsOne("ArchiBase.Models.Photo.Votes#Dictionary", "Votes", b1 =>
                         {
                             b1.Property<Guid>("PhotoId")
                                 .HasColumnType("uuid");
@@ -1063,31 +1041,6 @@ namespace ArchiBase.Migrations
 
                             b1.WithOwner()
                                 .HasForeignKey("PhotoId");
-
-                            b1.OwnsMany("ArchiBase.Utils.Vote", "Values", b2 =>
-                                {
-                                    b2.Property<Guid>("VoteDataPhotoId")
-                                        .HasColumnType("uuid");
-
-                                    b2.Property<int>("Id")
-                                        .ValueGeneratedOnAdd()
-                                        .HasColumnType("integer");
-
-                                    b2.Property<Guid>("Author")
-                                        .HasColumnType("uuid");
-
-                                    b2.Property<int>("VoteValue")
-                                        .HasColumnType("integer");
-
-                                    b2.HasKey("VoteDataPhotoId", "Id");
-
-                                    b2.ToTable("Photos");
-
-                                    b2.WithOwner()
-                                        .HasForeignKey("VoteDataPhotoId");
-                                });
-
-                            b1.Navigation("Values");
                         });
 
                     b.Navigation("Exif")

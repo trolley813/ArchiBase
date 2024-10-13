@@ -16,7 +16,12 @@
                         @Loc["New"]&emsp;
                         <RadzenBadge IsPill=true Text=@(CommentService.GetNewCommentsCount().ToString()) />
                     </Template>
-
+                </RadzenPanelMenuItem>
+                <RadzenPanelMenuItem Icon="reviews" Path="comments/responses">
+                    <Template>
+                        @Loc["Responses"]&emsp;
+                        <RadzenBadge IsPill=true Text=@(CommentService.GetResponsesCount().ToString()) />
+                    </Template>
                 </RadzenPanelMenuItem>
             </AuthorizeView>
         </CascadingAuthenticationState>
@@ -32,12 +37,17 @@
             <RadzenPanelMenuItem Text=@Loc["Bulk editing"]>
                 <RadzenPanelMenuItem Text=@Loc["Split designs"] Path="series/split" />
                 <RadzenPanelMenuItem Text=@Loc["Split categories"] Path="categories/split" />
+                <RadzenPanelMenuItem Text=@Loc["Merge streets"] Path="bulkedit/mergestreets" />
             </RadzenPanelMenuItem>
             <RadzenPanelMenuItem Text=@Loc["Conversions"]>
                 <RadzenPanelMenuItem Text=@Loc["Design to category"] Path="convert/designtocategory" />
                 <RadzenPanelMenuItem Text=@Loc["Category to design"] Path="convert/categorytodesign" />
             </RadzenPanelMenuItem>
-
         </RadzenPanelMenuItem>
     </EditorOnly>
+    <PhotoModOnly ShowAlert=false>
+        <RadzenPanelMenuItem Text=@Loc["For photo moderators"] Icon="shield">
+            <RadzenPanelMenuItem Text=@Loc["Photo queue"] Icon="photo_library" Path="queue" />
+        </RadzenPanelMenuItem>
+    </PhotoModOnly>
 </RadzenPanelMenu>

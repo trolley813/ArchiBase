@@ -36,16 +36,15 @@ public class ModelContext : DbContext
     public DbSet<Group> Groups { get; set; }
     public DbSet<Style> Styles { get; set; }
 
-    public IQueryable<Photo> ActivePhotos => Photos.Where(p => !p.IsHidden);
+    public IQueryable<Photo> ActivePhotos => Photos.Where(p => !p.IsHidden && p.Status == PhotoStatus.Published);
 
     public DbSet<Comment> Comments { get; set; }
-
-    public DbSet<CommentVote> CommentVotes { get; set; }
 
     public DbSet<NewsItem> NewsItems { get; set; }
 
     public DbSet<AuditRecord> AuditRecords { get; set; }
     public DbSet<Gallery> Galleries { get; set; }
+    public DbSet<StreetAddress> StreetAddresses { get; set; }
 
     override protected void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -84,6 +83,9 @@ public class ModelContext : DbContext
         modelBuilder.Entity<Photo>().OwnsOne(e => e.ShootingDate);
         modelBuilder.Entity<Photo>().OwnsOne(e => e.Exif);
         modelBuilder.Entity<BuildingBind>().OwnsOne(e => e.Markup);
+
+        modelBuilder.Entity<Photo>().OwnsOne(p => p.Votes, v => { v.ToJson(); v.OwnsMany(v => v.Values); });
+        modelBuilder.Entity<Comment>().OwnsOne(c => c.Votes, v => { v.ToJson(); v.OwnsMany(v => v.Values); });
     }
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)

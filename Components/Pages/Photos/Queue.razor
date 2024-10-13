@@ -1,0 +1,72 @@
+@page "/queue"
+@using Microsoft.EntityFrameworkCore
+@inject ModelContext ModelContext
+@inject UserManager<ArchiBaseUser> UserManager
+@inject IStringLocalizer<Details> Loc
+
+
+<ArchibasePageTitle Title=@Loc["Queue"] />
+
+<PhotoModOnly>
+    <RadzenText TextStyle="TextStyle.H5">@Loc["Queue (photos pending publication)"]</RadzenText>
+
+    <RadzenDataList Data="photos" AllowPaging=true PageSize=16 WrapItems=true>
+        <Template Context="photo">
+            <RadzenCard Style="width: 20%; max-width: 20%;">
+                <RadzenLink Path=@($"/photos/{photo.Id}")>
+                    <RadzenImage Path=@(photo.PhotoLink)
+                        Style="display:block;margin:auto;max-height:150px;max-width:300px;height:auto;width:auto;"
+                        AlternateText=@Loc["Photo not available"] onerror="this.src='/images/unavailable.png'" />
+                </RadzenLink>
+                <RadzenStack>
+                    @foreach (var b in photo.BuildingBinds)
+                    {
+                        <RadzenText TextStyle="TextStyle.Body1">
+                        <RadzenLink Path=@($"/buildings/{b.Building.Id}") 
+                        Text=@($"{b.Building.Location.Name}, {String.Join(" / ", b.Building.ActualCard.StreetAddresses)}") />
+                        </RadzenText>
+                    }
+                </RadzenStack>
+                <RadzenStack>
+                    @foreach (var g in photo.Galleries)
+                    {
+                        <RadzenText TextStyle="TextStyle.Body1">
+                        <RadzenLink Path=@($"/galleries/{g.Id}") Text=@(g.Name) />
+                        </RadzenText>
+                    }
+                </RadzenStack>
+                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Style="width: 100%">
+                    <RadzenButton Icon="thumb_up" ButtonStyle="ButtonStyle.Success"/>
+                    <RadzenText TextStyle="TextStyle.H4">@(photo.VotesCount)</RadzenText>
+                    <RadzenButton Icon="thumb_down" ButtonStyle="ButtonStyle.Danger"/>
+                </RadzenStack>
+                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Style="width: 100%">
+                    <RadzenText TextStyle="TextStyle.Overline">+@(photo.UpvotesCount)/-@(photo.DownvotesCount)</RadzenText>
+                </RadzenStack>
+            </RadzenCard>
+        </Template>
+    </RadzenDataList>
+</PhotoModOnly>
+
+@code
+{
+
+    List<Photo> photos;
+
+    override protected async Task OnInitializedAsync()
+    {
+        photos = await ModelContext.Photos
+        .Include(p => p.Votes)
+        .Include(p => p.BuildingBinds)
+        .ThenInclude(b => b.Building)
+        .ThenInclude(b => b.Location)
+        .Include(p => p.BuildingBinds)
+        .ThenInclude(b => b.Building)
+        .ThenInclude(b => b.Cards)
+        .ThenInclude(c => c.StreetAddresses)
+        .ThenInclude(a => a.Street)
+        .Where(p => p.Status == PhotoStatus.Pending)
+        .OrderByDescending(p => p.PublicationDate)
+        .ToListAsync();
+    }
+}

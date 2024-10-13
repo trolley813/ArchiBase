@@ -1,3 +1,4 @@
+@using Humanizer
 @using SmartFormat
 @inject IStringLocalizer<ImpreciseDateDisplay> Loc
 
@@ -6,30 +7,34 @@
 @code
 {
     [Parameter]
-    public ImpreciseDate Value { get; set; } = new();
+    public ImpreciseDate? Value { get; set; } = new();
 
 
-    public string DisplayedString => Value.Precision switch
+    public string DisplayedString => Value?.Precision switch
     {
         DatePrecision.None => @Loc["Unknown"],
-        DatePrecision.Full => Value.Date.ToString("dd.MM.yyyy"),
-        DatePrecision.YearAndMonthOnly => Value.Date.ToString("MM.yyyy"),
+        DatePrecision.Full => Value.Date.ToString(@Loc["dd/MM/yyyy"]),
+        DatePrecision.YearAndMonthOnly => Value.Date.ToString(@Loc["MM/yyyy"]),
         DatePrecision.YearOnly => Value.Date.ToString("yyyy"),
         DatePrecision.Circa => Smart.Format(Loc["ca. {Year}"], new { Year = Value.Date.ToString("yyyy") }),
         DatePrecision.Decade => Smart.Format(Loc["{EML} {Decade}s"], new
         {
-            EML = Value.Date.GetEarlyMidLate(useCentury: false).GetRepresentation(),
+            EML = Loc[Value.Date.GetEarlyMidLate(useCentury: false).GetRepresentation()],
             Decade = Value.Date.Year / 10 * 10
         }),
         DatePrecision.DecadeOnly => Smart.Format(Loc["{Decade}s"], new { Decade = Value.Date.Year / 10 * 10 }),
         DatePrecision.Century => Smart.Format(Loc["{EML} {Century} century"], new
         {
-            EML = Value.Date.GetEarlyMidLate(useCentury: true).GetRepresentation(),
-            Century = Value.Date.GetCentury()
+            EML = Loc[Value.Date.GetEarlyMidLate(useCentury: true).GetRepresentation()],
+            Century = Value.Date.GetCentury().Ordinalize()
         }),
-        DatePrecision.CenturyOnly => Smart.Format(Loc["{Century} century"], new { Century = Value.Date.GetCentury() }),
+        DatePrecision.CenturyOnly => Smart.Format(Loc["{Century} century"], new
+        {
+            Century = Value.Date.GetCentury().Ordinalize()
+        }),
         DatePrecision.YearOrEarlier => Smart.Format(Loc["{Year} or earlier"], new { Year = Value.Date.ToString("yyyy") }),
         DatePrecision.YearOrLater => Smart.Format(Loc["{Year} or later"], new { Year = Value.Date.ToString("yyyy") }),
+        null => "",
         _ => throw new NotImplementedException()
     };
 }

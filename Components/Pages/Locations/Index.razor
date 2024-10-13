@@ -57,20 +57,20 @@
 
     <RadzenRow>
 
-        <RadzenColumn>
-            <OpenStreetMap @ref="map" Style="height:480px; width:640px" Zoom="10"
+        <RadzenColumn SizeLG="6" SizeSM="12">
+            <OpenStreetMap @ref="map" Style="height: 480px; width: 640px; max-width: 100%;" Zoom="10"
                 Center="new Coordinate(location.Longitude, location.Latitude)">
             </OpenStreetMap>
         </RadzenColumn>
 
-        <RadzenColumn>
+        <RadzenColumn SizeLG="6" SizeSM="12">
             <RadzenText>@((MarkupString)(location?.Description ?? "<i>(no description)</i>"))</RadzenText>
         </RadzenColumn>
 
 
         @if (ChildLocations.Any())
         {
-            <RadzenColumn>
+            <RadzenColumn SizeLG="6" SizeSM="12">
                 <RadzenText TextStyle="TextStyle.DisplayH5">@Loc["Sub-locations"]</RadzenText>
 
 
@@ -78,7 +78,7 @@
                     <Columns>
                         <RadzenDataGridColumn Title=@Loc["Name"] Width="80%">
                             <Template Context="loc">
-                                <RadzenStack Orientation="Orientation.Horizontal">
+                                <RadzenStack Orientation="Orientation.Horizontal" Style="white-space: pre-wrap;">
                                     <img src=@($"flags/{loc.Flag ?? "xx"}.svg") width="24px" />
                                     <RadzenLink Text="@(loc.Name)" Path=@($"/locations/{loc.Id}") />
                                 </RadzenStack>

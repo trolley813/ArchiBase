@@ -130,7 +130,7 @@
                         <RadzenRow>
                             <RadzenColumn>
                                 <RadzenText TextStyle="TextStyle.Overline">@Loc["Name"]</RadzenText>
-                                <RadzenText TextStyle="TextStyle.Body1"><b>@(card.Name)</b></RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1"><b>@((MarkupString)(card?.Name ?? ""))</b></RadzenText>
                             </RadzenColumn>
                         </RadzenRow>
                         @if (card.Architects.Count > 0)
@@ -149,23 +149,30 @@
                                 </RadzenColumn>
                             </RadzenRow>
                         }
-                        <RadzenRow>
-                            <RadzenColumn>
-                                <RadzenText TextStyle="TextStyle.Overline">@Loc["Style"]</RadzenText>
-                                <RadzenText TextStyle="TextStyle.Body1"><b>@(card.Style.Name)</b></RadzenText>
-                            </RadzenColumn>
-                        </RadzenRow>
+                        @if (card.Style is not null)
+                        {
+                            <RadzenRow>
+                                <RadzenColumn>
+                                    <RadzenText TextStyle="TextStyle.Overline">@Loc["Style"]</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1"><b>@(card.Style.Name)</b></RadzenText>
+                                </RadzenColumn>
+                            </RadzenRow>
+                        }
                         <RadzenRow>
                             <RadzenColumn>
                                 <RadzenText TextStyle="TextStyle.Overline">@Loc["Categories"]</RadzenText>
                                 <RadzenStack Orientation="Orientation.Horizontal">
                                     @foreach (var cat in card.Categories)
                                     {
-                                        <RadzenBadge Text=@(cat.Name) BadgeStyle="BadgeStyle.Info" Shade="Shade.Darker" />
+                                        <RadzenLink Path=@($"/categories/{cat.Id}")>
+                                            <RadzenBadge Text=@(cat.Name) BadgeStyle="BadgeStyle.Info" Shade="Shade.Darker" />
+                                        </RadzenLink>
                                     }
                                     @foreach (var cat in card.CategoriesOfDesigns)
                                     {
-                                        <RadzenBadge Text=@(cat.Name) BadgeStyle="BadgeStyle.Info" Shade="Shade.Lighter" />
+                                        <RadzenLink Path=@($"/categories/{cat.Id}")>
+                                            <RadzenBadge Text=@(cat.Name) BadgeStyle="BadgeStyle.Info" Shade="Shade.Lighter" />
+                                        </RadzenLink>
                                     }
                                 </RadzenStack>
                             </RadzenColumn>

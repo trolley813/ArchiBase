@@ -46,39 +46,43 @@
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title=@Loc["Design"] Sortable=false>
-                <Template Context=" building">
-                    <RadzenText>
+                <Template Context="building">
+                    <RadzenText Style="white-space: pre-wrap">
                         @(String.Join(" ⋅ ", building.ActualCard?.Parts?.Select(p => p.Design.Name).Distinct() ??
                         []))
                     </RadzenText>
                     <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
                         @foreach (var c in building.ActualCard?.Categories ?? [])
                         {
-                            <RadzenBadge Text=@(c.Name) Shade="Shade.Darker" BadgeStyle="BadgeStyle.Info" />
+                            <RadzenBadge Text=@(c.Name) Shade="Shade.Darker" BadgeStyle="BadgeStyle.Info"
+                                Style="white-space: normal" />
                         }
                         @foreach (var c in building.ActualCard?.CategoriesOfDesigns ?? [])
                         {
-                            <RadzenBadge Text=@(c.Name) Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" />
+                            <RadzenBadge Text=@(c.Name) Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info"
+                                Style="white-space: normal" />
                         }
                     </RadzenStack>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title=@Loc["Floor count"] Property="FloorCount">
+            <RadzenDataGridColumn Title=@Loc["Floor count"] Width="10%" Property="FloorCount">
                 <Template Context="building">
-                    <RadzenText>@(String.Join("; ", building.ActualCard?.FloorCount ?? []))</RadzenText>
+                    <RadzenText Style="white-space: pre-wrap">@(String.Join("; ", building.ActualCard?.FloorCount ?? []))
+                    </RadzenText>
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title=@Loc["Name"] Property="Name">
                 <Template Context="building">
-                    <RadzenText>@(building.ActualCard?.Name ?? "")</RadzenText>
+                    <RadzenText Style="white-space: pre-wrap">@((MarkupString)(building.ActualCard?.Name ?? ""))
+                    </RadzenText>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title=@Loc["Built"] Property="Built">
+            <RadzenDataGridColumn Title=@Loc["Built"] Width="10%" Property="Built">
                 <Template Context="building">
                     <RadzenText>@(building.GetDateOfStatus(BuildingEventType.ConstructionFinished))</RadzenText>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title=@Loc["Demolished"] Property="Demolished">
+            <RadzenDataGridColumn Title=@Loc["Demolished"] Width="10%" Property="Demolished">
                 <Template Context="building">
                     <RadzenText>@(building.GetDateOfStatus(BuildingEventType.Demolished))</RadzenText>
                 </Template>
@@ -103,6 +107,9 @@
         .Include(a => a.BuildingCards)
         .ThenInclude(c => c.Building)
         .ThenInclude(b => b.Location)
+        .Include(a => a.BuildingCards)
+        .ThenInclude(c => c.Building)
+        .ThenInclude(b => b.Events)
         .Include(a => a.BuildingCards)
         .ThenInclude(c => c.Categories)
         .Include(a => a.BuildingCards)

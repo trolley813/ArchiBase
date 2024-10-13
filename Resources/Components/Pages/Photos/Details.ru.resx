@@ -158,4 +158,10 @@
   <data name="Coordinates and shooting direction" xml:space="preserve">
         <value>Координаты и направление съемки</value>
     </data>
+  <data name="Votes" xml:space="preserve">
+        <value>Оценка</value>
+    </data>
+  <data name="(author hidden)" xml:space="preserve">
+        <value>(автор скрыт)</value>
+    </data>
 </root>

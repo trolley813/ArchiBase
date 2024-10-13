@@ -58,6 +58,22 @@ builder.Services.AddIdentity<ArchiBaseUser, ArchiBaseRole>(options =>
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("CanEdit", policy => policy.RequireRole("Admin", "Editor", "Local Editor"));
 
+builder.Services.AddScheduler(ctx =>
+{
+    ctx.AddJob<PhotoApprovalJob>(configure: options =>
+    {
+        options.CronSchedule = "0 0 * * *";
+        options.CronTimeZone = "UTC";
+        options.RunImmediately = false;
+    });
+    ctx.AddJob<PhotoCleanupJob>(configure: options =>
+    {
+        options.CronSchedule = "0 0 1 * *";
+        options.CronTimeZone = "UTC";
+        options.RunImmediately = false;
+    });
+});
+
 builder.Services.AddSingleton<StateContainer>();
 
 builder.Services.AddLocalization(options => { options.ResourcesPath = "Resources"; });
@@ -66,6 +82,7 @@ builder.Services.AddScoped<IUserConfirmation<ArchiBaseUser>, UserConfirmation>()
 
 builder.Services.AddTransient<UserResolverService>();
 builder.Services.AddTransient<CommentService>();
+builder.Services.AddScoped<UploadLimitService>();
 builder.Services.AddScoped<CadastreRecordService>();
 
 builder.Services.AddScoped<LocalEditorService>();

@@ -24,6 +24,11 @@ public class SeedData
             {
                 var results = await roleManager.CreateAsync(new ArchiBaseRole("Local Editor"));
             }
+            ArchiBaseRole? photoModeratorRole = await roleManager.FindByNameAsync("Photo Moderator");
+            if (photoModeratorRole == null)
+            {
+                var results = await roleManager.CreateAsync(new ArchiBaseRole("Photo Moderator"));
+            }
         }
         var userManager = serviceProvider.GetRequiredService<UserManager<ArchiBaseUser>>();
         if (userManager != null)

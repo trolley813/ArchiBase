@@ -7,6 +7,7 @@
 @inject NotificationService NotificationService
 @inject UserManager<ArchiBaseUser> UserManager
 @inject UserResolverService UserResolverService
+@inject UploadLimitService UploadLimitService
 @inject ModelContext ModelContext
 @inject IStringLocalizer<Upload> Loc
 @inject IWebHostEnvironment WebHostEnvironment
@@ -16,11 +17,17 @@
 <CascadingAuthenticationState>
     <AuthorizeView>
         <Authorized Context="actx">
-            @if (limit > 0)
+            @if (directLimit > 0 || limit > 0)
             {
                 <RadzenText TextStyle="TextStyle.H4">@Loc["Photo upload"]</RadzenText>
+                <RadzenRadioButtonList @bind-Value="useDirectUpload">
+                    <Items>
+                        <RadzenRadioButtonListItem Text=@Loc["Suggest photo for publication"] Value="false" Disabled="limit == 0" />
+                        <RadzenRadioButtonListItem Text=@Loc["Upload photo directly"] Value="true" Disabled="directLimit == 0" />
+                    </Items>
+                </RadzenRadioButtonList>
                 <RadzenText TextStyle="TextStyle.Subtitle1">
-                    @(Smart.Format(Loc["You can upload {Limit} more photos today."], new { Limit = limit }))
+                    @(Smart.Format(Loc["You can upload {Limit} more photos this week."], new { Limit = useDirectUpload ? directLimit : limit }))
                 </RadzenText>
                 <RadzenFieldset Text=@Loc["Upload form"]>
                     <RadzenRow>
@@ -226,20 +233,29 @@
                         }
                     </RadzenColumn>
                     </RadzenRow>
-                    <RadzenRow>
-                        <RadzenColumn>
-                            <ImpreciseDateInput Value="@model.ShootingDate" />
-                        </RadzenColumn>
-                        <RadzenColumn>
-                            <RadzenLabel Component="NonAuthor" Text=@Loc["I'm not the photo author"] />
-                            <RadzenCheckBox Name="NonAuthor" @bind-Value="model.NonAuthor" />
-                        </RadzenColumn>
-                        <RadzenColumn>
-                            <RadzenFormField Text=@Loc["License"]>
-                                <RadzenDropDown Data="licenses" @bind-Value="model.License" TextProperty="Name" />
-                            </RadzenFormField>
-                        </RadzenColumn>
-                    </RadzenRow>
+                    <RadzenFieldset>
+                        <RadzenRow>
+                            <RadzenColumn>
+                                <ImpreciseDateInput Value="@model.ShootingDate" />
+                            </RadzenColumn>
+                            <RadzenColumn>
+                                <RadzenLabel Component="NonAuthor" Text=@Loc["I'm not the photo author"] />
+                                <RadzenCheckBox Name="NonAuthor" @bind-Value="model.NonAuthor" />
+                            </RadzenColumn>
+                            <RadzenColumn>
+                                <RadzenFormField Text=@Loc["License"]>
+                                    <RadzenDropDown Data="licenses" @bind-Value="model.License" TextProperty="Name" />
+                                </RadzenFormField>
+                            </RadzenColumn>
+                        </RadzenRow>
+                        <RadzenRow>
+                            <RadzenColumn>
+                                <RadzenFormField Text=@Loc["Description"]>
+                                    <RadzenHtmlEditor @bind-Value="model.Description" />
+                                </RadzenFormField>
+                            </RadzenColumn>
+                        </RadzenRow>
+                    </RadzenFieldset>
                     <RadzenRow>
                         <RadzenFieldset Text=@Loc["Buildings"]>
                             <RadzenRow>
@@ -276,7 +292,7 @@
                     </RadzenRow>
                     <RadzenRow>
                         <RadzenFieldset Text=@Loc["On map"]>
-                            <OpenStreetMap @ref="map" OnClick="OnMapClick" Style="height:300px; width:300px" />
+                            <OpenStreetMap @ref="map" OnClick="args => OnMapClick(args)" Style="height:300px; width:300px" />
                             <RadzenLabel Component="Dir" Text=@Loc["Direction"] />
                             <RadzenNumeric Name="Dir" Min="1" Max="360" Value="model.Direction" TValue="int"
                                 Change="args => OnDirectionChange(args)" Format="0 °" />
@@ -325,7 +341,9 @@
 @code
 {
     ArchiBaseUser? user;
-    int limit = 0;
+    int limit = 0, directLimit = 0;
+
+    bool useDirectUpload = true;
 
     class BuildingWithAddress
     {
@@ -356,6 +374,8 @@
 
         public double Latitude { get; set; }
         public double Longitude { get; set; }
+
+        public string Description { get; set; } = "";
     }
 
     UploadModel model = new();
@@ -366,15 +386,17 @@
 
     OpenStreetMap map;
 
-    int sizeLimit = 2097152; // 2 MiB
+    int sizeLimit = 20971520; // 2 MiB
 
     protected override async Task OnInitializedAsync()
     {
         var userId = UserResolverService.GetUser();
         user = await UserManager.FindByIdAsync(userId.ToString());
-        var userPhotosCountToday = ModelContext.Photos.Where(p => p.AuthorId == userId && p.PublicationDate.Date ==
-        DateTime.UtcNow.Date).Count();
-        limit = Math.Max((user?.DirectUploadLimitOverride - userPhotosCountToday) ?? 0, 0);
+        var userPhotosCountThisWeek = ModelContext.Photos.Where(p => p.AuthorId == userId && 
+        (DateTime.UtcNow.Date - p.PublicationDate.Date).Days < 7).Count();
+        limit = Math.Max(UploadLimitService.GetUploadLimit(userId) - userPhotosCountThisWeek, 0);
+        directLimit = Math.Max(UploadLimitService.GetDirectUploadLimit(userId) - userPhotosCountThisWeek, 0);
+        if (directLimit == 0) useDirectUpload = false;
         locations = ModelContext.Locations.Where(loc => loc.AllowStreets).OrderBy(loc => loc.Name).ToList();
         licenses = ModelContext.Licenses.ToList();
     }
@@ -421,54 +443,66 @@
             using (MemoryStream ms = new MemoryStream(bytes))
             {
                 var directories = ImageMetadataReader.ReadMetadata(ms);
-                var exifIFD0 = directories.OfType<ExifIfd0Directory>().FirstOrDefault();
-                foreach(var tag in exifIFD0.Tags)
+                foreach(var d in directories)
                 {
-                    Console.WriteLine(tag);
+                    Console.WriteLine(d);
+                    foreach(var t in d.Tags)
+                    {
+                        Console.WriteLine(t);
+                    }
                 }
-                var dateTimeTag = exifIFD0?.Tags.Where(t => t.Name == "Date/Time").FirstOrDefault();
+                var exifIFD0 = directories.OfType<ExifIfd0Directory>().FirstOrDefault();
+                var exifSub = directories.OfType<ExifSubIfdDirectory>().FirstOrDefault();
+                var exifGPS = directories.OfType<GpsDirectory>().FirstOrDefault();
                 try
                 {
-                    DateTime photoDate = DateTime.ParseExact(dateTimeTag?.Description ?? "", "yyyy:MM:dd HH:mm:ss", null);
+                    
+                    DateTime photoDate = exifIFD0?.GetDateTime(ExifIfd0Directory.TagDateTime) ?? DateTime.MinValue;
                     model.ShootingDate = new ImpreciseDate { Date = photoDate, Precision = DatePrecision.Full };
                     model.ExifData.PhotoDate = photoDate;
                 }
-                catch (System.FormatException ex)
+                catch (Exception ex)
                 {
                     model.ShootingDate = new ImpreciseDate { Date = DateTime.MinValue, Precision = DatePrecision.None };
                 }
-                var makeTag = exifIFD0?.Tags.Where(t => t.Name == "Make").FirstOrDefault();
-                if (makeTag is not null) model.ExifData.Cameraman = makeTag.Description;
-                var modelTag = exifIFD0?.Tags.Where(t => t.Name == "Model").FirstOrDefault();
-                if (modelTag is not null) model.ExifData.CameraModel = modelTag.Description;
-                var editorTag = exifIFD0?.Tags.Where(t => t.Name == "Software").FirstOrDefault();
-                if (editorTag is not null) model.ExifData.Editor = editorTag.Description;
-                var authorTag = exifIFD0?.Tags.Where(t => t.Name == "Artist").FirstOrDefault();
-                if (authorTag is not null) model.ExifData.AName = authorTag.Description;
-                var copyrightTag = exifIFD0?.Tags.Where(t => t.Name == "Copyright").FirstOrDefault();
-                if (copyrightTag is not null) model.ExifData.Copy = copyrightTag.Description;
-                var expTimeTag = exifIFD0?.Tags.Where(t => t.Name == "Exposure Time").FirstOrDefault();
-                if (expTimeTag is not null) model.ExifData.TV = expTimeTag.Description;
-                var apertureTag = exifIFD0?.Tags.Where(t => t.Name == "Aperture Value").FirstOrDefault();
-                if (apertureTag is not null) model.ExifData.AV = apertureTag.Description;
-                var isoTag = exifIFD0?.Tags.Where(t => t.Name == "ISO Speed").FirstOrDefault();
-                if (isoTag is not null) model.ExifData.ISO = Int32.Parse(isoTag.Description ?? "0");
-                var evTag = exifIFD0?.Tags.Where(t => t.Name == "Exposure Compensation").FirstOrDefault();
-                if (evTag is not null) model.ExifData.EV = evTag.Description;
-                var flTag = exifIFD0?.Tags.Where(t => t.Name == "Focal Length").FirstOrDefault();
-                if (flTag is not null) model.ExifData.FL = flTag.Description;
-                var eflTag = exifIFD0?.Tags.Where(t => t.Name == "Focal Length In 35mm Format").FirstOrDefault();
-                if (eflTag is not null) model.ExifData.EFL = eflTag.Description;
-                var flashTag = exifIFD0?.Tags.Where(t => t.Name == "Flash").FirstOrDefault();
-                if (flashTag is not null) model.ExifData.Flash = Convert.ToInt32(flashTag.Description);
-                var wbTag = exifIFD0?.Tags.Where(t => t.Name == "White Balance").FirstOrDefault();
-                if (wbTag is not null) model.ExifData.WB = Convert.ToInt32(wbTag.Description);
-                var emTag = exifIFD0?.Tags.Where(t => t.Name == "Metering Mode").FirstOrDefault();
-                if (emTag is not null) model.ExifData.EMeter = Convert.ToInt32(emTag.Description);
-                var smTag = exifIFD0?.Tags.Where(t => t.Name == "Exposure Program").FirstOrDefault();
-                if (smTag is not null) model.ExifData.SMode = Convert.ToInt32(smTag.Description);
-                var dzoomTag = exifIFD0?.Tags.Where(t => t.Name == "Digital Zoom Ratio").FirstOrDefault();
-                if (dzoomTag is not null) model.ExifData.DZoom = dzoomTag.Description;
+                try
+                {
+                    var latitudeTag = exifGPS?.GetRationalArray(GpsDirectory.TagLatitude);
+                    var latitudeRefTag = exifGPS?.GetString(GpsDirectory.TagLatitudeRef);
+                    if (latitudeTag is not null)
+                    {
+                        model.Latitude = latitudeTag[0].ToDouble() + latitudeTag[1].ToDouble() / 60.0 + latitudeTag[2].ToDouble() / 3600.0;
+                        if (latitudeRefTag == "S") model.Latitude = -model.Latitude;
+                    }
+                    var longitudeTag = exifGPS?.GetRationalArray(GpsDirectory.TagLongitude);
+                    var longitudeRefTag = exifGPS?.GetString(GpsDirectory.TagLongitudeRef);
+                    if (longitudeTag is not null)
+                    {           
+                        model.Longitude = longitudeTag[0].ToDouble() + longitudeTag[1].ToDouble() / 60.0 + longitudeTag[2].ToDouble() / 3600.0;
+                        if (longitudeRefTag == "W") model.Longitude = -model.Longitude;
+                    }
+                    OnMapClick(new Coordinate(model.Longitude, model.Latitude), true);
+                }
+                catch (MetadataException ex)
+                {
+                    // TODO
+                }
+                model.ExifData.Cameraman = exifIFD0?.GetString(ExifIfd0Directory.TagMake);
+                model.ExifData.CameraModel = exifIFD0?.GetString(ExifIfd0Directory.TagModel);
+                model.ExifData.Editor = exifIFD0?.GetString(ExifIfd0Directory.TagSoftware);
+                model.ExifData.AName = exifIFD0?.GetString(ExifIfd0Directory.TagArtist);
+                model.ExifData.Copy = exifSub?.GetString(ExifSubIfdDirectory.TagCopyright);
+                model.ExifData.TV = exifSub?.GetString(ExifSubIfdDirectory.TagExposureTime);
+                model.ExifData.AV = exifSub?.GetString(ExifSubIfdDirectory.TagAperture);
+                if(exifSub?.TryGetInt32(ExifSubIfdDirectory.TagIsoEquivalent, out int resultISO) ?? false) model.ExifData.ISO = resultISO;
+                model.ExifData.EV = exifSub?.GetString(ExifSubIfdDirectory.TagExposureBias);
+                model.ExifData.FL = exifSub?.GetString(ExifSubIfdDirectory.TagFocalLength);
+                model.ExifData.EFL = exifSub?.GetString(ExifSubIfdDirectory.Tag35MMFilmEquivFocalLength);
+                if(exifSub?.TryGetInt32(ExifSubIfdDirectory.TagFlash, out int resultFlash) ?? false) model.ExifData.Flash = resultFlash;
+                if(exifSub?.TryGetInt32(ExifSubIfdDirectory.TagWhiteBalance, out int resultWB) ?? false) model.ExifData.WB = resultWB;
+                if(exifSub?.TryGetInt32(ExifSubIfdDirectory.TagMeteringMode, out int resultEM) ?? false) model.ExifData.EMeter = resultEM;
+                if(exifSub?.TryGetInt32(ExifSubIfdDirectory.TagExposureProgram, out int resultDZ) ?? false) model.ExifData.SMode = resultDZ;
+                model.ExifData.DZoom = exifSub?.GetString(ExifSubIfdDirectory.TagDigitalZoomRatio);
             }
 
         }
@@ -520,7 +554,8 @@
                     }).ToList(),
                     Latitude = model.Latitude,
                     Longitude = model.Longitude,
-                    Description = "", // TODO: Description input
+                    Description = model.Description,
+                    Status = useDirectUpload ? PhotoStatus.Published : PhotoStatus.Pending
                 };
             ModelContext.Photos.Add(photo);
             var wwwroot = WebHostEnvironment.WebRootPath;
@@ -545,7 +580,7 @@
         }
     }
 
-    void OnMapClick(Coordinate coordinate)
+    void OnMapClick(Coordinate coordinate, bool centerMap = false)
     {
         map.MarkersList.Clear();
         map.MarkersList.Add(new Marker(coordinate, "/icons/camera.svg", 800, 800, 400, 400)
@@ -553,6 +588,7 @@
                 Scale = 0.05,
                 Rotation = Math.PI / 180.0 * model.Direction
             });
+        if (centerMap) map.SetCenter(coordinate);
         model.Longitude = coordinate.Longitude;
         model.Latitude = coordinate.Latitude;
     }
@@ -560,7 +596,7 @@
     void OnDirectionChange(int newDirection)
     {
         model.Direction = newDirection;
-        var marker = map.MarkersList.FirstOrDefault();
+        var marker = map.MarkersList.FirstOrDefault() as Marker;
         if (marker is not null)
         {
             marker.Rotation = Math.PI / 180.0 * model.Direction;

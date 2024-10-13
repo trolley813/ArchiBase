@@ -10,7 +10,7 @@
 @inject NavigationManager NavigationManager
 
 <LoadingScreen Loaded="loaded">
-    <RadzenText TextStyle="TextStyle.H5">@Loc["Comments"] (@(comments.Count()))</RadzenText>
+    <RadzenText TextStyle="TextStyle.H5">@Loc["Comments"] (@(count))</RadzenText>
 
     @if (ShowMode == CommentShowMode.New)
     {
@@ -22,13 +22,23 @@
         </RadzenText>
         <RadzenButton Text=@Loc["Mark all as read"] Icon="done_all" Click="args => OnMark()" />
     }
+    @if (ShowMode == CommentShowMode.Responses)
+    {
+        <RadzenText TextStyle="TextStyle.Body1">@Loc["New responses written after:"]</RadzenText>
+        <RadzenText>
+            <b>
+                <LocalTime DateTime=lastReadTime />
+            </b>
+        </RadzenText>
+        <RadzenText>@Loc["To mark responses as read, use the new comments page."]</RadzenText>
+    }
 
     @if(ShowMode != CommentShowMode.ByEntity)
     {
         <RadzenPager ShowPagingSummary="true" PagingSummaryFormat=@Loc["Page {0} of {1} (total comments: {2})"] HorizontalAlign="HorizontalAlign.Right" Count="count" PageSize="@pageSize" PageChanged="@PageChanged" AlwaysVisible=true />
     }
 
-    <RadzenDataList Data="comments" @ref="commentsList">
+    <RadzenDataList Data="comments" @ref="commentsList" Style="max-width: 100%">
         <Template Context="comment">
             <RadzenCard>
                 <RadzenStack Orientation="Orientation.Horizontal">
@@ -68,10 +78,12 @@
                 </RadzenText>
                 <RadzenText>@((MarkupString)comment.Text)</RadzenText>
                 <RadzenStack Orientation="Orientation.Horizontal">
-                    <RadzenButton Icon="keyboard_arrow_up" Size="ButtonSize.ExtraSmall" />
+                    <RadzenButton Icon="keyboard_arrow_up" Size="ButtonSize.ExtraSmall" Disabled="!CanUpvote(comment)" 
+                        Click="args => Upvote(comment)" />
                     <RadzenText TextStyle="TextStyle.Body2" MouseEnter="args => ShowVotesTooltip(args, comment)">
                         @(comment.VotesCount)</RadzenText>
-                    <RadzenButton Icon="keyboard_arrow_down" Size="ButtonSize.ExtraSmall" />
+                    <RadzenButton Icon="keyboard_arrow_down" Size="ButtonSize.ExtraSmall" Disabled="!CanDownvote(comment)"
+                        Click="args => Downvote(comment)" />
                 </RadzenStack>
                 @if (ShowMode == CommentShowMode.New)
                 {
@@ -102,14 +114,14 @@
     {
         <CascadingAuthenticationState>
         <AuthorizeView Context="actx">
-            <RadzenTemplateForm Data="commentText">
+            <RadzenTemplateForm Data="commentText" Style="width:90%;">
                 <RadzenStack Orientation="Orientation.Vertical">
-                    <RadzenFormField Text=@Loc["Add comment"]>
+                    <RadzenFormField>
                         <RadzenHtmlEditor @bind-Value="commentText" Style="height: 300px" />
                     </RadzenFormField>
                     <RadzenFormField>
                         <RadzenButton ButtonType="ButtonType.Submit" Icon="add" Text=@Loc["Add comment"]
-                            Click="args => AddComment()" />
+                            Click="args => AddComment()" Disabled="!loaded" />
                     </RadzenFormField>
                 </RadzenStack>
             </RadzenTemplateForm>
@@ -125,7 +137,8 @@
     {
         ByEntity,
         All,
-        New
+        New,
+        Responses
     }
 
     [Parameter]
@@ -156,17 +169,24 @@
 
     int count = 200;
 
-    protected override async Task OnParametersSetAsync()
+    ArchiBaseUser? user;
+
+    protected override async Task OnInitializedAsync()
     {
-        if (ShowMode == CommentShowMode.New)
+        user = UserManager.Users.FirstOrDefault(u => u.Id == UserResolverService.GetUser());
+        if (ShowMode == CommentShowMode.New || ShowMode == CommentShowMode.Responses)
         {
             lastReadTime = CommentService.GetLastReadTimeForCurrentUser();
         }
         count = ShowMode switch
         {
-            CommentShowMode.ByEntity =>  await ModelContext.Comments.Where(c => c.EntityId == EntityId).CountAsync(),
+            CommentShowMode.ByEntity =>  await ModelContext.Comments.CountAsync(c => c.EntityId == EntityId),
             CommentShowMode.All => await ModelContext.Comments.CountAsync(),
-            CommentShowMode.New => await ModelContext.Comments.Where(c => c.PublicationDate > lastReadTime).CountAsync(),
+            CommentShowMode.New => await ModelContext.Comments.CountAsync(c => c.PublicationDate > lastReadTime),
+            CommentShowMode.Responses => await ModelContext.Comments.CountAsync(
+                c => c.PublicationDate > user.LastReadCommentTime 
+                && c.AuthorId != user.Id
+                && ModelContext.Comments.Where(com => com.AuthorId == user.Id && com.EntityId == c.EntityId).DefaultIfEmpty().Max(com => com.PublicationDate) < c.PublicationDate),
             _ => 0
         };
         await LoadComments(0, pageSize);
@@ -184,7 +204,11 @@
             => c.PublicationDate).Include(c => c.Votes).Skip(skip).Take(take).ToListAsync(),
             CommentShowMode.New => await ModelContext.Comments.Where(c => c.PublicationDate > lastReadTime)
             .OrderBy(c => c.PublicationDate).Include(c => c.Votes).Skip(skip).Take(take).ToListAsync(),
-            _ => []
+            CommentShowMode.Responses => await ModelContext.Comments
+            .Where(c => c.PublicationDate > lastReadTime && c.AuthorId != user.Id
+            && ModelContext.Comments.Where(com => com.AuthorId == user.Id && com.EntityId == c.EntityId).DefaultIfEmpty().Max(com => com.PublicationDate) < c.PublicationDate)
+            .OrderBy(c => c.PublicationDate).Include(c => c.Votes).Skip(skip).Take(take).ToListAsync(),
+            //_ => []
         };
         var authorIds = comments.Select(c => c.AuthorId).Distinct();
         var entityIds = comments.Select(c => c.EntityId).Distinct();
@@ -222,13 +246,11 @@
 
     void AddComment()
     {
-        var userGuid = UserResolverService.GetUser();
-        var user = UserManager.Users.FirstOrDefault(u => u.Id == userGuid);
         if (user is not null)
         {
             var comment = new Comment()
                 {
-                    AuthorId = userGuid,
+                    AuthorId = user.Id,
                     PublicationDate = DateTime.UtcNow,
                     EntityId = EntityId,
                     EntityType = EntityType,
@@ -244,7 +266,7 @@
                         Summary = "Comment added",
                         Detail = $"Your comment was saved!"
                     });
-                //this.StateHasChanged();
+                this.StateHasChanged();
             }
             catch (Exception e)
             {
@@ -259,6 +281,46 @@
 
     }
 
+    bool CanUpvote(Comment comment)
+    {
+        if (comment.AuthorId == user?.Id || (DateTime.UtcNow - comment.PublicationDate).Days > 30) return false;
+        if (comment.Votes?.Values?.Any(v => v.Author == user?.Id && v.VoteValue > 0) ?? false) return false;
+        return true;
+    }
+
+    bool CanDownvote(Comment comment)
+    {
+        if (comment.AuthorId == user?.Id || (DateTime.UtcNow - comment.PublicationDate).Days > 30) return false;
+        if (comment.Votes?.Values?.Any(v => v.Author == user?.Id && v.VoteValue < 0) ?? false) return false;
+        return true;
+    }
+
+    void Upvote(Comment comment)
+    {
+        if (user is not null)
+        {
+            comment.Votes.Values ??= [];
+            if (!comment.Votes.Values.Any(v => v.Author == user.Id))
+                comment.Votes.Values.Add(new Vote { Author = user.Id, VoteValue = +1 });
+            else
+                comment.Votes.Values.RemoveAll(v => v.Author == user.Id);
+            ModelContext.SaveChanges();
+        }
+    }
+
+    void Downvote(Comment comment)
+    {
+        if (user is not null)
+        {
+            comment.Votes.Values ??= [];
+            if (!comment.Votes.Values.Any(v => v.Author == user.Id))
+                comment.Votes.Values.Add(new Vote { Author = user.Id, VoteValue = -1 });
+            else
+                comment.Votes.Values.RemoveAll(v => v.Author == user.Id);
+            ModelContext.SaveChanges();
+        }
+    }
+
     void ShowVotesTooltip(ElementReference elementReference, Comment comment)
     {
         TooltipService.Open(elementReference, $"+{comment.UpvotesCount}/-{comment.DownvotesCount}");
@@ -266,7 +328,6 @@
 
     void OnMark(DateTime? dateTime = null)
     {
-        var user = UserManager.Users.FirstOrDefault(u => u.Id == UserResolverService.GetUser());
         if (user is not null)
         {
             user.LastReadCommentTime = dateTime ?? DateTime.UtcNow;
