@@ -7,193 +7,182 @@
 @inject IStringLocalizer<Edit> Loc
 @inject IStringLocalizer<BuildingEvent> ELoc
 
-<CascadingAuthenticationState>
-    <AuthorizeView>
-        <Authorized>
-            @if (building != null)
-            {
-                <RadzenText TextStyle="TextStyle.H4">@Loc["Edit building"]</RadzenText>
 
-                <RadzenText TextStyle="TextStyle.H6">@Loc["Timeline"]</RadzenText>
+@if (building != null)
+{
+    <EditorOnly Location=@(building.Location.Id) ShowAlert=false>
+    <RadzenText TextStyle="TextStyle.H4">@Loc["Edit building"]</RadzenText>
+
+    <RadzenText TextStyle="TextStyle.H6">@Loc["Timeline"]</RadzenText>
+    <RadzenFormField>
+        <RadzenButton Icon="add" Click="AddEvent"></RadzenButton>
+    </RadzenFormField>
+    @for (int index = 0; index < building.Events.Count; index++)
+        {
+            var i = index;
+            <RadzenRow>
+                <ImpreciseDateInput @bind-Value="building.Events[i].Date" FieldName="Date" />
+                <RadzenDropDown @bind-Value="building.Events[i].Type" Data="eventTypes">
+                    <Template Context="type">
+                        @(ELoc[ArchiBase.Utils.EnumExtensions.GetDisplayName(type)])
+                    </Template>
+                </RadzenDropDown>
                 <RadzenFormField>
-                    <RadzenButton Icon="add" Click="AddEvent"></RadzenButton>
+                    <RadzenButton Icon="delete" Click="args => RemoveEvent(i)"></RadzenButton>
                 </RadzenFormField>
-                @for (int index = 0; index < building.Events.Count; index++)
+            </RadzenRow>
+        }
+        <RadzenText TextStyle="TextStyle.H6">Location on map</RadzenText>
+        <RadzenRow>
+            <RadzenFormField Text=@Loc["Latitude"]>
+                <RadzenNumeric ShowUpDown="false" @bind-Value="building.Latitude" />
+            </RadzenFormField>
+            <RadzenFormField Text=@Loc["Longitude"]>
+                <RadzenNumeric ShowUpDown="false" @bind-Value="building.Longitude" />
+            </RadzenFormField>
+        </RadzenRow>
+        <OpenStreetMap @ref="map" Style="height:300px; width:300px"
+            Center="new Coordinate(building.Longitude, building.Latitude)" OnClick="OnMapClick" Zoom="15">
+            <Features>
+                <Marker Type="OpenLayers.Blazor.MarkerType.MarkerPin"
+                    Coordinate="new Coordinate(building.Longitude, building.Latitude)">
+                </Marker>
+            </Features>
+        </OpenStreetMap>
+
+        <RadzenRow RowGap="5">
+            <RadzenColumn>
+                <RadzenFormField Text=@Loc["Description"]>
+                    <RadzenHtmlEditor @bind-Value="@building.Description" style="height: 300px;" />
+                </RadzenFormField>
+            </RadzenColumn>
+        </RadzenRow>
+
+        <RadzenRow RowGap="5">
+            <RadzenColumn>
+                <RadzenFormField Text=@Loc["Cadastre record number"]>
+                    <RadzenTextBox @bind-Value="@building.CadastreRecordNumber" />
+                </RadzenFormField>
+            </RadzenColumn>
+        </RadzenRow>
+
+        <RadzenText TextStyle="TextStyle.H6">Details</RadzenText>
+        <RadzenButton Icon="add" Text=@Loc["Add new card"] Size="ButtonSize.Small" Click="AddCard" />
+        <RadzenTabs>
+            <Tabs>
+                @foreach (var (card, index) in building.Cards.Select((item, index) => (item, index + 1)))
                 {
-                    var i = index;
-                    <RadzenRow>
-                        <ImpreciseDateInput @bind-Value="building.Events[i].Date" FieldName="Date" />
-                        <RadzenDropDown @bind-Value="building.Events[i].Type" Data="eventTypes">
-                            <Template Context="type">
-                                @(ELoc[ArchiBase.Utils.EnumExtensions.GetDisplayName(type)])
-                            </Template>
-                        </RadzenDropDown>
-                        <RadzenFormField>
-                            <RadzenButton Icon="delete" Click="args => RemoveEvent(i)"></RadzenButton>
-                        </RadzenFormField>
-                    </RadzenRow>
-                }
-                <RadzenText TextStyle="TextStyle.H6">Location on map</RadzenText>
-                <RadzenRow>
-                    <RadzenFormField Text=@Loc["Latitude"]>
-                        <RadzenNumeric ShowUpDown="false" @bind-Value="building.Latitude" />
-                    </RadzenFormField>
-                    <RadzenFormField Text=@Loc["Longitude"]>
-                        <RadzenNumeric ShowUpDown="false" @bind-Value="building.Longitude" />
-                    </RadzenFormField>
-                </RadzenRow>
-                <OpenStreetMap @ref="map" Style="height:300px; width:300px"
-                    Center="new Coordinate(building.Longitude, building.Latitude)" OnClick="OnMapClick" Zoom="15">
-                    <Features>
-                        <Marker Type="OpenLayers.Blazor.MarkerType.MarkerPin"
-                            Coordinate="new Coordinate(building.Longitude, building.Latitude)">
-                        </Marker>
-                    </Features>
-                </OpenStreetMap>
-
-                <RadzenRow RowGap="5">
-                    <RadzenColumn>
-                        <RadzenFormField Text=@Loc["Description"]>
-                            <RadzenHtmlEditor @bind-Value="@building.Description" style="height: 300px;" />
-                        </RadzenFormField>
-                    </RadzenColumn>
-                </RadzenRow>
-
-                <RadzenRow RowGap="5">
-                    <RadzenColumn>
-                        <RadzenFormField Text=@Loc["Cadastre record number"]>
-                            <RadzenTextBox @bind-Value="@building.CadastreRecordNumber" />
-                        </RadzenFormField>
-                    </RadzenColumn>
-                </RadzenRow>
-
-                <RadzenText TextStyle="TextStyle.H6">Details</RadzenText>
-                <RadzenButton Icon="add" Text=@Loc["Add new card"] Size="ButtonSize.Small" Click="AddCard" />
-                <RadzenTabs>
-                    <Tabs>
-                        @foreach (var (card, index) in building.Cards.Select((item, index) => (item, index + 1)))
-                        {
-                            var i = index - 1;
-                            <RadzenTabsItem>
-                                <Template Context="c">
-                                    @($"Card #{index}")
-                                    <RadzenButton Icon="close" Size="ButtonSize.ExtraSmall" Variant="Variant.Outlined" />
-                                </Template>
-                                <ChildContent>
-                                    <RadzenCard>
-                                        <RadzenRow>
+                    var i = index - 1;
+                    <RadzenTabsItem>
+                        <Template Context="c">
+                            @($"Card #{index}")
+                            <RadzenButton Icon="close" Size="ButtonSize.ExtraSmall" Variant="Variant.Outlined" />
+                        </Template>
+                        <ChildContent>
+                            <RadzenCard>
+                                <RadzenRow>
+                                    <RadzenRow>
+                                        <RadzenText TextStyle="TextStyle.Subtitle1">Addresses</RadzenText>
+                                        <RadzenButton Icon="add" Text=@Loc["Add"] Size="ButtonSize.ExtraSmall"
+                                            Click="args => AddAddress(i)" />
+                                    </RadzenRow>
+                                    <RadzenRow>
+                                        @for (int aindex = 0; aindex < card.StreetAddresses.Count; aindex++)
+                                        {
+                                            var ai = aindex;
                                             <RadzenRow>
-                                                <RadzenText TextStyle="TextStyle.Subtitle1">Addresses</RadzenText>
-                                                <RadzenButton Icon="add" Text=@Loc["Add"] Size="ButtonSize.ExtraSmall"
-                                                    Click="args => AddAddress(i)" />
-                                            </RadzenRow>
-                                            <RadzenRow>
-                                                @for (int aindex = 0; aindex < card.StreetAddresses.Count; aindex++)
-                                                {
-                                                    var ai = aindex;
-                                                    <RadzenRow>
-                                                        <RadzenFormField Text=@Loc["Street name"]>
-                                                            <RadzenDropDown AllowFiltering="true" @bind-SearchText="searchText"
-                                                                @bind-Value="card.StreetAddresses[ai].Street" Data="Streets"
-                                                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                                                TextProperty="Name" />
-                                                        </RadzenFormField>
-                                                        <RadzenFormField Text=@Loc["House number"]>
-                                                            <RadzenTextBox @bind-Value="card.StreetAddresses[ai].HouseNumber" />
-                                                        </RadzenFormField>
-                                                        <RadzenFormField>
-                                                            <RadzenButton Icon="delete" Click="args => RemoveAddress(i, ai)">
-                                                            </RadzenButton>
-                                                        </RadzenFormField>
-
-                                                    </RadzenRow>
-                                                }
-                                            </RadzenRow>
-                                        </RadzenRow>
-                                        <RadzenRow>
-                                            <RadzenLabel>@Loc["Actual from"]: </RadzenLabel>
-                                            <ImpreciseDateInput @bind-Value="card.ActualFrom" FieldName="Actual from" />
-                                        </RadzenRow>
-                                        <RadzenRow>
-                                            <RadzenColumn>
-                                                <RadzenFormField Text=@Loc["Categories"]>
-                                                    <RadzenDropDown @bind-Value="card.Categories" Data="Categories"
-                                                        TextProperty="Name" Multiple=true AllowFiltering=true />
-                                                </RadzenFormField>
-                                            </RadzenColumn>
-                                            <RadzenColumn>
-                                                <RadzenFormField Text=@Loc["Floor count"]>
-                                                    <RadzenTextBox Change="args => OnFloorCountChanged(card, args)"
-                                                        Value=@(String.Join(", ", card.FloorCount)) />
-                                                </RadzenFormField>
-                                            </RadzenColumn>
-                                            <RadzenColumn>
-                                                <RadzenFormField Text=@Loc["Style"]>
-                                                    <RadzenDropDown @bind-Value="card.Style" Data="Styles"
+                                                <RadzenFormField Text=@Loc["Street name"]>
+                                                    <RadzenDropDown AllowFiltering="true" @bind-SearchText="searchText"
+                                                        @bind-Value="card.StreetAddresses[ai].Street" Data="Streets"
+                                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                                                         TextProperty="Name" />
                                                 </RadzenFormField>
-                                            </RadzenColumn>
-                                            <RadzenColumn>
-                                                <RadzenFormField Text=@Loc["Architects"]>
-                                                    <RadzenDropDown @bind-Value="card.Architects" Data="Architects"
-                                                        TextProperty="AbbreviatedName" Multiple=true AllowFiltering=true />
+                                                <RadzenFormField Text=@Loc["House number"]>
+                                                    <RadzenTextBox @bind-Value="card.StreetAddresses[ai].HouseNumber" />
                                                 </RadzenFormField>
-                                            </RadzenColumn>
-                                        </RadzenRow>
-                                        <RadzenRow>
-                                            <RadzenColumn>
-                                                <RadzenFormField Text=@Loc["Name"]>
-                                                    <RadzenHtmlEditor @bind-Value="card.Name" />
+                                                <RadzenFormField>
+                                                    <RadzenButton Icon="delete" Click="args => RemoveAddress(i, ai)">
+                                                    </RadzenButton>
                                                 </RadzenFormField>
-                                            </RadzenColumn>
-                                        </RadzenRow>
-                                        <RadzenRow>
-                                            <RadzenRow>
-                                                <RadzenText TextStyle="TextStyle.Subtitle1">@Loc["Parts"]</RadzenText>
-                                                <RadzenButton Icon="add" Text="Add" Size="ButtonSize.ExtraSmall"
-                                                    Click="args => AddPart(i)" />
-                                            </RadzenRow>
-                                            <RadzenRow>
-                                                @for (int pindex = 0; pindex < card.Parts.Count; pindex++)
-                                                {
-                                                    var pi = pindex;
-                                                    <RadzenRow>
-                                                        <RadzenFormField Text=@Loc["Part name"]>
-                                                            <RadzenTextBox @bind-Value="card.Parts[pi].Name" />
-                                                        </RadzenFormField>
-                                                        <RadzenFormField Text=@Loc["Design"]>
-                                                            <RadzenDropDown Data="Designs" @bind-Value="card.Parts[pi].Design"
-                                                                TextProperty="Name" AllowFiltering=true AllowClear=true />
-                                                        </RadzenFormField>
-                                                        <RadzenFormField>
-                                                            <RadzenButton Icon="delete" Click="args => RemovePart(i, pi)">
-                                                            </RadzenButton>
-                                                        </RadzenFormField>
-                                                    </RadzenRow>
-                                                }
-                                            </RadzenRow>
-                                        </RadzenRow>
-                                    </RadzenCard>
-                                </ChildContent>
-                            </RadzenTabsItem>
-                        }
-                    </Tabs>
-                </RadzenTabs>
-                <RadzenFormField>
-                    <RadzenButton Text=@Loc["Save"] Icon="save" Click="@Save" />
-                </RadzenFormField>
 
-            }
-        </Authorized>
-        <NotAuthorized>
-            <RadzenAlert AllowClose="false" Title="Unauthorized" AlertStyle="AlertStyle.Danger" Variant="Variant.Flat"
-                Shade="Shade.Lighter">
-                To create or edit items, you must be authorized as admin/editor.
-                <RadzenLink Path="login" Text="Log in" />
-            </RadzenAlert>
-        </NotAuthorized>
-    </AuthorizeView>
-</CascadingAuthenticationState>
+                                            </RadzenRow>
+                                        }
+                                    </RadzenRow>
+                                </RadzenRow>
+                                <RadzenRow>
+                                    <RadzenLabel>@Loc["Actual from"]: </RadzenLabel>
+                                    <ImpreciseDateInput @bind-Value="card.ActualFrom" FieldName="Actual from" />
+                                </RadzenRow>
+                                <RadzenRow>
+                                    <RadzenColumn>
+                                        <RadzenFormField Text=@Loc["Categories"]>
+                                            <RadzenDropDown @bind-Value="card.Categories" Data="Categories" TextProperty="Name"
+                                                Multiple=true AllowFiltering=true />
+                                        </RadzenFormField>
+                                    </RadzenColumn>
+                                    <RadzenColumn>
+                                        <RadzenFormField Text=@Loc["Floor count"]>
+                                            <RadzenTextBox Change="args => OnFloorCountChanged(card, args)"
+                                                Value=@(String.Join(", ", card.FloorCount)) />
+                                        </RadzenFormField>
+                                    </RadzenColumn>
+                                    <RadzenColumn>
+                                        <RadzenFormField Text=@Loc["Style"]>
+                                            <RadzenDropDown @bind-Value="card.Style" Data="Styles" TextProperty="Name" />
+                                        </RadzenFormField>
+                                    </RadzenColumn>
+                                    <RadzenColumn>
+                                        <RadzenFormField Text=@Loc["Architects"]>
+                                            <RadzenDropDown @bind-Value="card.Architects" Data="Architects"
+                                                TextProperty="AbbreviatedName" Multiple=true AllowFiltering=true />
+                                        </RadzenFormField>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow>
+                                    <RadzenColumn>
+                                        <RadzenFormField Text=@Loc["Name"]>
+                                            <RadzenHtmlEditor @bind-Value="card.Name" />
+                                        </RadzenFormField>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow>
+                                    <RadzenRow>
+                                        <RadzenText TextStyle="TextStyle.Subtitle1">@Loc["Parts"]</RadzenText>
+                                        <RadzenButton Icon="add" Text="Add" Size="ButtonSize.ExtraSmall"
+                                            Click="args => AddPart(i)" />
+                                    </RadzenRow>
+                                    <RadzenRow>
+                                        @for (int pindex = 0; pindex < card.Parts.Count; pindex++)
+                                        {
+                                            var pi = pindex;
+                                            <RadzenRow>
+                                                <RadzenFormField Text=@Loc["Part name"]>
+                                                    <RadzenTextBox @bind-Value="card.Parts[pi].Name" />
+                                                </RadzenFormField>
+                                                <RadzenFormField Text=@Loc["Design"]>
+                                                    <RadzenDropDown Data="Designs" @bind-Value="card.Parts[pi].Design"
+                                                        TextProperty="Name" AllowFiltering=true AllowClear=true />
+                                                </RadzenFormField>
+                                                <RadzenFormField>
+                                                    <RadzenButton Icon="delete" Click="args => RemovePart(i, pi)">
+                                                    </RadzenButton>
+                                                </RadzenFormField>
+                                            </RadzenRow>
+                                        }
+                                    </RadzenRow>
+                                </RadzenRow>
+                            </RadzenCard>
+                        </ChildContent>
+                    </RadzenTabsItem>
+                }
+            </Tabs>
+        </RadzenTabs>
+        <RadzenFormField>
+            <RadzenButton Text=@Loc["Save"] Icon="save" Click="@Save" />
+        </RadzenFormField>
+    </EditorOnly>
+
+}
 
 
 @code

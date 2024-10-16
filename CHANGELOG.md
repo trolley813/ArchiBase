@@ -1,3 +1,11 @@
+## 0.2.1 (2024-10-16)
+- added architects management (add/edit)
+- added abitlity to change personal info
+- added author name filtering in photos list
+- fixed typesetting issues
+- added photo lost flag
+- several tiny bug fixes
+
 ## 0.2.0 (2024-10-13)
 - new material design theme
 - added light/dark theme switcher

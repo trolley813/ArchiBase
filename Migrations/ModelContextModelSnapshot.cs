@@ -233,6 +233,22 @@ namespace ArchiBase.Migrations
                     b.ToTable("Comments");
                 });
 
+            modelBuilder.Entity("ArchiBase.Models.CommentAuthorMapping", b =>
+                {
+                    b.Property<Guid>("CommentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AuthorName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("CommentId");
+
+                    b.ToTable((string)null);
+
+                    b.ToView("View_CommentAuthorMappings", (string)null);
+                });
+
             modelBuilder.Entity("ArchiBase.Models.Design", b =>
                 {
                     b.Property<Guid>("Id")
@@ -485,6 +501,9 @@ namespace ArchiBase.Migrations
                     b.Property<bool>("IsHidden")
                         .HasColumnType("boolean");
 
+                    b.Property<bool?>("IsLost")
+                        .HasColumnType("boolean");
+
                     b.Property<double>("Latitude")
                         .HasColumnType("double precision");
 
@@ -508,6 +527,22 @@ namespace ArchiBase.Migrations
                     b.HasIndex("LicenseId");
 
                     b.ToTable("Photos");
+                });
+
+            modelBuilder.Entity("ArchiBase.Models.PhotoAuthorMapping", b =>
+                {
+                    b.Property<Guid>("PhotoId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AuthorName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("PhotoId");
+
+                    b.ToTable((string)null);
+
+                    b.ToView("View_PhotoAuthorMappings", (string)null);
                 });
 
             modelBuilder.Entity("ArchiBase.Models.Street", b =>

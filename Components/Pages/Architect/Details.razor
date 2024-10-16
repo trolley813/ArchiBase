@@ -5,7 +5,11 @@
 
 @if (architect is not null)
 {
+    <ArchibasePageTitle Title="@(architect.AbbreviatedName)" />
     <RadzenText TextStyle="TextStyle.H4">@(architect.AbbreviatedName)</RadzenText>
+    <EditorOnly>
+        <RadzenLink Path=@($"architects/{architect.Id}/edit") Text=@Loc["Edit"] Icon="edit" />
+    </EditorOnly>
     <RadzenCard>
         <RadzenText TextStyle="TextStyle.H5">@(architect.FullName)</RadzenText>
         <RadzenRow>

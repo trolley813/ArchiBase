@@ -24,7 +24,7 @@ public class PhotoApprovalJob(IServiceProvider provider) : IScheduledJob
             {
                 int d when d < 7 => (+3, -3),
                 int d when d >= 7 && d < 14 => (+2, hasPositiveVotes ? -2 : -3),
-                int d when d >= 14 && d < 28 => (+2, hasPositiveVotes ? -1 : -2),
+                int d when d >= 14 && d < 28 => (+1, hasPositiveVotes ? -1 : -2),
                 int d when d >= 28 && d < 56 => (0, hasPositiveVotes ? -1 : -2),
                 _ => (0, -1)
             };

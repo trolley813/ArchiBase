@@ -87,7 +87,7 @@
                         </RadzenDataGridColumn>
                         <RadzenDataGridColumn Title=@Loc["Count"] Width="20%">
                             <Template Context="loc">
-                                <RadzenText>@(SublocationCounts?[loc] ?? 0)</RadzenText>
+                                <RadzenText>@(SublocationCounts.GetValueOrDefault(loc, 0))</RadzenText>
                             </Template>
                         </RadzenDataGridColumn>
                     </Columns>
@@ -148,7 +148,8 @@ else
 {
     <ArchibasePageTitle Title=@Loc["Locations"] />
     <RadzenText TextStyle="TextStyle.DisplayH3">@Loc["Locations"]</RadzenText>
-    <RadzenDataGrid Data="ChildLocations" Density="Density.Compact">
+    <RadzenDataGrid Data="ChildLocations?.OrderByDescending(loc => SublocationCounts.GetValueOrDefault(loc, 0))"
+        Density="Density.Compact">
         <Columns>
             <RadzenDataGridColumn Title=@Loc["Name"]>
                 <Template Context="loc">
@@ -158,7 +159,7 @@ else
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title=@Loc["Count"]>
                 <Template Context="loc">
-                    <RadzenText>@(SublocationCounts?[loc] ?? 0)</RadzenText>
+                    <RadzenText>@(SublocationCounts.GetValueOrDefault(loc, 0))</RadzenText>
                 </Template>
             </RadzenDataGridColumn>
         </Columns>
@@ -174,7 +175,7 @@ else
 
     Location? location;
 
-    public List<Location?> ChildLocations { get; set; }
+    public List<Location> ChildLocations { get; set; }
     public Dictionary<Location, int> SublocationCounts { get; set; }
 
     public List<Location> HierarchyPath { get; set; } = [];

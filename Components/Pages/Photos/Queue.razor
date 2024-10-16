@@ -12,7 +12,7 @@
 
     <RadzenDataList Data="photos" AllowPaging=true PageSize=16 WrapItems=true>
         <Template Context="photo">
-            <RadzenCard Style="width: 20%; max-width: 20%;">
+            <RadzenCard Style="width: max(20%, 300px); max-width: 100%;">
                 <RadzenLink Path=@($"/photos/{photo.Id}")>
                     <RadzenImage Path=@(photo.PhotoLink)
                         Style="display:block;margin:auto;max-height:150px;max-width:300px;height:auto;width:auto;"

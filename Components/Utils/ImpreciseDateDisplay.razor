@@ -12,7 +12,7 @@
 
     public string DisplayedString => Value?.Precision switch
     {
-        DatePrecision.None => @Loc["Unknown"],
+        DatePrecision.None => @Loc["Unknown date"],
         DatePrecision.Full => Value.Date.ToString(@Loc["dd/MM/yyyy"]),
         DatePrecision.YearAndMonthOnly => Value.Date.ToString(@Loc["MM/yyyy"]),
         DatePrecision.YearOnly => Value.Date.ToString("yyyy"),

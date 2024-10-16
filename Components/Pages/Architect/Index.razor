@@ -1,0 +1,94 @@
+@page "/architects/"
+@using Microsoft.EntityFrameworkCore
+@using System.Linq.Dynamic.Core
+@inject ModelContext ModelContext
+@inject UsersContext UsersContext
+@inject UserManager<ArchiBaseUser> UserManager
+@inject IStringLocalizer<Index> Loc
+
+<ArchibasePageTitle Title=@Loc["Architects"] />
+
+
+<RadzenText TextStyle="TextStyle.H4">@Loc["Architects"]</RadzenText>
+
+<EditorOnly>
+    <RadzenStack Orientation="Orientation.Horizontal">
+        <RadzenLink Path="architects/add" Text=@Loc["Add"] Icon="add_circle_outline" />
+    </RadzenStack>
+</EditorOnly>
+
+<RadzenDataGrid @ref="grid" AllowPaging=true PageSize=20 PagerAlwaysVisible=true ShowPagingSummary=true
+    Data="architects" Count="count" AllowSorting=true AllowFiltering=true LoadData="@LoadData" IsLoading=@(!loaded)>
+    <Columns>
+        <RadzenDataGridColumn Property="AbbreviatedName" Title=@Loc["Abbreviated name"] SortOrder="SortOrder.Ascending">
+            <Template Context="architect">
+                <RadzenLink Path=@($"architects/{architect.Id}") Text=@(architect.AbbreviatedName) />
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Property="FullName" Title=@Loc["Full name"]>
+
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Sortable=false Filterable=false Title=@Loc["Lifespan"]>
+            <Template Context="architect">
+                @if (architect.DateOfBirth is not null && architect.DateOfDeath is null)
+                {
+                    <RadzenText TextStyle="TextStyle.H5">@Loc["born"]
+                        <ImpreciseDateDisplay Value="architect.DateOfBirth" />
+                    </RadzenText>
+                }
+                @if (architect.DateOfBirth is null && architect.DateOfDeath is not null)
+                {
+                    <RadzenText TextStyle="TextStyle.H5">@Loc["died"]
+                        <ImpreciseDateDisplay Value="architect.DateOfDeath" />
+                    </RadzenText>
+                }
+                @if (architect.DateOfBirth is not null && architect.DateOfDeath is not null)
+                {
+                    <RadzenText TextStyle="TextStyle.H5">
+                        <ImpreciseDateDisplay Value="architect.DateOfBirth" /> —
+                        <ImpreciseDateDisplay Value="architect.DateOfDeath" />
+                    </RadzenText>
+                }
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+@code
+{
+
+    List<Architect> architects;
+
+    RadzenDataGrid<Architect> grid;
+
+    int count;
+
+    bool loaded;
+
+    async Task LoadData(LoadDataArgs args)
+    {
+        loaded = false;
+
+        await Task.Yield();
+
+        var query = ModelContext.Architects.AsQueryable();
+
+        if (!string.IsNullOrEmpty(args.Filter))
+        {
+            query = query.Where(args.Filter);
+        }
+
+        if (!string.IsNullOrEmpty(args.OrderBy))
+        {
+            query = query.OrderBy(args.OrderBy);
+        }
+
+        count = query.Count();
+
+        architects = query.Skip(args.Skip.Value).Take(args.Top.Value).ToList();
+
+        loaded = true;
+    }
+
+
+}

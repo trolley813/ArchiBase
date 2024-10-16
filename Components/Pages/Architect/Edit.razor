@@ -1,0 +1,121 @@
+@page "/architects/{id:guid}/edit"
+@using ArchiBase.Components.Utils
+@inject NotificationService NotificationService
+@inject ModelContext ModelContext
+@inject IStringLocalizer<Add> Loc
+
+<EditorOnly>
+    @if (architect is not null)
+    {
+        <RadzenText TextStyle="TextStyle.H3">@Loc["Add architect"]</RadzenText>
+        <RadzenStack Orientation="Orientation.Vertical">
+            <RadzenFormField Text=@Loc["Abbreviated name (Lastname F. M.)"]>
+                <RadzenTextBox @bind-Value="@model.AbbreviatedName" />
+            </RadzenFormField>
+            <RadzenFormField Text=@Loc["Full name (Firstname Middlename Lastname)"]>
+                <RadzenTextBox @bind-Value="@model.FullName" />
+            </RadzenFormField>
+            <RadzenFormField Text=@Loc["Date of birth (optional)"]>
+                <Start>
+                    <RadzenLabel For="SetDateOfBirth" Text=@Loc["Enable"] />
+                    <RadzenCheckBox Name="SetDateOfBirth" @bind-Value="@model.DateOfBirthSet" />
+                </Start>
+                <ChildContent>
+                    <ImpreciseDateInput @bind-Value="@model.DateOfBirth" />
+                </ChildContent>
+            </RadzenFormField>
+            <RadzenFormField Text=@Loc["Date of death (optional)"]>
+                <Start>
+                    <RadzenLabel For="SetDateOfDeath" Text=@Loc["Enable"] />
+                    <RadzenCheckBox Name="SetDateOfDeath" @bind-Value="@model.DateOfDeathSet" />
+                </Start>
+                <ChildContent>
+                    <ImpreciseDateInput @bind-Value="@model.DateOfDeath" />
+                </ChildContent>
+            </RadzenFormField>
+            <RadzenFormField>
+                <RadzenButton Text="Submit" Icon="save" Click="@Save" />
+            </RadzenFormField>
+        </RadzenStack>
+    }
+    else
+    {
+
+    }
+    </EditorOnly>
+
+    @code
+    {
+    [Parameter]
+    public Guid Id { get; set; }
+
+    Architect? architect;
+
+    class ArchitectInputModel
+    {
+        public string AbbreviatedName { get; set; }
+        public string? FullName { get; set; }
+        public ImpreciseDate DateOfBirth { get; set; } = new();
+        public bool DateOfBirthSet { get; set; }
+        public ImpreciseDate DateOfDeath { get; set; } = new();
+        public bool DateOfDeathSet { get; set; }
+    }
+
+    ArchitectInputModel model = new();
+
+    override protected void OnInitialized()
+    {
+        architect = ModelContext.Architects.FirstOrDefault(a => a.Id == Id);
+        if (architect is not null)
+        {
+            model.AbbreviatedName = architect.AbbreviatedName;
+            model.FullName = architect.FullName;
+            if (architect.DateOfBirth is not null)
+            {
+                model.DateOfBirth = architect.DateOfBirth;
+                model.DateOfBirthSet = true;
+            }
+            else
+            {
+                model.DateOfBirthSet = false;
+            }
+            if (architect.DateOfDeath is not null)
+            {
+                model.DateOfDeath = architect.DateOfDeath;
+                model.DateOfDeathSet = true;
+            }
+            else
+            {
+                model.DateOfDeathSet = false;
+            }
+        }
+    }
+
+    public async Task Save()
+    {
+        if (architect is null) return;
+        architect.AbbreviatedName = model.AbbreviatedName;
+        architect.FullName = model.FullName;
+        if (model.DateOfBirthSet) architect.DateOfBirth = model.DateOfBirth;
+        if (model.DateOfDeathSet) architect.DateOfDeath = model.DateOfDeath;
+        try
+        {
+            await ModelContext.SaveChangesAsync();
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Architect saved",
+                    Detail = $"ID: {architect.Id}"
+                });
+        }
+        catch (Exception e)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"{e.Message}"
+                });
+        }
+    }
+}

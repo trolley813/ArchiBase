@@ -2,6 +2,7 @@
 @using Microsoft.EntityFrameworkCore
 @using System.Linq.Dynamic.Core
 @inject ModelContext ModelContext
+@inject UsersContext UsersContext
 @inject UserManager<ArchiBaseUser> UserManager
 @inject IStringLocalizer<Index> Loc
 
@@ -11,34 +12,34 @@
 <RadzenText TextStyle="TextStyle.H4">@Loc["Photos"]</RadzenText>
 
 <RadzenDataGrid @ref="grid" AllowPaging=true PageSize=20 PagerAlwaysVisible=true ShowPagingSummary=true Data="photos" Count="count"
-    AllowSorting=true AllowFiltering=true LoadData="@LoadData" IsLoading=@(!loaded)>
+    AllowSorting=true AllowFiltering=true LoadData="@LoadData" IsLoading=@(!loaded) FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
     <Columns>
         <RadzenDataGridColumn Title=@Loc["Photo"] Sortable=false Filterable=false>
             <Template Context="photo">
-                <RadzenLink Path=@($"/photos/{photo.Id}")>
-                    <RadzenImage Path=@(photo.PhotoLink)
+                <RadzenLink Path=@($"/photos/{photo.Photo.Id}")>
+                    <RadzenImage Path=@(photo.Photo.PhotoLink)
                         Style="display:block;margin:auto;max-height:150px;max-width:300px;height:auto;width:auto;"
                         AlternateText=@Loc["Photo not available"] onerror="this.src='/images/unavailable.png'" />
                 </RadzenLink>
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Title=@Loc["Published"] Property="PublicationDate" SortOrder="SortOrder.Descending">
+        <RadzenDataGridColumn Title=@Loc["Published"] Filterable=false Property="PublicationDateSort" SortOrder="SortOrder.Descending">
             <Template Context="photo">
                 <RadzenText TextStyle="TextStyle.Body1">
-                    <b><LocalTime DateTime="photo.PublicationDate" /></b>
+                    <b><LocalTime DateTime="photo.Photo.PublicationDate" /></b>
                 </RadzenText>
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Title=@Loc["Shooting date"] Property="ShootingDate.Date">
+        <RadzenDataGridColumn Title=@Loc["Shooting date"] Property="ShootingDateSort">
             <Template Context="photo">
                 <RadzenText TextStyle="TextStyle.Body1">
-                    <b><ImpreciseDateDisplay Value="photo.ShootingDate"></ImpreciseDateDisplay></b>
+                    <b><ImpreciseDateDisplay Value="photo.Photo.ShootingDate"></ImpreciseDateDisplay></b>
                 </RadzenText>
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Title=@Loc["Author"] Sortable=false Filterable=false>
+        <RadzenDataGridColumn Title=@Loc["Author"] Property="AuthorName">
             <Template Context="photo">
-                @if (photo.NonAuthor)
+                @if (photo.Photo.NonAuthor)
                 {
                     <RadzenText TextStyle="TextStyle.Overline">@Loc["Sent by"]</RadzenText>
                 }
@@ -48,8 +49,8 @@
                 }
 
                 <RadzenText TextStyle="TextStyle.Body1">
-                    <RadzenLink Path=@($"/users/{photo.AuthorId}")>
-                        <b>@(authors?[photo.AuthorId])</b>
+                    <RadzenLink Path=@($"/users/{photo.Photo.AuthorId}")>
+                        <b>@(photo.AuthorName)</b>
                     </RadzenLink>
                 </RadzenText>
             </Template>
@@ -57,7 +58,7 @@
         <RadzenDataGridColumn Title=@Loc["Buildings and galleries"] Sortable=false Filterable=false>
             <Template Context="photo">
                 <RadzenStack>
-                @foreach (var b in photo.BuildingBinds)
+                @foreach (var b in photo.Photo.BuildingBinds)
                 {
                     <RadzenText TextStyle="TextStyle.Body1" Style="white-space: pre-line;">
                     <RadzenLink Path=@($"/buildings/{b.Building.Id}") 
@@ -66,7 +67,7 @@
                 }
                 </RadzenStack>
                 <RadzenStack>
-                @foreach (var g in photo.Galleries)
+                @foreach (var g in photo.Photo.Galleries)
                 {
                     <RadzenText TextStyle="TextStyle.Body1">
                     <RadzenLink Path=@($"/galleries/{g.Id}") Text=@(g.Name) />
@@ -80,18 +81,26 @@
 
 @code
 {
-    List<Photo> photos;
+    class PhotoWithAuthor
+    {
+        public Photo Photo { get; set; }
+        public DateTime ShootingDateSort { get; set; }
+        public DateTime PublicationDateSort { get; set; }
+        public string AuthorName { get; set; }
+    }
+
+    List<PhotoWithAuthor> photos;
+
+    List<ArchiBaseUser> users;
 
     bool loaded;
     int count;
 
-    RadzenDataGrid<Photo> grid;
+    RadzenDataGrid<PhotoWithAuthor> grid;
 
-    Dictionary<Guid, string> authors = [];
-
-    protected override async Task OnInitializedAsync()
+    override protected void OnInitialized()
     {
-        authors = await UserManager.Users.Select(u => new { u.Id, u.UserName }).ToDictionaryAsync(x => x.Id, x => x.UserName ?? "(unnamed)");
+        users = UsersContext.Users.ToList();
     }
 
     async Task LoadData(LoadDataArgs args)
@@ -100,7 +109,7 @@
 
         await Task.Yield();
 
-        IQueryable<Photo> query = ModelContext.ActivePhotos
+        var query = ModelContext.ActivePhotos
         .Include(p => p.BuildingBinds)
         .ThenInclude(b => b.Building)
         .ThenInclude(b => b.Location)
@@ -108,20 +117,32 @@
         .ThenInclude(b => b.Building)
         .ThenInclude(b => b.Cards)
         .ThenInclude(c => c.StreetAddresses)
-        .ThenInclude(a => a.Street).AsQueryable();
+        .ThenInclude(a => a.Street)
+        .Join(ModelContext.PhotoAuthorMappings, p => p.Id, a => a.PhotoId, (p, a) => new { 
+            Photo = p, 
+            ShootingDateSort = p.ShootingDate.Date,
+            PublicationDateSort = p.PublicationDate,
+            AuthorName = a.AuthorName
+            })
+        .AsQueryable();
         if (!string.IsNullOrEmpty(args.Filter))
         {
             query = query.Where(args.Filter);
         }
-
         if (!string.IsNullOrEmpty(args.OrderBy))
         {
             query = query.OrderBy(args.OrderBy);
         }
-
         // Important!!! Make sure the Count property of RadzenDataGrid is set.
         count = query.Count();
-        photos = query.Skip(args.Skip ?? 0).Take(args.Top ?? 20).ToList();
+        photos = query.Skip(args.Skip ?? 0).Take(args.Top ?? 20).ToList()
+        .Select(x => new PhotoWithAuthor
+        { 
+            Photo = x.Photo, 
+            PublicationDateSort = x.PublicationDateSort, 
+            ShootingDateSort = x.ShootingDateSort, 
+            AuthorName = x.AuthorName
+        }).ToList();
         loaded = true;
     }
 }

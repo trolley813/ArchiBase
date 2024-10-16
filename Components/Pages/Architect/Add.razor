@@ -1,0 +1,84 @@
+@page "/architects/add"
+@using ArchiBase.Components.Utils
+@inject NotificationService NotificationService
+@inject ModelContext ModelContext
+@inject IStringLocalizer<Add> Loc
+
+<EditorOnly>
+    <RadzenText TextStyle="TextStyle.H3">@Loc["Add architect"]</RadzenText>
+    <RadzenStack Orientation="Orientation.Vertical">
+        <RadzenFormField Text=@Loc["Abbreviated name (Lastname F. M.)"]>
+            <RadzenTextBox @bind-Value="@model.AbbreviatedName" />
+        </RadzenFormField>
+        <RadzenFormField Text=@Loc["Full name (Firstname Middlename Lastname)"]>
+            <RadzenTextBox @bind-Value="@model.FullName" />
+        </RadzenFormField>
+        <RadzenFormField Text=@Loc["Date of birth (optional)"]>
+            <Start>
+                <RadzenLabel For="SetDateOfBirth" Text=@Loc["Enable"] />
+                <RadzenCheckBox Name="SetDateOfBirth" @bind-Value="@model.DateOfBirthSet" />
+            </Start>
+            <ChildContent>
+                <ImpreciseDateInput @bind-Value="@model.DateOfBirth" />
+            </ChildContent>
+        </RadzenFormField>
+        <RadzenFormField Text=@Loc["Date of death (optional)"]>
+            <Start>
+                <RadzenLabel For="SetDateOfDeath" Text=@Loc["Enable"] />
+                <RadzenCheckBox Name="SetDateOfDeath" @bind-Value="@model.DateOfDeathSet" />
+            </Start>
+            <ChildContent>
+                <ImpreciseDateInput @bind-Value="@model.DateOfDeath" />
+            </ChildContent>
+        </RadzenFormField>
+        <RadzenFormField>
+            <RadzenButton Text=@Loc["Add"] Icon="add_circle_outline" Click="@AddNew" />
+        </RadzenFormField>
+    </RadzenStack>
+</EditorOnly>
+
+@code
+{
+    class ArchitectInputModel
+    {
+        public string AbbreviatedName { get; set; }
+        public string? FullName { get; set; }
+        public ImpreciseDate DateOfBirth { get; set; } = new();
+        public bool DateOfBirthSet { get; set; }
+        public ImpreciseDate DateOfDeath { get; set; } = new();
+        public bool DateOfDeathSet { get; set; }
+    }
+
+    ArchitectInputModel model = new();
+
+    public async Task AddNew()
+    {
+        var architect = new Architect
+            {
+                FullName = model.FullName,
+                AbbreviatedName = model.AbbreviatedName
+            };
+        if (model.DateOfBirthSet) architect.DateOfBirth = model.DateOfBirth;
+        if (model.DateOfDeathSet) architect.DateOfDeath = model.DateOfDeath;
+        ModelContext.Architects.Add(architect);
+        try
+        {
+            await ModelContext.SaveChangesAsync();
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Architect added",
+                    Detail = $"ID: {architect.Id}"
+                });
+        }
+        catch (Exception e)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"{e.Message}"
+                });
+        }
+    }
+}

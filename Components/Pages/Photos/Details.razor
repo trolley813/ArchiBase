@@ -15,8 +15,18 @@
             <RadzenCard>
                 <RadzenText TextStyle="TextStyle.H5">@Loc["Photo"]</RadzenText>
                 <RadzenImage Path=@(photo.PhotoLink)
-                    Style="display:block;margin:auto;max-height:500px;max-width:100%;height:auto;width:auto;"
+                    Style="width: 100%; height: auto;"
                     AlternateText=@Loc["Photo not available"] onerror="this.src='/images/unavailable.png'" />
+                @if (photo.IsLost ?? false)
+                {
+                        <RadzenAlert AllowClose="false" Title=@Loc["Photo is lost"] AlertStyle="AlertStyle.Dark" Shade="Shade.Default" Icon="no_photography">
+                        @Loc["This photo is lost and needs to be restored."]
+                        @if(user?.Id == photo.AuthorId)
+                        {
+                            <RadzenLink Text=@Loc["Restore"] Icon="restore" Path=@($"photo/{photo.Id}/restore") />
+                        }
+                        </RadzenAlert>
+                }
                 @if (photo.Status == PhotoStatus.Pending)
                 {
                         <RadzenAlert AllowClose="false" Title=@Loc["Pending publication"] AlertStyle="AlertStyle.Warning" Shade="Shade.Lighter">
@@ -35,14 +45,21 @@
                                 <li>
                                     <RadzenText TextStyle="TextStyle.Body1">
                                         <RadzenLink Text="@(g.Key.Name)" Path=@($"/locations/{g.Key.Id}") />:
-                                        <RadzenStack Orientation="Orientation.Horizontal" Gap="10">
+                                        <RadzenStack Orientation="Orientation.Vertical">
                                     @foreach (var b in g)
                                     {
-                                                    <RadzenLink
-                                                        Text="@(String.Join(" / ",
-                                b.Building.ActualCard?.StreetAddresses.Select(a => $"{a.Street?.Name}, {a.HouseNumber}") ?? []))"
-                                                        Path=@($"/buildings/{b.Building.Id}") style=@(b.IsMain ? "font-weight:bold" :
-                                "font-style:italic") />
+                                        <RadzenStack Orientation="Orientation.Horizontal" Gap="10">
+                                            <RadzenLink
+                                                Text="@(String.Join(" / ",
+                                    b.Building.ActualCard?.StreetAddresses.Select(a => $"{a.Street?.Name}, {a.HouseNumber}") ?? []))"
+                                                            Path=@($"/buildings/{b.Building.Id}") style=@(b.IsMain ? "font-weight:bold" :
+                                    "font-style:italic") />
+                                        
+                                            <RadzenText>
+                                                @(String.Join(", ", b.Building.ActualCard?.Parts.Select(p => p.Design.Name) ?? []))
+                                                @(String.Join(", ", b.Building.ActualCard?.Categories.Select(c => c.Name) ?? []))
+                                            </RadzenText>
+                                        </RadzenStack>
                                     }
                                         </RadzenStack>
                                     </RadzenText>
@@ -411,8 +428,13 @@ else
         .Include(p => p.BuildingBinds).ThenInclude(b => b.Building).ThenInclude(b => b.Location)
         .Include(p => p.BuildingBinds).ThenInclude(b => b.Building).ThenInclude(b => b.Cards).ThenInclude(c =>
         c.StreetAddresses).ThenInclude(a => a.Street)
+        .Include(p => p.BuildingBinds).ThenInclude(b => b.Building).ThenInclude(b => b.Cards).ThenInclude(c => 
+        c.Parts).ThenInclude(p => p.Design)
+        .Include(p => p.BuildingBinds).ThenInclude(b => b.Building).ThenInclude(b => b.Cards).ThenInclude(c => 
+        c.Categories)
         .Include(p => p.License)
         .Include(p => p.Galleries)
+        .AsSplitQuery()
         .FirstOrDefaultAsync(p => p.Id == Id);
         author = await UserManager.FindByIdAsync(photo?.AuthorId.ToString());
         if (photo is not null)

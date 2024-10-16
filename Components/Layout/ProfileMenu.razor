@@ -1,3 +1,5 @@
+@inject IStringLocalizer<ProfileMenu> Loc
+
 <CascadingAuthenticationState>
     <AuthorizeView>
         <Authorized>
@@ -9,11 +11,12 @@
                     </RadzenStack>
                 </Template>
                 <ChildContent>
-                    <RadzenProfileMenuItem Text="My page" Icon="person"
+                    <RadzenProfileMenuItem Text=@Loc["My page"] Icon="person"
                         Path=@($"users/{context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value}") />
-                    <RadzenProfileMenuItem Text="My stats" Path="my-stats" Icon="analytics" />
-                    <RadzenProfileMenuItem Text="Journal" Path="journal" Icon="summarize" />
-                    <RadzenProfileMenuItem Text="Log out" Path="account/logout" Icon="logout" />
+                    <RadzenProfileMenuItem Text=@Loc["My stats"] Path="my-stats" Icon="analytics" />
+                    <RadzenProfileMenuItem Text=@Loc["Journal"] Path="journal" Icon="summarize" />
+                    <RadzenProfileMenuItem Text=@Loc["Settings"] Path="settings" Icon="settings" />
+                    <RadzenProfileMenuItem Text=@Loc["Log out"] Path="account/logout" Icon="logout" />
                 </ChildContent>
             </RadzenProfileMenu>
         </Authorized>
@@ -23,8 +26,8 @@
                     <RadzenIcon Icon="no_accounts" />
                 </Template>
                 <ChildContent>
-                    <RadzenProfileMenuItem Text="Log in" Path="login" />
-                    <RadzenProfileMenuItem Text="Register" Path="register" />
+                    <RadzenProfileMenuItem Text=@Loc["Log in"] Path="login" />
+                    <RadzenProfileMenuItem Text=@Loc["Register"] Path="register" />
                 </ChildContent>
             </RadzenProfileMenu>
         </NotAuthorized>
@@ -38,7 +41,7 @@
                 </RadzenStack>
             </Template>
             <ChildContent>
-                <RadzenProfileMenuItem Text="Manage users" Path="admin/users" />
+                <RadzenProfileMenuItem Text=@Loc["Manage users"] Path="admin/users" />
             </ChildContent>
         </RadzenProfileMenu>
     </AuthorizeView>

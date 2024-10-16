@@ -12,10 +12,12 @@
 {
     <ArchibasePageTitle Title=@buildingDisplayString />
     <RadzenText TextStyle="TextStyle.H4">@buildingDisplayString</RadzenText>
-    @foreach (var sa in building.ActualCard?.StreetAddresses ?? [])
-    {
-        <RadzenLink Text=@($"{building.Location.Name}, {sa.Street.Name}") Path=@($"buildings/by-street/{sa.Street.Id}") />
-    }
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="18" Wrap="FlexWrap.Wrap">
+        @foreach (var sa in building.ActualCard?.StreetAddresses ?? [])
+        {
+            <RadzenLink Text=@($"{sa.Street.Name}") Path=@($"buildings/by-street/{sa.Street.Id}") />
+        }
+        </RadzenStack>
     <RadzenLink Text="Edit" Icon="edit" Path=@($"buildings/{building.Id}/edit") />
     <RadzenRow>
         <RadzenColumn>
@@ -63,7 +65,7 @@
             <RadzenColumn>
                 <RadzenText TextStyle="TextStyle.Overline">@Loc["Cadastre record number"]</RadzenText>
                 <RadzenText TextStyle="TextStyle.Body1">
-                    <RadzenLink Path=@(Cadastre.GetLink(building))>
+                    <RadzenLink Path=@(cadastreLink)>
                         <b>@(building.CadastreRecordNumber)</b>
                     </RadzenLink>
                 </RadzenText>
@@ -218,6 +220,8 @@
 
     string buildingDisplayString = "";
 
+    string? cadastreLink = "";
+
     List<Photo> photos = [];
 
     protected override void OnParametersSet()
@@ -252,6 +256,10 @@
             building.ActualCard?.StreetAddresses
             .OrderByDescending(a => a.HouseNumber, StringComparison.OrdinalIgnoreCase.WithNaturalSort())
             .Select(a => $"{a.Street.Name}, {a.HouseNumber}") ?? []);
+        }
+        if (building.CadastreRecordNumber is not null)
+        {
+            cadastreLink = Cadastre.GetLink(building);
         }
 
     }

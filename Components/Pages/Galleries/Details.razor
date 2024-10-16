@@ -9,22 +9,25 @@
 
 @if (gallery is not null)
 {
-    <RadzenText TextStyle="TextStyle.H3">@(gallery.Name)</RadzenText>
-    switch (gallery.EntityType)
-    {
-        case "Location":
-            <RadzenLink Text=@(ModelContext.Locations.FirstOrDefault(loc => loc.Id == gallery.EntityId)?.Name)
-    Path=@($"/locations/{gallery.EntityId}") />
-            break;
-        case "Design":
-            <RadzenLink Text=@(ModelContext.Designs.FirstOrDefault(d => d.Id == gallery.EntityId)?.Name)
-    Path=@($"/series/{gallery.EntityId}") />
-            break;
-        case "DesignCategory":
-            <RadzenLink Text=@(ModelContext.DesignCategories.FirstOrDefault(c => c.Id == gallery.EntityId)?.Name)
-    Path=@($"/categories/{gallery.EntityId}") />
-            break;
-    }
+    <RadzenText TextStyle="TextStyle.H3">
+    @switch (gallery.EntityType)
+        {
+            case "Location":
+                <RadzenLink Text=@(ModelContext.Locations.FirstOrDefault(loc => loc.Id == gallery.EntityId)?.Name)
+                    Path=@($"/locations/{gallery.EntityId}") />
+                break;
+            case "Design":
+                <RadzenLink Text=@(ModelContext.Designs.FirstOrDefault(d => d.Id == gallery.EntityId)?.Name)
+                    Path=@($"/series/{gallery.EntityId}") />
+                break;
+            case "DesignCategory":
+                <RadzenLink Text=@(ModelContext.DesignCategories.FirstOrDefault(c => c.Id == gallery.EntityId)?.Name)
+                    Path=@($"/categories/{gallery.EntityId}") />
+                break;
+        } —
+        @(gallery.Name)
+    </RadzenText>
+
 
     <RadzenText TextStyle="TextStyle.H6">@Loc["Photos"] (@(photos.Count))</RadzenText>
     <RadzenDataGrid Data="photos" AllowPaging=true PageSize=10 ShowPagingSummary=true>
@@ -40,7 +43,11 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title=@Loc["Details"]>
                 <Template Context="photo">
-                    <RadzenText TextStyle="TextStyle.Body1"><b>@(photo.ShootingDate)</b></RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1">
+                        <b>
+                            <ImpreciseDateDisplay Value="photo.ShootingDate" />
+                        </b>
+                    </RadzenText>
                     <RadzenText TextStyle="TextStyle.Overline">
                         @(photo.NonAuthor ? @Loc["Sent by"] : @Loc["Author"]):
                         @(UserManager.Users.FirstOrDefault(u => u.Id == photo.AuthorId)?.UserName)

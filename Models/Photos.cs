@@ -96,6 +96,8 @@ public class Photo : IAuditable
     public string PhotoDir => $"/data/photos/{Id.ToString()[0..2]}/{Id.ToString()[2..4]}";
 
     public bool IsHidden { get; set; }
+    public bool? IsLost { get; set; }
+
 
     public PhotoStatus Status { get; set; }
 

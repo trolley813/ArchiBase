@@ -183,4 +183,16 @@
   <data name="Galleries" xml:space="preserve">
         <value>Galeriid</value>
     </data>
+  <data name="For photo moderators" xml:space="preserve">
+        <value>Fotomoderaatorite jaoks</value>
+    </data>
+  <data name="Photo queue" xml:space="preserve">
+        <value>Fotojärjekord</value>
+    </data>
+  <data name="Merge streets" xml:space="preserve">
+        <value>Tänavaid ühendada</value>
+    </data>
+  <data name="Architects" xml:space="preserve">
+        <value>Arhitektid</value>
+    </data>
 </root>

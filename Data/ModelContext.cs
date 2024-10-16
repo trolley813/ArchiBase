@@ -46,6 +46,11 @@ public class ModelContext : DbContext
     public DbSet<Gallery> Galleries { get; set; }
     public DbSet<StreetAddress> StreetAddresses { get; set; }
 
+    public DbSet<PhotoAuthorMapping> PhotoAuthorMappings { get; set; }
+    public DbSet<CommentAuthorMapping> CommentAuthorMappings { get; set; }
+
+
+
     override protected void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Design>()
@@ -76,6 +81,8 @@ public class ModelContext : DbContext
             .Property(b => b.Order)
             .HasDefaultValue(0);
 
+        modelBuilder.Ignore<ArchiBaseUser>();
+
         modelBuilder.Entity<BuildingCard>().HasMany(e => e.Categories).WithMany(e => e.BuildingCards);
 
         modelBuilder.Entity<BuildingEvent>().OwnsOne(e => e.Date);
@@ -86,6 +93,11 @@ public class ModelContext : DbContext
 
         modelBuilder.Entity<Photo>().OwnsOne(p => p.Votes, v => { v.ToJson(); v.OwnsMany(v => v.Values); });
         modelBuilder.Entity<Comment>().OwnsOne(c => c.Votes, v => { v.ToJson(); v.OwnsMany(v => v.Values); });
+
+        modelBuilder.Entity<PhotoAuthorMapping>()
+            .ToView("View_PhotoAuthorMappings");
+        modelBuilder.Entity<CommentAuthorMapping>()
+            .ToView("View_CommentAuthorMappings");
     }
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
