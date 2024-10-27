@@ -139,4 +139,10 @@
   <data name="Save" xml:space="preserve">
         <value>Сохранить</value>
     </data>
+  <data name="Builder" xml:space="preserve">
+        <value>Застройщик</value>
+    </data>
+  <data name="Customer" xml:space="preserve">
+        <value>Подрядчик</value>
+    </data>
 </root>

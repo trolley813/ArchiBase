@@ -35,7 +35,7 @@ public class DesignCatalogue : IAuditable
 public class DesignCatalogueEntry
 {
     public Guid Id { get; set; }
-    public Design Design { get; set; }
+    public Design? Design { get; set; }
     public DesignCatalogue Catalogue { get; set; }
     public string Code { get; set; }
 

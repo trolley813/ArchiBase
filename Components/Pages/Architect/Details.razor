@@ -35,12 +35,12 @@
     </RadzenCard>
 
     <RadzenText TextStyle="TextStyle.H5">@Loc["Designs"]</RadzenText>
-    <RadzenDataGrid Data="architect.Designs" AllowPaging="true" AllowSorting="true" PageSize="100">
+    <RadzenDataGrid Data="architect.Designs" Responsive=true AllowPaging="true" AllowSorting="true" PageSize="100">
 
     </RadzenDataGrid>
 
     <RadzenText TextStyle="TextStyle.H5">@Loc["Buildings"]</RadzenText>
-    <RadzenDataGrid Data="architect.Buildings" AllowPaging="true" AllowSorting="true" PageSize="100">
+    <RadzenDataGrid Data="architect.Buildings" Responsive=true AllowPaging="true" AllowSorting="true" PageSize="100">
         <Columns>
             <RadzenDataGridColumn Title=@Loc["Address"] SortOrder="SortOrder.Ascending">
                 <Template Context="building">
@@ -81,12 +81,14 @@
                     </RadzenText>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title=@Loc["Built"] Width="10%" Property="Built">
+            <RadzenDataGridColumn Title=@Loc["Built"] Width="10%" Property="Built" Visible=@(architect.Buildings.Any(b =>
+            b.GetDateOfStatus(BuildingEventType.ConstructionFinished) != null))>
                 <Template Context="building">
                     <RadzenText>@(building.GetDateOfStatus(BuildingEventType.ConstructionFinished))</RadzenText>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title=@Loc["Demolished"] Width="10%" Property="Demolished">
+            <RadzenDataGridColumn Title=@Loc["Demolished"] Width="10%" Property="Demolished"
+                Visible=@(architect.Buildings.Any(b => b.GetDateOfStatus(BuildingEventType.Demolished) != null))>
                 <Template Context="building">
                     <RadzenText>@(building.GetDateOfStatus(BuildingEventType.Demolished))</RadzenText>
                 </Template>

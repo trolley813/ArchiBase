@@ -102,7 +102,8 @@
         </RadzenPieSeries>
     </RadzenChart>
 
-    <RadzenDataGrid Data="buildings" AllowPaging="true" AllowSorting="true" PageSize="50" CellRender="CellRender">
+    <RadzenDataGrid Data="buildings" AllowPaging="true" AllowSorting="true" PageSize="50" CellRender="CellRender"
+        Responsive=true>
         <Columns>
             <RadzenDataGridColumn Title=@Loc["Address"] SortOrder="SortOrder.Ascending">
                 <Template Context="building">
@@ -124,12 +125,14 @@
                     </RadzenText>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title=@Loc["Built"] Width="10%" Property="Built">
+            <RadzenDataGridColumn Title=@Loc["Built"] Width="10%" Property="Built" Visible=@(buildings.Any(b => b.Built !=
+            null))>
                 <Template Context="building">
                     <ImpreciseDateDisplay Value="building.Built" />
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title=@Loc["Demolished"] Width="10%" Property="Demolished">
+            <RadzenDataGridColumn Title=@Loc["Demolished"] Width="10%" Property="Demolished" Visible=@(buildings.Any(b =>
+            b.Demolished != null))>
                 <Template Context="building">
                     <ImpreciseDateDisplay Value="building.Demolished" />
                 </Template>

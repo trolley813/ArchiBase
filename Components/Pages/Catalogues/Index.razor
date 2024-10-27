@@ -11,9 +11,13 @@
 </CascadingAuthenticationState>
 
 
-<RadzenDataList Data="@(ModelContext.DesignCatalogues)" AllowPaging="true" PageSize="5">
+<RadzenDataList
+    Data="@(ModelContext.DesignCatalogues.ToList().OrderBy(c => c.Name, StringComparison.OrdinalIgnoreCase.WithNaturalSort()))"
+    AllowPaging=true PageSize=20 WrapItems=true>
     <Template Context="catalogue">
-        <RadzenLink Text="@(catalogue.Name != "" ? catalogue.Name : "(empty name)")"
-            Path="@($"catalogues/{catalogue.Id}")" />
+        <RadzenText TextStyle="TextStyle.H6" Style="width: max(33%, 300px); max-width: 100%;">
+            <RadzenLink Text="@(catalogue.Name != "" ? catalogue.Name : "(empty name)")"
+                Path="@($"catalogues/{catalogue.Id}")" />
+        </RadzenText>
     </Template>
 </RadzenDataList>

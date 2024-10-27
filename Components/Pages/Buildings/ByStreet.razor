@@ -48,18 +48,15 @@
 
     </OpenStreetMap>
 
-    <RadzenDataGrid Data="buildings" AllowPaging="true" AllowSorting="true" PageSize="100" CellRender="@CellRender">
+    <RadzenDataGrid Data="buildings" AllowPaging="true" AllowSorting="true" PageSize="100" CellRender="@CellRender" Responsive=true>
         <Columns>
-            @if (showPhotos)
-            {
-                <RadzenDataGridColumn Title=@Loc["Photo"] Sortable=false>
-                    <Template Context="building">
-                        <RadzenImage Path=@(photoLinks.GetValueOrDefault(building.Building.Id, "/images/unavailable.png"))
-                            Style="display:block;margin:auto;max-height:150px;max-width:300px;height:auto;width:auto;"
-                            AlternateText=@Loc["Photo not available"] onerror="this.src='/images/unavailable.png'" />
-                    </Template>
-                </RadzenDataGridColumn>
-            }
+            <RadzenDataGridColumn Title=@Loc["Photo"] Sortable=false Visible="showPhotos">
+                <Template Context="building">
+                    <RadzenImage Path=@(photoLinks.GetValueOrDefault(building.Building.Id, "/images/unavailable.png"))
+                        Style="display:block;margin:auto;max-height:150px;max-width:300px;height:auto;width:auto;"
+                        AlternateText=@Loc["Photo not available"] onerror="this.src='/images/unavailable.png'" />
+                </Template>
+            </RadzenDataGridColumn>
             <RadzenDataGridColumn Title=@Loc["Address"] Property="HouseNumber" SortOrder="SortOrder.Ascending">
                 <Template Context="building">
                     <RadzenLink Style="white-space: pre-wrap" Text="@(String.Join(" / ", building.LastCardWithAddress.StreetAddresses
@@ -81,7 +78,7 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title=@Loc["Design"] Sortable=false Width="30%">
                 <Template Context="building">
-                    <RadzenText>
+                    <RadzenText Style="white-space: pre-wrap">
                         @(String.Join(" ⋅ ", building.Building.ActualCard?.Parts?.Select(p => p.Design.Name).Distinct()
                         ??
                         []))
@@ -112,12 +109,12 @@
                     <RadzenText Style="white-space: normal">@((MarkupString)building.Name)</RadzenText>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title=@Loc["Built"] Property="Built" Width="10%">
+            <RadzenDataGridColumn Title=@Loc["Built"] Property="Built" Width="10%" Visible=@(buildings.Any(b => b.Built != null))>
                 <Template Context="building">
                     <ImpreciseDateDisplay Value="@(building.Built)"/>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title=@Loc["Demolished"] Property="Demolished" Width="10%">
+            <RadzenDataGridColumn Title=@Loc["Demolished"] Property="Demolished" Width="10%" Visible=@(buildings.Any(b => b.Demolished != null))>
                 <Template Context="building">
                     <ImpreciseDateDisplay Value="@(building.Demolished)"/>
                 </Template>
@@ -235,9 +232,16 @@ else
                 avgLat += b.Building.Latitude;
                 avgLon += b.Building.Longitude;
             }
-            avgLat /= buildings.Count;
-            avgLon /= buildings.Count;
-            map.Center = new Coordinate(avgLon, avgLat);
+            if (buildings.Count != 0)
+            {
+                avgLat /= buildings.Count;
+                avgLon /= buildings.Count;
+                map.Center = new Coordinate(avgLon, avgLat);
+            }
+            else
+            {
+                map.Center = new Coordinate(street.Location.Longitude, street.Location.Latitude);
+            }
             map.Zoom = 15;
             StateHasChanged();
         }

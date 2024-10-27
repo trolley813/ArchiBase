@@ -1,6 +1,14 @@
+## 0.2.2 (2024-10-27)
+- more responsive table layouts
+- street list now displayed by letter in several columns
+- automatic street sorting
+- fixed editing of buildings
+- allowed restoring of photos
+- add photos to comment list
+
 ## 0.2.1 (2024-10-16)
 - added architects management (add/edit)
-- added abitlity to change personal info
+- added ability to change personal info
 - added author name filtering in photos list
 - fixed typesetting issues
 - added photo lost flag

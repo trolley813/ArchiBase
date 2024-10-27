@@ -78,7 +78,11 @@
         <RadzenRow Gap="12">
             <RadzenColumn>
                 <RadzenText TextStyle="TextStyle.Overline">@Loc["Photos published"]</RadzenText>
-                <RadzenText TextStyle="TextStyle.H4">@(photosCount)</RadzenText>
+                <RadzenText TextStyle="TextStyle.H4">
+                    <RadzenLink Path=@($"/photos?authorid={user.Id}")>
+                        @(photosCount)
+                    </RadzenLink>
+                </RadzenText>
             </RadzenColumn>
         </RadzenRow>
     </RadzenCard>

@@ -82,7 +82,7 @@
                             <RadzenCard>
                                 <RadzenRow>
                                     <RadzenRow>
-                                        <RadzenText TextStyle="TextStyle.Subtitle1">Addresses</RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Subtitle1">@Loc["Addresses"]</RadzenText>
                                         <RadzenButton Icon="add" Text=@Loc["Add"] Size="ButtonSize.ExtraSmall"
                                             Click="args => AddAddress(i)" />
                                     </RadzenRow>
@@ -115,24 +115,24 @@
                                 </RadzenRow>
                                 <RadzenRow>
                                     <RadzenColumn>
-                                        <RadzenFormField Text=@Loc["Categories"]>
+                                        <RadzenFormField Text=@Loc["Categories"] class="rz-w-100">
                                             <RadzenDropDown @bind-Value="card.Categories" Data="Categories" TextProperty="Name"
                                                 Multiple=true AllowFiltering=true />
                                         </RadzenFormField>
                                     </RadzenColumn>
                                     <RadzenColumn>
-                                        <RadzenFormField Text=@Loc["Floor count"]>
+                                        <RadzenFormField Text=@Loc["Floor count"] class="rz-w-100">
                                             <RadzenTextBox Change="args => OnFloorCountChanged(card, args)"
                                                 Value=@(String.Join(", ", card.FloorCount)) />
                                         </RadzenFormField>
                                     </RadzenColumn>
                                     <RadzenColumn>
-                                        <RadzenFormField Text=@Loc["Style"]>
+                                        <RadzenFormField Text=@Loc["Style"] class="rz-w-100">
                                             <RadzenDropDown @bind-Value="card.Style" Data="Styles" TextProperty="Name" />
                                         </RadzenFormField>
                                     </RadzenColumn>
                                     <RadzenColumn>
-                                        <RadzenFormField Text=@Loc["Architects"]>
+                                        <RadzenFormField Text=@Loc["Architects"] class="rz-w-100">
                                             <RadzenDropDown @bind-Value="card.Architects" Data="Architects"
                                                 TextProperty="AbbreviatedName" Multiple=true AllowFiltering=true />
                                         </RadzenFormField>
@@ -140,8 +140,20 @@
                                 </RadzenRow>
                                 <RadzenRow>
                                     <RadzenColumn>
+                                        <RadzenFormField Text=@Loc["Builder"] class="rz-w-100">
+                                            <RadzenTextBox @bind-Value="card.Builder" />
+                                        </RadzenFormField>
+                                    </RadzenColumn>
+                                    <RadzenColumn>
+                                        <RadzenFormField Text=@Loc["Customer"] class="rz-w-100">
+                                            <RadzenTextBox @bind-Value="card.Customer" />
+                                        </RadzenFormField>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow>
+                                    <RadzenColumn>
                                         <RadzenFormField Text=@Loc["Name"]>
-                                            <RadzenHtmlEditor @bind-Value="card.Name" />
+                                            <RadzenHtmlEditor @bind-Value="card.Name" class="rz-w-100" />
                                         </RadzenFormField>
                                     </RadzenColumn>
                                 </RadzenRow>
@@ -183,7 +195,10 @@
     </EditorOnly>
 
 }
-
+else
+{
+    <RadzenText>Loading...</RadzenText>
+}
 
 @code
 {
@@ -192,7 +207,7 @@
 
     Building? building;
 
-    OpenStreetMap map;
+    OpenStreetMap map = default!;
 
     public List<Street> Streets { get; set; } = [];
 
@@ -206,7 +221,9 @@
     List<BuildingEventType> eventTypes = Enum.GetValues(typeof(BuildingEventType)).Cast<BuildingEventType>().ToList();
     protected override void OnParametersSet()
     {
-        building = ModelContext.Buildings.Include(b => b.Events)
+        building = ModelContext.Buildings
+        .Include(b => b.Location)
+        .Include(b => b.Events)
         .Include(b => b.Cards)
         .ThenInclude(c => c.StreetAddresses)
         .ThenInclude(a => a.Street)
@@ -233,38 +250,41 @@
     {
         map.MarkersList.Clear();
         map.MarkersList.Add(new Marker(OpenLayers.Blazor.MarkerType.MarkerPin, coordinate));
-        building.Longitude = coordinate.Longitude;
-        building.Latitude = coordinate.Latitude;
+        if (building is not null)
+        {
+            building.Longitude = coordinate.Longitude;
+            building.Latitude = coordinate.Latitude;
+        }
     }
 
     public void AddEvent()
     {
-        building.Events.Add(new());
+        building?.Events.Add(new());
     }
 
     public void RemoveEvent(int index)
     {
-        building.Events.RemoveAt(index);
+        building?.Events.RemoveAt(index);
     }
 
     public void AddAddress(int cardIndex)
     {
-        building.Cards[cardIndex].StreetAddresses.Add(new());
+        building?.Cards[cardIndex].StreetAddresses.Add(new());
     }
 
     public void RemoveAddress(int cardIndex, int index)
     {
-        building.Cards[cardIndex].StreetAddresses.RemoveAt(index);
+        building?.Cards[cardIndex].StreetAddresses.RemoveAt(index);
     }
 
     public void AddPart(int cardIndex)
     {
-        building.Cards[cardIndex].Parts.Add(new());
+        building?.Cards[cardIndex].Parts.Add(new());
     }
 
     public void RemovePart(int cardIndex, int index)
     {
-        building.Cards[cardIndex].Parts.RemoveAt(index);
+        building?.Cards[cardIndex].Parts.RemoveAt(index);
     }
 
     public void AddCard()
@@ -272,10 +292,10 @@
         BuildingCard card = new()
             {
                 //Design = building.Cards.LastOrDefault()?.Design!,
-                Name = building.Cards.LastOrDefault()?.Name ?? "",
-                FloorCount = building.Cards.LastOrDefault()?.FloorCount ?? [],
+                Name = building?.Cards.LastOrDefault()?.Name ?? "",
+                FloorCount = building?.Cards.LastOrDefault()?.FloorCount ?? [],
             };
-        building.Cards.Add(card);
+        building?.Cards.Add(card);
     }
 
     public void Save()
@@ -287,7 +307,7 @@
                 {
                     Severity = NotificationSeverity.Success,
                     Summary = "Building saved",
-                    Detail = $"ID: {building.Id}"
+                    Detail = $"ID: {building?.Id}"
                 });
         }
         catch (Exception e)

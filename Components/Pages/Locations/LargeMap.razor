@@ -7,16 +7,30 @@
 @if (location != null)
 {
     <ArchibasePageTitle Title=@($"{Loc["Large map for location"]}: {location.Name}") />
-    <OpenStreetMap @ref="map" Style="width: 90%; height: 90%" OnMarkerClick="args => OnMarkerClick(args)">
 
+    @if (!loaded)
+    {
+        <RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.Center" Wrap="FlexWrap.Wrap">
+    <RadzenText>@Loc["Loading data..."]</RadzenText>
+    <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Primary" Value="100" ShowValue="false"
+        Mode="ProgressBarMode.Indeterminate" />
+</RadzenStack>
+    }
+
+    <OpenStreetMap @ref="map" Style="width: 90%; height: 90%" OnMarkerClick="args => OnMarkerClick(args)">
     </OpenStreetMap>
+
 }
 
 @code
 {
+    bool loaded = false;
     class BuildingInfo
     {
-        public Building Building { get; set; }
+        public Guid BuildingId { get; set; }
+        public BuildingEventType? CurrentStatus { get; set; }
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
         public string Label { get; set; }
         public bool HasPhotos { get; set; }
     }
@@ -29,6 +43,8 @@
     Location? location;
 
     List<BuildingInfo> buildings = [];
+
+    List<Marker> markers = [];
 
     protected override async Task OnParametersSetAsync()
     {
@@ -48,7 +64,10 @@
         .AsEnumerable()
         .Select(b => new BuildingInfo
             {
-                Building = b.Building,
+                BuildingId = b.Building.Id,
+                CurrentStatus = b.Building.Events.OrderBy(e => (e.Date.Date)).ThenBy(e => e.Type).LastOrDefault()?.Type,
+                Latitude = b.Building.Latitude,
+                Longitude = b.Building.Longitude,
                 Label = String.Join("/", b.Building.ActualCard.StreetAddresses.Select(a => a.HouseNumber)),
                 HasPhotos = b.HasPhotos
             })
@@ -59,14 +78,15 @@
     {
         if (firstRender)
         {
+            loaded = false;
             double avgLat = 0.0, avgLon = 0.0;
             foreach (var b in buildings)
             {
                 var marker = new Marker(
                 OpenLayers.Blazor.MarkerType.MarkerFlag,
-                new Coordinate(b.Building.Longitude, b.Building.Latitude),
+                new Coordinate(b.Longitude, b.Latitude),
                 b.Label);
-                marker.Fill = b.Building.Events.OrderBy(e => (e.Date.Date)).ThenBy(e => e.Type).LastOrDefault()?.Type switch
+                marker.Fill = b.CurrentStatus switch
                 {
                     BuildingEventType.ConstructionStarted => "limegreen",
                     BuildingEventType.RebuildingStarted => "gold",
@@ -76,13 +96,22 @@
                 };
                 if (!b.HasPhotos) marker.TextColor = "orange";
                 map.MarkersList.Add(marker);
-                avgLat += b.Building.Latitude;
-                avgLon += b.Building.Longitude;
+                markers.Add(marker);
+                avgLat += b.Latitude;
+                avgLon += b.Longitude;
             }
-            avgLat /= buildings.Count;
-            avgLon /= buildings.Count;
-            map.Center = new Coordinate(avgLon, avgLat);
+            if (buildings.Count != 0)
+            {
+                avgLat /= buildings.Count;
+                avgLon /= buildings.Count;
+                map.Center = new Coordinate(avgLon, avgLat);
+            }
+            else
+            {
+                map.Center = new Coordinate(location.Longitude, location.Latitude);
+            }
             map.Zoom = 15;
+            loaded = true;
             StateHasChanged();
         }
 
@@ -94,13 +123,10 @@
         var lat = marker.Coordinate.Latitude;
         var lon = marker.Coordinate.Longitude;
         Guid? buildingId = buildings
-        .FirstOrDefault(b => b.Building.Latitude == lat && b.Building.Longitude == lon)?.Building.Id;
+        .FirstOrDefault(b => b.Latitude == lat && b.Longitude == lon)?.BuildingId;
         if (buildingId is not null)
         {
             await JSRuntime.InvokeVoidAsync("open", $"/buildings/{buildingId}", "_blank");
         }
     }
-
-
-
 }

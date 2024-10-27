@@ -17,7 +17,7 @@
         </AuthorizeView>
     </CascadingAuthenticationState>
 
-    <RadzenDataGrid AllowFiltering="true" Density="Density.Compact" AllowPaging=true PageSize="10"
+    <RadzenDataGrid AllowFiltering="true" Density="Density.Compact" AllowPaging=true PageSize="10" Responsive=true
         Data="@(designCatalogue.Entries.OrderBy(d=> d.Code, StringComparison.OrdinalIgnoreCase.WithNaturalSort()))">
         <Columns>
             <RadzenDataGridColumn Property="Code" Title=@Loc["Code"] Width="10%"></RadzenDataGridColumn>

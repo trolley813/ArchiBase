@@ -58,7 +58,7 @@
 
     }
 
-    <RadzenDataGrid AllowFiltering="true" Density="Density.Compact"
+    <RadzenDataGrid AllowFiltering="true" Density="Density.Compact" Responsive=true
     Data="@(category.Designs.OrderBy(d => d.Name, StringComparison.OrdinalIgnoreCase.WithNaturalSort()))"
     AllowPaging=true PageSize="50">
     <Columns>

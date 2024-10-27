@@ -4,7 +4,7 @@
 
 <RadzenText TextStyle="TextStyle.H3">@Loc["Galleries"]</RadzenText>
 <RadzenDataGrid AllowPaging=true Data="@galleries" PagerAlwaysVisible=true ShowPagingSummary=true
-    Density="Density.Default" PageSize="30" AllowFiltering=true AllowSorting=true>
+    Density="Density.Default" PageSize="30" AllowFiltering=true AllowSorting=true Responsive=true>
     <Columns>
         <RadzenDataGridColumn Title=@Loc["Name"]>
             <Template Context="gallery">

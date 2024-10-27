@@ -175,4 +175,13 @@
   <data name="To upload photos, you must be authorized." xml:space="preserve">
         <value>Чтобы загружать фото, Вы должны быть авторизованы.</value>
     </data>
+  <data name="Select a location" xml:space="preserve">
+        <value>Выберите НП</value>
+    </data>
+  <data name="Select a building" xml:space="preserve">
+        <value>Выберите здание</value>
+    </data>
+  <data name="Address" xml:space="preserve">
+        <value>Адрес</value>
+    </data>
 </root>

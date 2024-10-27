@@ -2,15 +2,15 @@
 
 @if (Loaded)
 {
+    <RadzenColumn Size="12">
     @ChildContent
+</RadzenColumn>
 }
 else
 {
-    <RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.Center" Wrap="FlexWrap.Wrap">
     <RadzenText>@Loc["Loading..."]</RadzenText>
     <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Primary" Value="100" ShowValue="false"
-        Mode="ProgressBarMode.Indeterminate" />
-</RadzenStack>
+        Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Small" />
 }
 
 @code

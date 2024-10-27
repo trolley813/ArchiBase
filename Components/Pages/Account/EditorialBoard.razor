@@ -96,7 +96,7 @@
         editors = await UserManager.GetUsersInRoleAsync("Editor");
         moderators = await UserManager.GetUsersInRoleAsync("Photo Moderator");
         var users = UserManager.Users.ToList();
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
         foreach (var user in users)
         {
             editsCount[user] = ModelContext.AuditRecords.Where(r => r.UserId == user.Id && (now - r.Timestamp).Days < 30).Count();

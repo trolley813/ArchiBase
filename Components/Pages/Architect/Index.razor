@@ -17,7 +17,7 @@
     </RadzenStack>
 </EditorOnly>
 
-<RadzenDataGrid @ref="grid" AllowPaging=true PageSize=20 PagerAlwaysVisible=true ShowPagingSummary=true
+<RadzenDataGrid @ref="grid" Responsive=true AllowPaging=true PageSize=20 PagerAlwaysVisible=true ShowPagingSummary=true
     Data="architects" Count="count" AllowSorting=true AllowFiltering=true LoadData="@LoadData" IsLoading=@(!loaded)>
     <Columns>
         <RadzenDataGridColumn Property="AbbreviatedName" Title=@Loc["Abbreviated name"] SortOrder="SortOrder.Ascending">
@@ -85,7 +85,7 @@
 
         count = query.Count();
 
-        architects = query.Skip(args.Skip.Value).Take(args.Top.Value).ToList();
+        architects = query.Skip(args.Skip ?? 0).Take(args.Top ?? Int32.MaxValue).ToList();
 
         loaded = true;
     }

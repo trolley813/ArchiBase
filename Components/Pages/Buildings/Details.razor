@@ -18,7 +18,7 @@
             <RadzenLink Text=@($"{sa.Street.Name}") Path=@($"buildings/by-street/{sa.Street.Id}") />
         }
         </RadzenStack>
-    <RadzenLink Text="Edit" Icon="edit" Path=@($"buildings/{building.Id}/edit") />
+    <RadzenLink Text="Edit" Icon="edit" Path=@($"buildings/{building.Id}/edit") Target="_blank" />
     <RadzenRow>
         <RadzenColumn>
             <RadzenText TextStyle="TextStyle.H6">@Loc["Timeline"]</RadzenText>
@@ -160,6 +160,24 @@
                                 </RadzenColumn>
                             </RadzenRow>
                         }
+                        @if (card.Builder is not null)
+                        {
+                            <RadzenRow>
+                                <RadzenColumn>
+                                    <RadzenText TextStyle="TextStyle.Overline">@Loc["Builder"]</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1"><b>@(card.Builder)</b></RadzenText>
+                                </RadzenColumn>
+                            </RadzenRow>
+                        }
+                        @if (card.Customer is not null)
+                        {
+                            <RadzenRow>
+                                <RadzenColumn>
+                                    <RadzenText TextStyle="TextStyle.Overline">@Loc["Customer"]</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1"><b>@(card.Customer)</b></RadzenText>
+                                </RadzenColumn>
+                            </RadzenRow>
+                        }
                         <RadzenRow>
                             <RadzenColumn>
                                 <RadzenText TextStyle="TextStyle.Overline">@Loc["Categories"]</RadzenText>
@@ -185,7 +203,7 @@
         </Tabs>
     </RadzenTabs>
     <RadzenText TextStyle="TextStyle.H6">@Loc["Photos"] (@(photos.Count))</RadzenText>
-    <RadzenDataGrid Data="photos">
+    <RadzenDataGrid Data="photos" Responsive=true>
         <Columns>
             <RadzenDataGridColumn Title=@Loc["Photo"]>
                 <Template Context="photo">

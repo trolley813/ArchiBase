@@ -41,71 +41,81 @@
     <RadzenDataList Data="comments" @ref="commentsList" Style="max-width: 100%">
         <Template Context="comment">
             <RadzenCard>
-                <RadzenStack Orientation="Orientation.Horizontal">
-                    <RadzenLink Path=@($"/users/{comment.AuthorId}") >
-                        @(commentAuthors.GetValueOrDefault(comment.AuthorId, Loc["(unknown author)"]))
-                    </RadzenLink>
+                <RadzenRow>
                     @if(ShowMode != CommentShowMode.ByEntity)
                     {
-                        @if(comment.EntityType == "Building")
-                        {
-                            <RadzenLink Path=@($"/buildings/{comment.EntityId}")>
-                                @Loc["Building"]: @(buildingAddresses.GetValueOrDefault(comment.EntityId))
-                            </RadzenLink>
-                        }
-                        @if(comment.EntityType == "Design")
-                        {
-                            <RadzenLink Path=@($"/series/{comment.EntityId}")>
-                                @Loc["Design"]: @(designNames.GetValueOrDefault(comment.EntityId))
-                            </RadzenLink>
-                        }
-                        @if(comment.EntityType == "DesignCategory")
-                        {
-                            <RadzenLink Path=@($"/categories/{comment.EntityId}")>
-                                @Loc["Category"]: @(designNames.GetValueOrDefault(comment.EntityId))
-                            </RadzenLink>
-                        }
-                        @if(comment.EntityType == "Photo")
-                        {
-                            <RadzenLink Path=@($"/photos/{comment.EntityId}")>
-                                @Loc["Photo"]: @(photoDescriptions.GetValueOrDefault(comment.EntityId))
-                            </RadzenLink>
-                        }
+                        <RadzenImage Style="height: 200px; max-width: 100%; display: flex;" Path=@(commentPhotos.GetValueOrDefault(comment.EntityId, "/images/arch.png"))
+                                AlternateText="Photo not available" onerror="this.src='/images/unavailable.png'" >
+                        </RadzenImage>
                     }
-                </RadzenStack>
-                <RadzenText TextStyle="TextStyle.Subtitle2">
-                    <LocalTime DateTime="comment.PublicationDate" />
-                </RadzenText>
-                <RadzenText>@((MarkupString)comment.Text)</RadzenText>
-                <RadzenStack Orientation="Orientation.Horizontal">
-                    <RadzenButton Icon="keyboard_arrow_up" Size="ButtonSize.ExtraSmall" Disabled="!CanUpvote(comment)" 
-                        Click="args => Upvote(comment)" />
-                    <RadzenText TextStyle="TextStyle.Body2" MouseEnter="args => ShowVotesTooltip(args, comment)">
-                        @(comment.VotesCount)</RadzenText>
-                    <RadzenButton Icon="keyboard_arrow_down" Size="ButtonSize.ExtraSmall" Disabled="!CanDownvote(comment)"
-                        Click="args => Downvote(comment)" />
-                </RadzenStack>
-                @if (ShowMode == CommentShowMode.New)
-                {
-                    <RadzenButton Text=@Loc["Mark up to this comment as read"] Icon="check" Size="ButtonSize.Small"
-                        Click="args => OnMark(comment.PublicationDate)" />
-                }
-                @if (comment.IsRecorded)
-                {
-                    <RadzenText class="rz-color-success" TextStyle="TextStyle.Subtitle2">
-                        <RadzenIcon Icon="check" />
-                        @Loc["Thank you! Comment was recorded."]
-                    </RadzenText>
-                }
-                <CascadingAuthenticationState>
-                    <AuthorizeView Roles="Admin, Editor, Local Editor">
-                        <RadzenToggleButton @bind-Value="comment.IsRecorded" 
-                            Text=@(comment.IsRecorded ? Loc["Unmark as recorded"] : Loc["Mark as recorded"])
-                            ButtonStyle="ButtonStyle.Success" ToggleButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small"
-                            Click="args => OnRecord(comment)" ToggleShade="Shade.Darker" Shade="Shade.Lighter" Icon="toggle_off"
-                            ToggleIcon="toggle_on" />
-                    </AuthorizeView>
-                </CascadingAuthenticationState>
+                    <RadzenColumn>
+                        <RadzenStack Orientation="Orientation.Horizontal">
+                            <RadzenLink Path=@($"/users/{comment.AuthorId}") >
+                                @(commentAuthors.GetValueOrDefault(comment.AuthorId, Loc["(unknown author)"]))
+                            </RadzenLink>
+                            @if(ShowMode != CommentShowMode.ByEntity)
+                            {
+                                @if(comment.EntityType == "Building")
+                                {
+                                    <RadzenLink Path=@($"/buildings/{comment.EntityId}")>
+                                        @Loc["Building"]: @(buildingAddresses.GetValueOrDefault(comment.EntityId))
+                                    </RadzenLink>
+                                }
+                                @if(comment.EntityType == "Design")
+                                {
+                                    <RadzenLink Path=@($"/series/{comment.EntityId}")>
+                                        @Loc["Design"]: @(designNames.GetValueOrDefault(comment.EntityId))
+                                    </RadzenLink>
+                                }
+                                @if(comment.EntityType == "DesignCategory")
+                                {
+                                    <RadzenLink Path=@($"/categories/{comment.EntityId}")>
+                                        @Loc["Category"]: @(designNames.GetValueOrDefault(comment.EntityId))
+                                    </RadzenLink>
+                                }
+                                @if(comment.EntityType == "Photo")
+                                {
+                                    <RadzenLink Path=@($"/photos/{comment.EntityId}")>
+                                        @Loc["Photo"]: @(photoDescriptions.GetValueOrDefault(comment.EntityId))
+                                    </RadzenLink>
+                                }
+                            }
+                        </RadzenStack>
+                        <RadzenText TextStyle="TextStyle.Subtitle2">
+                            <LocalTime DateTime="comment.PublicationDate" />
+                        </RadzenText>
+                        <RadzenText>@((MarkupString)comment.Text)</RadzenText>
+                        <RadzenStack Orientation="Orientation.Horizontal">
+                            <RadzenButton Icon="keyboard_arrow_up" Size="ButtonSize.ExtraSmall" Disabled="!CanUpvote(comment)" 
+                                Click="args => Upvote(comment)" />
+                            <RadzenText TextStyle="TextStyle.Body2" MouseEnter="args => ShowVotesTooltip(args, comment)">
+                                @(comment.VotesCount)</RadzenText>
+                            <RadzenButton Icon="keyboard_arrow_down" Size="ButtonSize.ExtraSmall" Disabled="!CanDownvote(comment)"
+                                Click="args => Downvote(comment)" />
+                        </RadzenStack>
+                        @if (ShowMode == CommentShowMode.New)
+                        {
+                            <RadzenButton Text=@Loc["Mark up to this comment as read"] Icon="check" Size="ButtonSize.Small"
+                                Click="args => OnMark(comment.PublicationDate)" />
+                        }
+                        @if (comment.IsRecorded)
+                        {
+                            <RadzenText class="rz-color-success" TextStyle="TextStyle.Subtitle2">
+                                <RadzenIcon Icon="check" />
+                                @Loc["Thank you! Comment was recorded."]
+                            </RadzenText>
+                        }
+                        <CascadingAuthenticationState>
+                            <AuthorizeView Roles="Admin, Editor, Local Editor">
+                                <RadzenToggleButton @bind-Value="comment.IsRecorded" 
+                                    Text=@(comment.IsRecorded ? Loc["Unmark as recorded"] : Loc["Mark as recorded"])
+                                    ButtonStyle="ButtonStyle.Success" ToggleButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small"
+                                    Click="args => OnRecord(comment)" ToggleShade="Shade.Darker" Shade="Shade.Lighter" Icon="toggle_off"
+                                    ToggleIcon="toggle_on" />
+                            </AuthorizeView>
+                        </CascadingAuthenticationState>
+                    </RadzenColumn>
+                </RadzenRow>
             </RadzenCard>
         </Template>
     </RadzenDataList>
@@ -151,6 +161,8 @@
     public CommentShowMode ShowMode { get; set; } = CommentShowMode.ByEntity;
 
     List<Comment> comments = [];
+
+    Dictionary<Guid, string> commentPhotos = [];
 
     Dictionary<Guid, string> commentAuthors = [];
 
@@ -240,6 +252,9 @@
             .ThenInclude(b => b.Building)
             .Select(p => new { p.Id, p.BuildingBinds })
             .ToDictionaryAsync(p => p.Id, p => String.Join("; ", p.BuildingBinds.Select(b => buildingAddresses.GetValueOrDefault(b.Building.Id, "Address"))));
+            commentPhotos = (await ModelContext.Photos.Where(p => entityIds.Contains(p.Id))
+            .ToListAsync())
+            .ToDictionary(p => p.Id, p => p.PhotoLink);
             
         }
     }

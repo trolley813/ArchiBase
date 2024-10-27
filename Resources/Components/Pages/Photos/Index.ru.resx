@@ -85,4 +85,13 @@
   <data name="Photo not available" xml:space="preserve">
         <value>Фото недоступно</value>
     </data>
+  <data name="Photos uploaded by {User}" xml:space="preserve">
+        <value>Фотографии, загруженные пользователем {User}</value>
+    </data>
+  <data name="Show all" xml:space="preserve">
+        <value>Показать все</value>
+    </data>
+  <data name="To user's page" xml:space="preserve">
+        <value>На страницу пользователя</value>
+    </data>
 </root>

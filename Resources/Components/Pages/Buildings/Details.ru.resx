@@ -112,4 +112,10 @@
   <data name="Address" xml:space="preserve">
         <value>Адрес</value>
     </data>
+  <data name="Builder" xml:space="preserve">
+        <value>Застройщик</value>
+    </data>
+  <data name="Customer" xml:space="preserve">
+        <value>Подрядчик</value>
+    </data>
 </root>

@@ -30,7 +30,7 @@
 
 
     <RadzenText TextStyle="TextStyle.H6">@Loc["Photos"] (@(photos.Count))</RadzenText>
-    <RadzenDataGrid Data="photos" AllowPaging=true PageSize=10 ShowPagingSummary=true>
+    <RadzenDataGrid Data="photos" AllowPaging=true PageSize=10 ShowPagingSummary=true Responsive=true>
         <Columns>
             <RadzenDataGridColumn Title=@Loc["Photo"]>
                 <Template Context="photo">

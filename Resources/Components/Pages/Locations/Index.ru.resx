@@ -112,4 +112,7 @@
   <data name="Galleries" xml:space="preserve">
         <value>Галереи</value>
     </data>
+  <data name="Show all" xml:space="preserve">
+        <value>Показать все</value>
+    </data>
 </root>

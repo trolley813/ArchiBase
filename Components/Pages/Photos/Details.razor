@@ -21,9 +21,9 @@
                 {
                         <RadzenAlert AllowClose="false" Title=@Loc["Photo is lost"] AlertStyle="AlertStyle.Dark" Shade="Shade.Default" Icon="no_photography">
                         @Loc["This photo is lost and needs to be restored."]
-                        @if(user?.Id == photo.AuthorId)
+                        @if(user?.Id == photo.AuthorId || isAdmin)
                         {
-                            <RadzenLink Text=@Loc["Restore"] Icon="restore" Path=@($"photo/{photo.Id}/restore") />
+                            <RadzenLink Text=@Loc["Restore"] Icon="restore" Path=@($"photos/{photo.Id}/restore") />
                         }
                         </RadzenAlert>
                 }
@@ -421,6 +421,8 @@ else
 
     bool canVote = false;
 
+    bool isAdmin = false;
+
     protected override async Task OnInitializedAsync()
     {
         user = UserManager.Users.FirstOrDefault(u => u.Id == UserResolverService.GetUser());
@@ -437,6 +439,7 @@ else
         .AsSplitQuery()
         .FirstOrDefaultAsync(p => p.Id == Id);
         author = await UserManager.FindByIdAsync(photo?.AuthorId.ToString());
+        if (user is not null) isAdmin = await UserManager.IsInRoleAsync(user, "Admin");
         if (photo is not null)
         {
             var authorIds = photo.Votes?.Values?.Select(v => v.Author) ?? [];
