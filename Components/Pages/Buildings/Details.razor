@@ -6,6 +6,7 @@
 @inject IStringLocalizer<Details> Loc
 @inject IStringLocalizer<BuildingEvent> ELoc
 @inject Archibase.Utils.CadastreRecordService Cadastre
+@inject ThumbnailService ThumbnailService
 
 
 @if (building != null)
@@ -27,7 +28,11 @@
                     <Items>
                         @foreach (var ev in building.Events.OrderBy(ev => ev.Date.Date))
                         {
-                            <RadzenTimelineItem PointStyle="GetPointStyleByEventType(ev.Type)">
+                            <RadzenTimelineItem PointStyle="GetPointStyleByEventType(ev.Type)" PointVariant="Variant.Outlined"
+                                PointShadow="0" PointSize="PointSize.Large">
+                                <PointContent>
+                                    <RadzenIcon Icon="@(GetIconByEventType(ev.Type))" />
+                                </PointContent>
                                 <LabelContent>
                                     <RadzenText TextStyle="TextStyle.H5" Class="@(GetTextStyleByEventType(ev.Type))">
                                         <ImpreciseDateDisplay Value="ev.Date" />
@@ -46,14 +51,10 @@
         <RadzenColumn>
             <RadzenText TextStyle="TextStyle.H6">@Loc["Building on map"]</RadzenText>
             <RadzenCard>
-                <OpenStreetMap Style="height:300px; width:300px"
-                    Center="new Coordinate(building.Longitude, building.Latitude)" Zoom="15">
-                    <Features>
-                        <Marker Type="OpenLayers.Blazor.MarkerType.MarkerPin"
-                            Coordinate="new Coordinate(building.Longitude, building.Latitude)">
-                        </Marker>
-                    </Features>
-                </OpenStreetMap>
+                <LeafletMap Style="min-height: 300px; width: 100%" Center="(building.Latitude, building.Longitude)"
+                    Zoom="15"
+                    PrincipalMarker="new PrincipalMarker { Latitude = building.Latitude, Longitude = building.Longitude }">
+                </LeafletMap>
             </RadzenCard>
         </RadzenColumn>
     </RadzenRow>
@@ -203,12 +204,14 @@
         </Tabs>
     </RadzenTabs>
     <RadzenText TextStyle="TextStyle.H6">@Loc["Photos"] (@(photos.Count))</RadzenText>
+    <RadzenLink Text=@Loc["Add photo"] Icon="add_circle_outline" Path=@($"/photos/upload?binds={building.Id}")
+        Target="_blank" />
     <RadzenDataGrid Data="photos" Responsive=true>
         <Columns>
             <RadzenDataGridColumn Title=@Loc["Photo"]>
                 <Template Context="photo">
                     <RadzenLink Path="@($"/photos/{photo.Id}")" Text="Photo" Target="_blank">
-                        <RadzenImage Path=@(photo.PhotoLink)
+                        <RadzenImage Path="@($"data:image/webp;base64,{ThumbnailService.GetThumbnail(photo)}")"
                             Style="display:block;margin:auto;max-height:200px;max-width:400px;height:auto;width:auto;"
                             AlternateText="Photo not available" onerror="this.src='/images/unavailable.png'" />
                     </RadzenLink>
@@ -302,5 +305,15 @@
         BuildingEventType.Abandoned => "rz-color-dark",
         BuildingEventType.Demolished => "rz-color-danger",
         _ => "rz-color-info"
+    };
+    public string GetIconByEventType(BuildingEventType eventType) => eventType switch
+    {
+        BuildingEventType.ConstructionStarted => "build",
+        BuildingEventType.ConstructionFinished => "check",
+        BuildingEventType.RebuildingStarted => "edit",
+        BuildingEventType.RebuildingFinished => "check",
+        BuildingEventType.Abandoned => "block",
+        BuildingEventType.Demolished => "close",
+        _ => "block"
     };
 }

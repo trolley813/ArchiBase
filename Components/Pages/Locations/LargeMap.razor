@@ -17,8 +17,9 @@
 </RadzenStack>
     }
 
-    <OpenStreetMap @ref="map" Style="width: 90%; height: 90%" OnMarkerClick="args => OnMarkerClick(args)">
-    </OpenStreetMap>
+    <LeafletMap @ref="map" Style="width: 90%; height: 90%" OnMarkerClick="args => OnMarkerClick(args)"
+        BuildingMarkers="markers">
+    </LeafletMap>
 
 }
 
@@ -38,18 +39,18 @@
     [Parameter]
     public Guid Id { get; set; }
 
-    Map map;
+    LeafletMap map;
 
     Location? location;
 
     List<BuildingInfo> buildings = [];
 
-    List<Marker> markers = [];
+    List<BuildingMarker> markers = [];
 
     protected override async Task OnParametersSetAsync()
     {
         location = ModelContext.Locations.FirstOrDefault(loc => loc.Id == Id);
-        buildings = ModelContext.Buildings
+        var buildingData = ModelContext.Buildings
         .Include(b => b.Events)
         .Include(b => b.Cards)
         .ThenInclude(c => c.StreetAddresses)
@@ -61,8 +62,9 @@
             HasPhotos = ModelContext.BuildingBinds.Include(bi => bi.Building).Any(bi => bi.Building.Id == b.Id)
         })
         .AsSplitQuery()
-        .AsEnumerable()
-        .Select(b => new BuildingInfo
+        .ToList();
+
+        buildings = buildingData.Select(b => new BuildingInfo
             {
                 BuildingId = b.Building.Id,
                 CurrentStatus = b.Building.Events.OrderBy(e => (e.Date.Date)).ThenBy(e => e.Type).LastOrDefault()?.Type,
@@ -72,6 +74,7 @@
                 HasPhotos = b.HasPhotos
             })
         .ToList();
+        markers = buildingData.Select(b => new BuildingMarker(b.Building) { HasPhotos = b.HasPhotos }).ToList();
     }
 
     protected override void OnAfterRender(bool firstRender)
@@ -82,21 +85,6 @@
             double avgLat = 0.0, avgLon = 0.0;
             foreach (var b in buildings)
             {
-                var marker = new Marker(
-                OpenLayers.Blazor.MarkerType.MarkerFlag,
-                new Coordinate(b.Longitude, b.Latitude),
-                b.Label);
-                marker.Fill = b.CurrentStatus switch
-                {
-                    BuildingEventType.ConstructionStarted => "limegreen",
-                    BuildingEventType.RebuildingStarted => "gold",
-                    BuildingEventType.Abandoned => "grey",
-                    BuildingEventType.Demolished => "crimson",
-                    _ => "black"
-                };
-                if (!b.HasPhotos) marker.TextColor = "orange";
-                map.MarkersList.Add(marker);
-                markers.Add(marker);
                 avgLat += b.Latitude;
                 avgLon += b.Longitude;
             }
@@ -104,11 +92,11 @@
             {
                 avgLat /= buildings.Count;
                 avgLon /= buildings.Count;
-                map.Center = new Coordinate(avgLon, avgLat);
+                map.Center = (avgLat, avgLon);
             }
             else
             {
-                map.Center = new Coordinate(location.Longitude, location.Latitude);
+                map.Center = (location.Latitude, location.Longitude);
             }
             map.Zoom = 15;
             loaded = true;
@@ -118,10 +106,10 @@
         base.OnAfterRender(firstRender);
     }
 
-    async void OnMarkerClick(Marker marker)
+    async void OnMarkerClick(BuildingMarker marker)
     {
-        var lat = marker.Coordinate.Latitude;
-        var lon = marker.Coordinate.Longitude;
+        var lat = marker.Latitude;
+        var lon = marker.Longitude;
         Guid? buildingId = buildings
         .FirstOrDefault(b => b.Latitude == lat && b.Longitude == lon)?.BuildingId;
         if (buildingId is not null)

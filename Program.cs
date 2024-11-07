@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Npgsql;
+using Humanizer;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,7 +31,11 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddServerSideBlazor().AddHubOptions(options =>
         {
-            options.MaximumReceiveMessageSize = 10 * 1024 * 1024;
+            options.MaximumReceiveMessageSize = 20 * 1024 * 1024;
+        }).AddCircuitOptions(options =>
+        {
+            options.DisconnectedCircuitRetentionPeriod = 15.Minutes();
+            options.JSInteropDefaultCallTimeout = 5.Minutes();
         });
 
 builder.Services.AddRadzenComponents();
@@ -62,16 +67,22 @@ builder.Services.AddScheduler(ctx =>
 {
     ctx.AddJob<PhotoApprovalJob>(configure: options =>
     {
-        options.CronSchedule = "0 0 * * *";
+        options.CronSchedule = "0 0 0 * * *";
         options.CronTimeZone = "UTC";
-        options.RunImmediately = false;
+        options.RunImmediately = true;
     });
     ctx.AddJob<PhotoCleanupJob>(configure: options =>
     {
-        options.CronSchedule = "0 0 1 * *";
+        options.CronSchedule = "0 0 0 1 * *";
         options.CronTimeZone = "UTC";
-        options.RunImmediately = false;
+        options.RunImmediately = true;
     });
+});
+
+builder.Services.AddRadzenCookieThemeService(options =>
+{
+    options.Name = "ArchibaseTheme"; // The name of the cookie
+    options.Duration = TimeSpan.FromDays(365); // The duration of the cookie
 });
 
 builder.Services.AddSingleton<StateContainer>();
@@ -84,6 +95,7 @@ builder.Services.AddTransient<UserResolverService>();
 builder.Services.AddTransient<CommentService>();
 builder.Services.AddScoped<UploadLimitService>();
 builder.Services.AddScoped<CadastreRecordService>();
+builder.Services.AddScoped<ThumbnailService>();
 
 builder.Services.AddScoped<LocalEditorService>();
 builder.Services.AddScoped<IAuthorizationHandler, LocalEditorRequirementHandler>();
@@ -142,7 +154,20 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions()
+{
+    OnPrepareResponse = (context) =>
+    {
+        var headers = context.Context.Response.GetTypedHeaders();
+        headers.CacheControl = new Microsoft.Net.Http.Headers.CacheControlHeaderValue
+        {
+            Public = true,
+            MaxAge = TimeSpan.FromDays(30),
+            NoCache = false
+        };
+
+    }
+});
 app.UseAntiforgery();
 
 var supportedCultures = new[] { "en-US", "ru-RU", "et-EE", "pl-PL", "be-BY", "de-DE" };

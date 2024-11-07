@@ -1,0 +1,104 @@
+@inject IJSRuntime JS
+
+<div id=@ContainerId style=@Style>
+
+</div>
+
+@code
+{
+    [Parameter]
+    public string Style { get; set; } = "height: 300px; width: auto";
+
+    [Parameter]
+    public string ContainerId { get; set; } = "map";
+
+    [Parameter]
+    public (double, double) Center { get; set; } = (0, 0);
+
+    [Parameter]
+    public double Zoom { get; set; } = 19;
+
+    [Parameter]
+    public List<BuildingMarker> BuildingMarkers
+    {
+        get => buildingMarkers;
+        set
+        {
+            buildingMarkers = value;
+            JS.InvokeVoidAsync("updateBuildingMarkers", BuildingMarkers.Select(b => b.Render).ToList());
+        }
+    }
+
+    [Parameter]
+    public CameraMarker? CameraMarker
+    {
+        get => cameraMarker;
+        set
+        {
+            cameraMarker = value;
+            if (value != null) JS.InvokeVoidAsync("updateCameraMarker", cameraMarker.Render);
+        }
+    }
+
+    [Parameter]
+    public PrincipalMarker? PrincipalMarker
+    {
+        get => principalMarker;
+        set
+        {
+            principalMarker = value;
+            if (value != null) JS.InvokeVoidAsync("updatePrincipalMarker", principalMarker.Render);
+        }
+    }
+
+    [Parameter]
+    public EventCallback<(double, double)> OnMapClick { get; set; }
+
+    [Parameter]
+    public EventCallback<BuildingMarker> OnMarkerClick { get; set; }
+
+    public CameraMarker? cameraMarker;
+    public PrincipalMarker? principalMarker;
+    public List<BuildingMarker> buildingMarkers = [];
+
+    override protected async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("createLeafletMap", ContainerId, Center.Item1, Center.Item2, Zoom,
+            DotNetObjectReference.Create(this));
+            await JS.InvokeVoidAsync("addBuildingMarkers", BuildingMarkers.Select(b => b.Render).ToList());
+            if (CameraMarker is not null)
+            {
+                await JS.InvokeVoidAsync("addCameraMarker", CameraMarker.Render);
+            }
+            if (PrincipalMarker is not null)
+            {
+                await JS.InvokeVoidAsync("addPrincipalMarker", PrincipalMarker.Render);
+            }
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnInternalMapClick(Dictionary<string, double> latlng)
+    {
+        var lat = latlng.GetValueOrDefault("lat");
+        var lon = latlng.GetValueOrDefault("lng");
+        if (OnMapClick.HasDelegate)
+        {
+            await OnMapClick.InvokeAsync((lat, lon));
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnInternalMarkerClick(Dictionary<string, double> latlng)
+    {
+        var lat = latlng.GetValueOrDefault("lat");
+        var lon = latlng.GetValueOrDefault("lng");
+        var marker = BuildingMarkers.Find(m => m.Latitude == lat && m.Longitude == lon);
+        if (marker is not null && OnMarkerClick.HasDelegate)
+        {
+            await OnMarkerClick.InvokeAsync(marker);
+        }
+    }
+}

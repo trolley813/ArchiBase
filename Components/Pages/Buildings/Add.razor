@@ -21,8 +21,8 @@
             <RadzenNumeric ShowUpDown="false" @bind-Value="longitude" />
         </RadzenFormField>
     </RadzenRow>
-    <OpenStreetMap @ref="map" Style="height:480px; width:640px" OnClick="OnMapClick">
-    </OpenStreetMap>
+    <LeafletMap @ref="map" Style="height:480px; width:640px" OnMapClick="OnMapClick">
+    </LeafletMap>
 
     <RadzenText TextStyle="TextStyle.H6">Timeline</RadzenText>
     <RadzenFormField>
@@ -111,7 +111,7 @@
 
     Location? location = null;
 
-    OpenStreetMap map;
+    LeafletMap map;
 
     double latitude, longitude;
 
@@ -141,17 +141,16 @@
         SelectStreets();
     }
 
-    void OnMapClick(Coordinate coordinate)
+    void OnMapClick((double, double) coordinate)
     {
-        map.MarkersList.Clear();
-        map.MarkersList.Add(new Marker(OpenLayers.Blazor.MarkerType.MarkerPin, coordinate));
-        longitude = coordinate.Longitude;
-        latitude = coordinate.Latitude;
+        latitude = coordinate.Item1;
+        longitude = coordinate.Item2;
+        map.PrincipalMarker = new PrincipalMarker { Latitude = latitude, Longitude = longitude };
     }
 
     public void SelectStreets()
     {
-        if (map != null && location != null) map.SetCenter(new Coordinate(location.Longitude, location.Latitude));
+        if (map != null && location != null) map.Center = (location.Latitude, location.Longitude);
         Streets = ModelContext.Streets.Where(s => s.Location == location).ToList();
         addresses.Clear();
     }

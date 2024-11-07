@@ -7,6 +7,7 @@
 @inject TooltipService TooltipService
 @inject UserResolverService UserResolverService
 @inject CommentService CommentService
+@inject ThumbnailService ThumbnailService
 @inject NavigationManager NavigationManager
 
 <LoadingScreen Loaded="loaded">
@@ -254,7 +255,7 @@
             .ToDictionaryAsync(p => p.Id, p => String.Join("; ", p.BuildingBinds.Select(b => buildingAddresses.GetValueOrDefault(b.Building.Id, "Address"))));
             commentPhotos = (await ModelContext.Photos.Where(p => entityIds.Contains(p.Id))
             .ToListAsync())
-            .ToDictionary(p => p.Id, p => p.PhotoLink);
+            .ToDictionary(p => p.Id, p => $"data:image/webp;base64,{ThumbnailService.GetThumbnail(p)}");
             
         }
     }

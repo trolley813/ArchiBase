@@ -1,6 +1,7 @@
 ﻿@using System.Reflection
 @inherits LayoutComponentBase
 @inject IConfiguration Configuration
+@inject CookieThemeService CookieThemeService
 
 <RadzenComponents />
 <InitializeTimeZone />
@@ -15,7 +16,7 @@
             <CultureSelector />
         </RadzenStack>
     </RadzenHeader>
-    <RadzenSidebar @bind-Expanded="@sidebar1Expanded">
+    <RadzenSidebar @bind-Expanded="@sidebar1Expanded" Responsive=true>
         <NavMenu />
     </RadzenSidebar>
     <RadzenBody>

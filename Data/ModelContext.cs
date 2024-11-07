@@ -114,19 +114,23 @@ public class ModelContext : DbContext
 
     public void OnBeforeSaving()
     {
-        foreach (var e in ChangeTracker.Entries().ToList())
+        var userId = service.GetUser();
+        if (userId != Guid.Empty)
         {
-            switch (e.State)
+            foreach (var e in ChangeTracker.Entries().ToList())
             {
-                case EntityState.Deleted when e.Entity is IAuditable a:
-                    AuditRecords.Add(new AuditRecord(a, service.GetUser(), "Deleted"));
-                    break;
-                case EntityState.Modified when e.Entity is IAuditable a:
-                    AuditRecords.Add(new AuditRecord(a, service.GetUser(), "Modified"));
-                    break;
-                case EntityState.Added when e.Entity is IAuditable a:
-                    AuditRecords.Add(new AuditRecord(a, service.GetUser(), "Created"));
-                    break;
+                switch (e.State)
+                {
+                    case EntityState.Deleted when e.Entity is IAuditable a:
+                        AuditRecords.Add(new AuditRecord(a, userId, "Deleted"));
+                        break;
+                    case EntityState.Modified when e.Entity is IAuditable a:
+                        AuditRecords.Add(new AuditRecord(a, userId, "Modified"));
+                        break;
+                    case EntityState.Added when e.Entity is IAuditable a:
+                        AuditRecords.Add(new AuditRecord(a, userId, "Created"));
+                        break;
+                }
             }
         }
     }

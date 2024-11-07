@@ -6,6 +6,7 @@
 @inject UsersContext UsersContext
 @inject UserManager<ArchiBaseUser> UserManager
 @inject IStringLocalizer<Index> Loc
+@inject ThumbnailService ThumbnailService
 
 <ArchibasePageTitle Title=@Loc["Photos"] />
 
@@ -29,7 +30,7 @@ else
         <RadzenDataGridColumn Title=@Loc["Photo"] Sortable=false Filterable=false>
             <Template Context="photo">
                 <RadzenLink Path=@($"/photos/{photo.Photo.Id}")>
-                    <RadzenImage Path=@(photo.Photo.PhotoLink)
+                    <RadzenImage Path="@($"data:image/webp;base64,{ThumbnailService.GetThumbnail(photo.Photo)}")"
                         Style="display:block;margin:auto;max-height:150px;max-width:300px;height:auto;width:auto;"
                         AlternateText=@Loc["Photo not available"] onerror="this.src='/images/unavailable.png'" />
                 </RadzenLink>

@@ -1,3 +1,10 @@
+## 0.2.3 (2024-11-07)
+- new Leaflet-based map
+- photo previews
+- some heavy pages wrapped into a loading screen
+- fix when uploading multiple photos
+- several tiny bug fixes
+
 ## 0.2.2 (2024-10-27)
 - more responsive table layouts
 - street list now displayed by letter in several columns

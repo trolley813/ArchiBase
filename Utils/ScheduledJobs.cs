@@ -22,7 +22,7 @@ public class PhotoApprovalJob(IServiceProvider provider) : IScheduledJob
             var hasPositiveVotes = photo.Votes.Upvotes > 0;
             var (approvalLimit, rejectionLimit) = (now - photo.PublicationDate).Days switch
             {
-                int d when d < 7 => (+3, -3),
+                int d when d < 7 => (+2, -3),
                 int d when d >= 7 && d < 14 => (+2, hasPositiveVotes ? -2 : -3),
                 int d when d >= 14 && d < 28 => (+1, hasPositiveVotes ? -1 : -2),
                 int d when d >= 28 && d < 56 => (0, hasPositiveVotes ? -1 : -2),

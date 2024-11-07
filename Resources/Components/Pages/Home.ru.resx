@@ -88,4 +88,10 @@
   <data name="Home" xml:space="preserve">
         <value>Главная</value>
     </data>
+  <data name="Random photos" xml:space="preserve">
+        <value>Случайные фотографии</value>
+    </data>
+  <data name="Active users" xml:space="preserve">
+        <value>Активных пользователей</value>
+    </data>
 </root>

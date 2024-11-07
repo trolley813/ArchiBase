@@ -2,11 +2,11 @@
 @inject DialogService DialogService
 
 <RadzenStack>
-    <OpenStreetMap @ref="map" Style="height:480px; width:640px" OnClick="OnMapClick"
+    <LeafletMap @ref="map" Style="height:480px; width:640px" OnMapClick="OnMapClick"
         Zoom="Model.Latitude is null ? 10 : 16"
-        Center="new Coordinate(Model.Longitude ?? Location.Longitude, Model.Latitude ?? Location.Latitude)">
+        Center="(Model.Latitude ?? Location.Latitude, Model.Longitude ?? Location.Longitude)">
 
-    </OpenStreetMap>
+    </LeafletMap>
     <RadzenButton Click="@((args) => DialogService.Close(true))" Variant="Variant.Flat" Text="Close" />
 </RadzenStack>
 
@@ -17,13 +17,12 @@
     [Parameter]
     public Location Location { get; set; }
 
-    OpenStreetMap map;
+    LeafletMap map;
 
-    void OnMapClick(Coordinate coordinate)
+    void OnMapClick((double, double) coordinate)
     {
-        map.MarkersList.Clear();
-        map.MarkersList.Add(new Marker(OpenLayers.Blazor.MarkerType.MarkerPin, coordinate));
-        Model.Longitude = coordinate.Longitude;
-        Model.Latitude = coordinate.Latitude;
+        Model.Latitude = coordinate.Item1;
+        Model.Longitude = coordinate.Item2;
+        map.PrincipalMarker = new PrincipalMarker { Latitude = Model.Latitude ?? 0.0, Longitude = Model.Longitude ?? 0.0 };
     }
 }

@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using ArchiBase.Components.Utils
+@using Microsoft.EntityFrameworkCore
 @inject IStringLocalizer<Home> Loc
 @inject ModelContext ModelContext
 @inject UsersContext UsersContext
@@ -33,7 +34,7 @@
 </RadzenRow>
 
 <RadzenRow>
-    <RadzenColumn>
+    <RadzenColumn SizeSM="12" SizeMD="4" SizeLG="3">
         <RadzenCard>
             <RadzenRow>
                 <RadzenColumn>
@@ -47,7 +48,7 @@
         </RadzenCard>
     </RadzenColumn>
 
-    <RadzenColumn>
+    <RadzenColumn SizeSM="12" SizeMD="4" SizeLG="3">
         <RadzenCard>
             <RadzenRow>
                 <RadzenColumn>
@@ -61,7 +62,7 @@
         </RadzenCard>
     </RadzenColumn>
 
-    <RadzenColumn>
+    <RadzenColumn SizeSM="12" SizeMD="4" SizeLG="3">
         <RadzenCard>
             <RadzenRow>
                 <RadzenColumn>
@@ -75,7 +76,7 @@
         </RadzenCard>
     </RadzenColumn>
 
-    <RadzenColumn>
+    <RadzenColumn SizeSM="12" SizeMD="4" SizeLG="3">
         <RadzenCard>
             <RadzenRow>
                 <RadzenColumn>
@@ -83,6 +84,20 @@
                     <RadzenText TextStyle="TextStyle.H1">
                         <RadzenIcon Icon="photo_camera" Style="font-size:36px" />
                         @photosCount
+                    </RadzenText>
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenCard>
+    </RadzenColumn>
+
+    <RadzenColumn SizeSM="12" SizeMD="4" SizeLG="3">
+        <RadzenCard>
+            <RadzenRow>
+                <RadzenColumn>
+                    <RadzenText TextStyle="TextStyle.Overline">@Loc["Active users"]</RadzenText>
+                    <RadzenText TextStyle="TextStyle.H1">
+                        <RadzenIcon Icon="person" Style="font-size:36px" />
+                        @activeUsersCount
                     </RadzenText>
                 </RadzenColumn>
             </RadzenRow>
@@ -105,20 +120,34 @@
 @foreach(var photo in recentPhotos)
 {
     <RadzenLink Path=@($"/photos/{photo.Id}")>
-        <RadzenImage Path=@(photo.PhotoLink) Style="height:200px;max-width:400px" onerror="this.src='/images/unavailable.png'" />
+        <RadzenImage Path=@(photo.PhotoLink) Style="max-height:200px;width:300px" onerror="this.src='/images/unavailable.png'" />
     </RadzenLink>
 }
 </RadzenStack>
+<RadzenText TextStyle="TextStyle.H4" class="mx-4 my-4">@Loc["Random photos"]</RadzenText>
+<RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
+@foreach(var photo in randomPhotos)
+{
+    <RadzenLink Path=@($"/photos/{photo.Id}")>
+        <RadzenImage Path=@(photo.PhotoLink) Style="max-height:200px;width:300px" onerror="this.src='/images/unavailable.png'" />
+    </RadzenLink>
+}
+</RadzenStack>
+
 @code
 {
-    int locationsCount, designsCount, buildingsCount, photosCount;
+    int locationsCount, designsCount, buildingsCount, photosCount, activeUsersCount;
 
     List<Photo> recentPhotos = [];
+    List<Photo> randomPhotos = [];
 
     List<NewsItem> news = [];
 
     ArchiBaseUser? user;
     Location? myLocation;
+
+    // TEMP
+    List <BuildingMarker> markers;
 
     protected override void OnInitialized()
     {
@@ -126,8 +155,10 @@
         designsCount = ModelContext.Designs.Count();
         buildingsCount = ModelContext.Buildings.Count();
         photosCount = ModelContext.ActivePhotos.Count();
+        activeUsersCount = UsersContext.Users.Where(u => u.PasswordHash != null).Count();
         news = ModelContext.NewsItems.OrderByDescending(n => n.PublicationDate).Take(5).ToList();
         recentPhotos = ModelContext.ActivePhotos.OrderByDescending(p => p.PublicationDate).Take(10).ToList();
+        randomPhotos = ModelContext.ActivePhotos.OrderBy(p => EF.Functions.Random()).Take(10).ToList();
         user = UsersContext.Users.FirstOrDefault(u => u.Id == UserResolverService.GetUser());
         myLocation = user is not null ? ModelContext.Locations.FirstOrDefault(loc => loc.Id == user.MyLocation) : null;
     }

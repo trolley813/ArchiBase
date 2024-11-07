@@ -4,55 +4,64 @@
 @inject NotificationService NotificationService
 @using Microsoft.EntityFrameworkCore
 
-@if (street is not null && location is not null)
-{
-    <EditorOnly Location=@(location.Id) ShowAlert=false>
-    <RadzenText TextStyle="TextStyle.H3">@Loc["Edit street"]</RadzenText>
+<LoadingScreen Loaded=@loaded>
+    <RadzenText></RadzenText>
+    @if (street is not null && location is not null)
+    {
+        <EditorOnly Location=@(location.Id) ShowAlert=false>
+            <RadzenText TextStyle="TextStyle.H3">@Loc["Edit street"]</RadzenText>
 
-    <RadzenStack Orientation="Orientation.Vertical">
-        <RadzenFormField Text="Name">
-            <RadzenTextBox @bind-Value="@street.Name" />
-        </RadzenFormField>
-        <RadzenFormField Text="Description">
-            <RadzenHtmlEditor @bind-Value="@street.Description" />
-        </RadzenFormField>
-        <RadzenFormField Text="From (optional)">
-            <ChildContent>
-                <ImpreciseDateInput Value="@(street.From ?? new())" ValueChanged="args => street.From = args"
-                    FieldName="From date (optional)" />
-            </ChildContent>
-            <End>
-                <RadzenButton Icon="delete" Click="args => street.From = null" />
-            </End>
-        </RadzenFormField>
-        <RadzenFormField Text="To (optional)">
-            <ChildContent>
-                <ImpreciseDateInput Value="@(street.To ?? new())" ValueChanged="args => street.To = args"
-                    FieldName="To date (optional)" />
-            </ChildContent>
-            <End>
-                <RadzenButton Icon="delete" Click="args => street.To = null" />
-            </End>
-        </RadzenFormField>
-        <RadzenFormField>
-            <RadzenButton Text="Save" Icon="save" Click="@Save" />
-        </RadzenFormField>
-    </RadzenStack>
-</EditorOnly>
-}
+            <RadzenStack Orientation="Orientation.Vertical">
+                <RadzenFormField Text="Name">
+                    <RadzenTextBox @bind-Value="@street.Name" />
+                </RadzenFormField>
+                <RadzenFormField Text="Description">
+                    <RadzenHtmlEditor @bind-Value="@street.Description" />
+                </RadzenFormField>
+                <RadzenFormField Text="From (optional)">
+                    <ChildContent>
+                        <ImpreciseDateInput Value="@(street.From ?? new())" ValueChanged="args => street.From = args"
+                            FieldName="From date (optional)" />
+                    </ChildContent>
+                    <End>
+                        <RadzenButton Icon="delete" Click="args => street.From = null" />
+                    </End>
+                </RadzenFormField>
+                <RadzenFormField Text="To (optional)">
+                    <ChildContent>
+                        <ImpreciseDateInput Value="@(street.To ?? new())" ValueChanged="args => street.To = args"
+                            FieldName="To date (optional)" />
+                    </ChildContent>
+                    <End>
+                        <RadzenButton Icon="delete" Click="args => street.To = null" />
+                    </End>
+                </RadzenFormField>
+                <RadzenFormField>
+                    <RadzenButton Text="Save" Icon="save" Click="@Save" />
+                </RadzenFormField>
+            </RadzenStack>
+        </EditorOnly>
+    }
+
+</LoadingScreen>
 
 @code
 {
     [Parameter]
     public Guid Id { get; set; }
 
+    bool loaded;
+
     Street? street;
     Location? location;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        loaded = false;
+        await Task.Yield();
         street = ModelContext.Streets.Include(s => s.Location).FirstOrDefault(s => s.Id == Id);
         location = street?.Location;
+        loaded = true;
     }
 
     public void Save()

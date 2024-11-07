@@ -102,4 +102,5 @@ public class Photo : IAuditable
     public PhotoStatus Status { get; set; }
 
     public ExifData Exif { get; set; }
+    public byte[]? ThumbnailData { get; set; }
 }

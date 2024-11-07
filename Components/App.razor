@@ -9,8 +9,11 @@
     @* <link rel="stylesheet" href="bootstrap/bootstrap.min.css" /> *@
     <link rel="stylesheet" href="app.css" />
     <link rel="stylesheet" href="ArchiBase.styles.css" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/openlayers/10.2.1/ol.min.css" rel="stylesheet" />
-    <link href="_content/OpenLayers.Blazor/OpenLayers.Blazor.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin="" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+        crossorigin="" />
     <HeadOutlet @rendermode="RenderModeForPage" />
 </head>
 
@@ -21,7 +24,10 @@
     <script src="boot.js"></script>
     <script
         src="_content/Radzen.Blazor/Radzen.Blazor.js?v=@(typeof(Radzen.Colors).Assembly.GetName().Version)"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/openlayers/10.2.1/dist/ol.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" crossorigin=""></script>
+    <script src="Components/Utils/LeafletMap.razor.js"></script>
 </body>
 
 </html>
@@ -33,4 +39,22 @@
 
     private IComponentRenderMode? RenderModeForPage =>
     HttpContext.Request.Path.StartsWithSegments("/account") ? null : InteractiveServer;
+
+    [Inject]
+    private ThemeService ThemeService { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        if (HttpContext != null)
+        {
+            var theme = HttpContext.Request.Cookies["ArchibaseTheme"];
+
+            if (!string.IsNullOrEmpty(theme))
+            {
+                ThemeService.SetTheme(theme, false);
+            }
+        }
+    }
 }

@@ -185,4 +185,10 @@
   <data name="(unknown)" xml:space="preserve">
         <value>(неизвестно)</value>
     </data>
+  <data name="Design" xml:space="preserve">
+        <value>Проект</value>
+    </data>
+  <data name="Categories" xml:space="preserve">
+        <value>Категории</value>
+    </data>
 </root>

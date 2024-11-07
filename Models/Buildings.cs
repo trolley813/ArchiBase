@@ -121,11 +121,16 @@ public class Building : IAuditable
 
     public BuildingCard? ActualCard => Cards.MaxBy(c => c.ActualFrom.Date);
 
+    public BuildingCard? ActualToDate(DateTime date) => Cards.Where(c => c.ActualFrom.Date < date).MaxBy(c => c.ActualFrom.Date);
+
     public string ActualAddress => String.Join(" / ", ActualCard?.StreetAddresses ?? []);
     public string ActualAddressWithLocation => $"{Location.Name}, {ActualAddress}";
 
     public BuildingEventType ActualStatus =>
         Events.OrderBy(e => e.Date.Date).ThenBy(e => e.Type).LastOrDefault()?.Type ?? BuildingEventType.ConstructionFinished;
+
+    public BuildingEvent? ActualEventToDate(DateTime date) =>
+        Events.Where(e => e.Date.Date < date).OrderBy(e => e.Date.Date).ThenBy(e => e.Type).LastOrDefault();
 
     public ImpreciseDate? GetDateOfStatus(BuildingEventType type) =>
         Events.FirstOrDefault(e => e.Type == type)?.Date;

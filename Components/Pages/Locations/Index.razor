@@ -5,181 +5,185 @@
 @inject IStringLocalizer<Index> Loc
 @inject ITreeRepository<Location, Guid> TreeRepo
 
+<LoadingScreen Loaded=@loaded>
+    <RadzenBreadCrumb>
+        <RadzenBreadCrumbItem Text=@Loc["Locations"] Path="/locations" />
+        @foreach (Location loc in HierarchyPath)
+        {
+            <RadzenBreadCrumbItem Text="@(loc.Name)" Path=@($"/locations/{loc.Id}") />
+        }
+        @if (location != null)
+        {
+            <RadzenBreadCrumbItem Text=@Loc["Add"] Path=@($"locations/add?parentid={location.Id}")
+                Icon="add_circle_outline" />
+        }
+        else
+        {
+            <RadzenBreadCrumbItem Text=@Loc["Add"] Path=@($"locations/add") Icon="add_circle_outline" />
+        }
 
-<RadzenBreadCrumb>
-    <RadzenBreadCrumbItem Text=@Loc["Locations"] Path="/locations" />
-    @foreach (Location loc in HierarchyPath)
-    {
-        <RadzenBreadCrumbItem Text="@(loc.Name)" Path=@($"/locations/{loc.Id}") />
-    }
+    </RadzenBreadCrumb>
+
     @if (location != null)
     {
-        <RadzenBreadCrumbItem Text=@Loc["Add"] Path=@($"locations/add?parentid={location.Id}") Icon="add_circle_outline" />
-    }
-    else
-    {
-        <RadzenBreadCrumbItem Text=@Loc["Add"] Path=@($"locations/add") Icon="add_circle_outline" />
-    }
-
-</RadzenBreadCrumb>
-
-@if (location != null)
-{
-    <ArchibasePageTitle Title=@(location.Name) />
-    <RadzenRow>
-        <img src=@($"flags/{location.Flag ?? "xx"}.svg") width="48px" />
-        <RadzenText TextStyle="TextStyle.H3">@(location.Name)</RadzenText>
-    </RadzenRow>
-    <RadzenRow>
-        @{
-            var localEditorText = LocalEditors.Count switch
-            {
-                0 => Loc["No local editors."],
-                1 => Loc["Local editor:"],
-                _ => Loc["Local editors:"],
-            };
-        }
-        <RadzenText>@localEditorText</RadzenText>
-        <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" Gap="8">
-            @foreach (var editor in LocalEditors)
-            {
-                <RadzenLink Text=@(editor.UserName) Path=@($"/users/{editor.Id}") />
-            }
-        </RadzenStack>
-    </RadzenRow>
-    <RadzenRow>
-        <RadzenLink Path=@($"locations/{Id}/map") Text=@Loc["Large map"] Icon="map" Target="_blank" />
-    </RadzenRow>
-    <RadzenRow>
-        <RadzenLink Path=@($"locations/{Id}/edit") Text=@Loc["Edit"] Icon="edit" Target="_blank" />
-        <RadzenLink Path=@($"locations/{Id}/delete") Text=@Loc["Delete"] Icon="delete" Target="_blank" />
-    </RadzenRow>
-
-    <RadzenRow>
-
-        <RadzenColumn SizeLG="6" SizeSM="12">
-            <OpenStreetMap @ref="map" Style="height: 480px; width: 640px; max-width: 100%;" Zoom="10"
-                Center="new Coordinate(location.Longitude, location.Latitude)">
-            </OpenStreetMap>
-        </RadzenColumn>
-
-        <RadzenColumn SizeLG="6" SizeSM="12">
-            <RadzenText>@((MarkupString)(location?.Description ?? "<i>(no description)</i>"))</RadzenText>
-        </RadzenColumn>
-
-
-        @if (ChildLocations.Any())
-        {
-            <RadzenColumn SizeLG="6" SizeSM="12">
-                <RadzenText TextStyle="TextStyle.DisplayH5">@Loc["Sub-locations"]</RadzenText>
-
-
-                <RadzenDataGrid Data="ChildLocations.OrderBy(loc => loc.Name)" Density="Density.Compact">
-                    <Columns>
-                        <RadzenDataGridColumn Title=@Loc["Name"] Width="80%">
-                            <Template Context="loc">
-                                <RadzenStack Orientation="Orientation.Horizontal" Style="white-space: pre-wrap;">
-                                    <img src=@($"flags/{loc.Flag ?? "xx"}.svg") width="24px" />
-                                    <RadzenLink Text="@(loc.Name)" Path=@($"/locations/{loc.Id}") />
-                                </RadzenStack>
-
-                            </Template>
-                        </RadzenDataGridColumn>
-                        <RadzenDataGridColumn Title=@Loc["Count"] Width="20%">
-                            <Template Context="loc">
-                                <RadzenText>@(SublocationCounts.GetValueOrDefault(loc, 0))</RadzenText>
-                            </Template>
-                        </RadzenDataGridColumn>
-                    </Columns>
-                </RadzenDataGrid>
-            </RadzenColumn>
-        }
-
-
-    </RadzenRow>
-
-    if (recentPhotos.Any())
-    {
-        <RadzenText TextStyle="TextStyle.H4" class="mx-4 my-4">@Loc["Recent photos"]</RadzenText>
+        <ArchibasePageTitle Title=@(location.Name) />
         <RadzenRow>
-            <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
-                @foreach (var photo in recentPhotos)
+            <img src=@($"flags/{location.Flag ?? "xx"}.svg") width="48px" />
+            <RadzenText TextStyle="TextStyle.H3">@(location.Name)</RadzenText>
+        </RadzenRow>
+        <RadzenRow>
+            @{
+                var localEditorText = LocalEditors.Count switch
                 {
-                    <RadzenLink Path=@($"/photos/{photo.Id}")>
-                        <RadzenImage Path=@(photo.PhotoLink) Style="height:200px;max-width:400px" />
-                    </RadzenLink>
+                    0 => Loc["No local editors."],
+                    1 => Loc["Local editor:"],
+                    _ => Loc["Local editors:"],
+                };
+            }
+            <RadzenText>@localEditorText</RadzenText>
+            <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" Gap="8">
+                @foreach (var editor in LocalEditors)
+                {
+                    <RadzenLink Text=@(editor.UserName) Path=@($"/users/{editor.Id}") />
                 }
             </RadzenStack>
         </RadzenRow>
-    }
+        <RadzenRow>
+            <RadzenLink Path=@($"locations/{Id}/map") Text=@Loc["Large map"] Icon="map" Target="_blank" />
+        </RadzenRow>
+        <RadzenRow>
+            <RadzenLink Path=@($"locations/{Id}/edit") Text=@Loc["Edit"] Icon="edit" Target="_blank" />
+            <RadzenLink Path=@($"locations/{Id}/delete") Text=@Loc["Delete"] Icon="delete" Target="_blank" />
+        </RadzenRow>
 
-    if (galleries.Any())
-    {
-        <RadzenText TextStyle="TextStyle.DisplayH5">@Loc["Galleries"]</RadzenText>
-        <RadzenDataList Data="@galleries" Density="Density.Compact" WrapItems=true>
-            <Template Context="gallery">
-                <RadzenText TextStyle="TextStyle.H6" Style="width: max(25%, 300px); max-width: 100%;">
-                    <RadzenLink Text="@(gallery.Name)" Path=@($"/galleries/{gallery.Id}") />
-                </RadzenText>
-            </Template>
-        </RadzenDataList>
-
-    }
-
-    if (location.AllowStreets)
-    {
-        <RadzenText TextStyle="TextStyle.DisplayH5">@Loc["Streets"]</RadzenText>
         <RadzenRow>
 
-            <RadzenLink Text=@Loc["Add Street"] Path=@($"locations/addstreet?locid={location.Id}") Icon="add_circle_outline" />
-            <RadzenLink Text=@Loc["Add Building"] Path=@($"buildings/add?locid={location.Id}") Icon="add_circle_outline" />
-            <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
-                <RadzenButton Text=@Loc["Show all"] Click="args => currentStartingChar = null"
-                    Variant="currentStartingChar == null ? Variant.Outlined : Variant.Filled" />
-                @foreach (var c in startingChars)
-                {
-                    <RadzenButton Text=@(c.ToString()) Click="args => currentStartingChar = c"
-                        Variant="currentStartingChar == c ? Variant.Outlined : Variant.Filled" />
-                }
-            </RadzenStack>
+            <RadzenColumn SizeLG="6" SizeSM="12">
+                <LeafletMap @ref="map" Style="height: 480px; width: 640px; max-width: 100%;" Zoom="10"
+                    Center="(location.Latitude, location.Longitude)"
+                    PrincipalMarker="new PrincipalMarker { Latitude = location.Latitude, Longitude = location.Longitude }">
+                </LeafletMap>
+            </RadzenColumn>
 
-            <RadzenDataList WrapItems=true
-                Data="streets.Where(s => s.StartsWith == currentStartingChar || currentStartingChar == null)">
-                <Template Context="street">
+            <RadzenColumn SizeLG="6" SizeSM="12">
+                <RadzenText>@((MarkupString)(location?.Description ?? "<i>(no description)</i>"))</RadzenText>
+            </RadzenColumn>
+
+
+            @if (ChildLocations.Any())
+            {
+                <RadzenColumn SizeLG="6" SizeSM="12">
+                    <RadzenText TextStyle="TextStyle.DisplayH5">@Loc["Sub-locations"]</RadzenText>
+
+
+                    <RadzenDataGrid Data="ChildLocations.OrderBy(loc => loc.Name)" Density="Density.Compact">
+                        <Columns>
+                            <RadzenDataGridColumn Title=@Loc["Name"] Width="80%">
+                                <Template Context="loc">
+                                    <RadzenStack Orientation="Orientation.Horizontal" Style="white-space: pre-wrap;">
+                                        <img src=@($"flags/{loc.Flag ?? "xx"}.svg") width="24px" />
+                                        <RadzenLink Text="@(loc.Name)" Path=@($"/locations/{loc.Id}") />
+                                    </RadzenStack>
+
+                                </Template>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn Title=@Loc["Count"] Width="20%">
+                                <Template Context="loc">
+                                    <RadzenText>@(SublocationCounts.GetValueOrDefault(loc, 0))</RadzenText>
+                                </Template>
+                            </RadzenDataGridColumn>
+                        </Columns>
+                    </RadzenDataGrid>
+                </RadzenColumn>
+            }
+
+
+        </RadzenRow>
+
+        if (recentPhotos.Any())
+        {
+            <RadzenText TextStyle="TextStyle.H4" class="mx-4 my-4">@Loc["Recent photos"]</RadzenText>
+            <RadzenRow>
+                <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
+                    @foreach (var photo in recentPhotos)
+                    {
+                        <RadzenLink Path=@($"/photos/{photo.Id}")>
+                            <RadzenImage Path=@(photo.PhotoLink) Style="height:200px;max-width:400px" />
+                        </RadzenLink>
+                    }
+                </RadzenStack>
+            </RadzenRow>
+        }
+
+        if (galleries.Any())
+        {
+            <RadzenText TextStyle="TextStyle.DisplayH5">@Loc["Galleries"]</RadzenText>
+            <RadzenDataList Data="@galleries" Density="Density.Compact" WrapItems=true>
+                <Template Context="gallery">
                     <RadzenText TextStyle="TextStyle.H6" Style="width: max(25%, 300px); max-width: 100%;">
-                        <RadzenLink Text="@(street.Street.Name)" Path="@($"buildings/by-street/{street.Street.Id}")" />
+                        <RadzenLink Text="@(gallery.Name)" Path=@($"/galleries/{gallery.Id}") />
                     </RadzenText>
                 </Template>
             </RadzenDataList>
-        </RadzenRow>
+
+        }
+
+        if (location.AllowStreets)
+        {
+            <RadzenText TextStyle="TextStyle.DisplayH5">@Loc["Streets"]</RadzenText>
+            <RadzenRow>
+
+                <RadzenLink Text=@Loc["Add Street"] Path=@($"locations/addstreet?locid={location.Id}")
+                    Icon="add_circle_outline" />
+                <RadzenLink Text=@Loc["Add Building"] Path=@($"buildings/add?locid={location.Id}") Icon="add_circle_outline" />
+                <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
+                    <RadzenButton Text=@Loc["Show all"] Click="args => currentStartingChar = null"
+                        Variant="currentStartingChar == null ? Variant.Outlined : Variant.Filled" />
+                    @foreach (var c in startingChars)
+                    {
+                        <RadzenButton Text=@(c.ToString()) Click="args => currentStartingChar = c"
+                            Variant="currentStartingChar == c ? Variant.Outlined : Variant.Filled" />
+                    }
+                </RadzenStack>
+
+                <RadzenDataList WrapItems=true
+                    Data="streets.Where(s => s.StartsWith == currentStartingChar || currentStartingChar == null)">
+                    <Template Context="street">
+                        <RadzenText TextStyle="TextStyle.H6" Style="width: max(25%, 300px); max-width: 100%;">
+                            <RadzenLink Text="@(street.Street.Name)" Path="@($"buildings/by-street/{street.Street.Id}")" />
+                        </RadzenText>
+                    </Template>
+                </RadzenDataList>
+            </RadzenRow>
+        }
+
     }
+    else
+    {
+        <ArchibasePageTitle Title=@Loc["Locations"] />
+        <RadzenText TextStyle="TextStyle.DisplayH3">@Loc["Locations"]</RadzenText>
+        <RadzenDataGrid Data="ChildLocations?.OrderByDescending(loc => SublocationCounts.GetValueOrDefault(loc, 0))"
+            Density="Density.Compact">
+            <Columns>
+                <RadzenDataGridColumn Title=@Loc["Name"]>
+                    <Template Context="loc">
+                        <img src=@($"flags/{loc.Flag ?? "xx"}.svg") width="32px" />
+                        <RadzenLink Text="@(loc.Name)" Path=@($"/locations/{loc.Id}") />
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title=@Loc["Count"]>
+                    <Template Context="loc">
+                        <RadzenText>@(SublocationCounts.GetValueOrDefault(loc, 0))</RadzenText>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
 
-}
-else
-{
-    <ArchibasePageTitle Title=@Loc["Locations"] />
-    <RadzenText TextStyle="TextStyle.DisplayH3">@Loc["Locations"]</RadzenText>
-    <RadzenDataGrid Data="ChildLocations?.OrderByDescending(loc => SublocationCounts.GetValueOrDefault(loc, 0))"
-        Density="Density.Compact">
-        <Columns>
-            <RadzenDataGridColumn Title=@Loc["Name"]>
-                <Template Context="loc">
-                    <img src=@($"flags/{loc.Flag ?? "xx"}.svg") width="32px" />
-                    <RadzenLink Text="@(loc.Name)" Path=@($"/locations/{loc.Id}") />
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title=@Loc["Count"]>
-                <Template Context="loc">
-                    <RadzenText>@(SublocationCounts.GetValueOrDefault(loc, 0))</RadzenText>
-                </Template>
-            </RadzenDataGridColumn>
-        </Columns>
-    </RadzenDataGrid>
+    }
+    </LoadingScreen>
 
-}
-
-@code
-{
+    @code
+    {
 
     [Parameter]
     public Guid? Id { get; set; }
@@ -191,6 +195,7 @@ else
         public char StartsWith { get; set; }
     }
 
+    bool loaded = false;
 
     Location? location;
 
@@ -208,10 +213,11 @@ else
 
     char? currentStartingChar;
 
-    OpenStreetMap map = null!;
+    LeafletMap map = null!;
 
     protected override async Task OnParametersSetAsync()
     {
+        loaded = false;
         location = await ModelContext.Locations.Include(loc => loc.Streets).FirstOrDefaultAsync(loc => loc.Id == Id);
         ChildLocations = await (location is null ? TreeRepo.QueryRoots() : TreeRepo.QueryChildren(location)).ToListAsync();
         SublocationCounts = ChildLocations.Where(loc => loc is not null)
@@ -249,14 +255,7 @@ else
             startingChars = streets.Select(s => s.StartsWith).Distinct().ToList();
         }
         base.OnParametersSet();
-        if (map != null)
-        {
-            map.MarkersList.Clear();
-            map.MarkersList.Add(new Marker(
-            OpenLayers.Blazor.MarkerType.MarkerPin,
-            new Coordinate(location?.Longitude ?? 0.0, location?.Latitude ?? 0.0)
-            ));
-        }
+        loaded = true;
     }
 
     string StreetSortKey(string streetName)
