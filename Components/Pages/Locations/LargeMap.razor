@@ -106,7 +106,7 @@
         base.OnAfterRender(firstRender);
     }
 
-    async void OnMarkerClick(BuildingMarker marker)
+    async Task OnMarkerClick(BuildingMarker marker)
     {
         var lat = marker.Latitude;
         var lon = marker.Longitude;

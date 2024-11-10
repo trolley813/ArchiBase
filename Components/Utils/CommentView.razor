@@ -50,10 +50,16 @@
                         </RadzenImage>
                     }
                     <RadzenColumn>
-                        <RadzenStack Orientation="Orientation.Horizontal">
-                            <RadzenLink Path=@($"/users/{comment.AuthorId}") >
-                                @(commentAuthors.GetValueOrDefault(comment.AuthorId, Loc["(unknown author)"]))
-                            </RadzenLink>
+                        <RadzenStack Orientation="Orientation.Vertical" Gap="3">
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap="8">
+                                <RadzenLink Path=@($"/users/{comment.AuthorId}") >
+                                    @(commentAuthors.GetValueOrDefault(comment.AuthorId, Loc["(unknown author)"]))
+                                </RadzenLink>
+                                @foreach(var role in commentAuthorRoles.GetValueOrDefault(comment.AuthorId, []))
+                                {
+                                    <RadzenBadge Variant="Variant.Outlined"  Text="@Loc[role]" IsPill=true BadgeStyle=@(role.ToBadgeStyle()) />
+                                }
+                            </RadzenStack>
                             @if(ShowMode != CommentShowMode.ByEntity)
                             {
                                 @if(comment.EntityType == "Building")
@@ -166,6 +172,7 @@
     Dictionary<Guid, string> commentPhotos = [];
 
     Dictionary<Guid, string> commentAuthors = [];
+    Dictionary<Guid, List<string>> commentAuthorRoles = [];
 
     Dictionary<Guid, string> buildingAddresses = [];
     Dictionary<Guid, string> designNames = [];
@@ -232,7 +239,15 @@
         .Select(b => b.Building.Id).Distinct()
         .ToListAsync();
         commentAuthors = await UserManager.Users.Where(u => authorIds.Contains(u.Id))
-        .Select(u => new { u.Id, u.UserName }).ToDictionaryAsync(x => x.Id, x => x.UserName ?? "(unnamed)");
+        .Select(u => new { u.Id, u.UserName, }).ToDictionaryAsync(x => x.Id, x => x.UserName ?? "(unnamed)");
+        commentAuthorRoles = commentAuthors.ToDictionary(kv => kv.Key, kv => new List<string>());
+        foreach(var rolename in new string[] {"Admin", "Editor", "Local Editor", "Photo Moderator" })
+        {
+            foreach(var user in await UserManager.GetUsersInRoleAsync(rolename))
+            {
+                if (commentAuthors.ContainsKey(user.Id)) commentAuthorRoles[user.Id].Add(rolename);
+            }
+        }
         if (ShowMode != CommentShowMode.ByEntity)
         {
             designNames = await ModelContext.Designs.Where(d => entityIds.Contains(d.Id))

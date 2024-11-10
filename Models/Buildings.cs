@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using EFMaterializedPath.Entity;
+using Microsoft.EntityFrameworkCore;
 
 namespace ArchiBase.Models;
 
@@ -55,10 +56,9 @@ public class Street : IAuditable
     public ImpreciseDate? To { get; set; }
 }
 
+[Owned]
 public class BuildingEvent
 {
-    public Guid Id { get; set; }
-    public Building Building { get; set; }
     public BuildingEventType Type { get; set; } = BuildingEventType.ConstructionFinished;
 
     public ImpreciseDate Date { get; set; } = new();
@@ -115,15 +115,14 @@ public class Building : IAuditable
     public string? Description { get; set; }
     public double Latitude { get; set; }
     public double Longitude { get; set; }
-
     public List<BuildingEvent> Events { get; set; } = [];
     public List<BuildingCard> Cards { get; set; } = [];
 
-    public BuildingCard? ActualCard => Cards.MaxBy(c => c.ActualFrom.Date);
+    public BuildingCard? ActualCard { get; set; }
 
     public BuildingCard? ActualToDate(DateTime date) => Cards.Where(c => c.ActualFrom.Date < date).MaxBy(c => c.ActualFrom.Date);
 
-    public string ActualAddress => String.Join(" / ", ActualCard?.StreetAddresses ?? []);
+    public string ActualAddress => string.Join(" / ", ActualCard?.StreetAddresses ?? []);
     public string ActualAddressWithLocation => $"{Location.Name}, {ActualAddress}";
 
     public BuildingEventType ActualStatus =>
@@ -133,7 +132,7 @@ public class Building : IAuditable
         Events.Where(e => e.Date.Date < date).OrderBy(e => e.Date.Date).ThenBy(e => e.Type).LastOrDefault();
 
     public ImpreciseDate? GetDateOfStatus(BuildingEventType type) =>
-        Events.FirstOrDefault(e => e.Type == type)?.Date;
+        Events.OrderByDescending(e => e.Date.Date).FirstOrDefault(e => e.Type == type)?.Date;
 
     public Location Location { get; set; }
 

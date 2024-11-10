@@ -64,4 +64,7 @@
   <data name="Large map for location" xml:space="preserve">
         <value>Большая карта для местоположения</value>
     </data>
+  <data name="Loading data..." xml:space="preserve">
+        <value>Загрузка данных...</value>
+    </data>
 </root>

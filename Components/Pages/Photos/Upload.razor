@@ -676,10 +676,13 @@
 
     void UpdateMap()
     {
-        var avgLat = model.Binds.Where(b => b.Building != null).Select(b => b.Building.Latitude).Average();
-        var avgLon = model.Binds.Where(b => b.Building != null).Select(b => b.Building.Longitude).Average();
-        map.Center = (avgLat, avgLon);
-        map.BuildingMarkers = model.Binds.Where(b => b.Building != null)
-        .Select(b => new BuildingMarker(b.Building)).ToList();
+        if (model.Binds.Count > 0)
+        {
+            var avgLat = model.Binds.Where(b => b.Building != null).Select(b => b.Building.Latitude).Average();
+            var avgLon = model.Binds.Where(b => b.Building != null).Select(b => b.Building.Longitude).Average();
+            map.Center = (avgLat, avgLon);
+            map.BuildingMarkers = model.Binds.Where(b => b.Building != null)
+            .Select(b => new BuildingMarker(b.Building)).ToList();
+        }
     }
 }

@@ -38,8 +38,7 @@
                 <RadzenStack Orientation="Orientation.Horizontal">
                     @foreach (var role in roles)
                     {
-                        <RadzenBadge Text="@Loc[role]" IsPill=true BadgeStyle=@((BadgeStyle)((uint)role.GetHashCode() %
-                    Enum.GetValues(typeof(BadgeStyle)).Length)) />
+                        <RadzenBadge Text="@Loc[role]" IsPill=true BadgeStyle=@(role.ToBadgeStyle()) />
                     }
                     @if (roles.Count == 0)
                     {

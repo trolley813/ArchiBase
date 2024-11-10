@@ -27,7 +27,6 @@ public class ModelContext : DbContext
 
     public DbSet<Street> Streets { get; set; }
     public DbSet<BuildingCard> BuildingCards { get; set; }
-    public DbSet<BuildingEvent> BuildingEvents { get; set; }
     public DbSet<Building> Buildings { get; set; }
 
     public DbSet<License> Licenses { get; set; }
@@ -71,8 +70,6 @@ public class ModelContext : DbContext
 
         modelBuilder.Entity<Building>().HasMany(e => e.Cards).WithOne(e => e.Building);
 
-        modelBuilder.Entity<Building>().HasMany(e => e.Events).WithOne(e => e.Building);
-
         modelBuilder.Entity<Photo>()
             .Property(e => e.Extension)
             .HasDefaultValue("jpg");
@@ -85,7 +82,6 @@ public class ModelContext : DbContext
 
         modelBuilder.Entity<BuildingCard>().HasMany(e => e.Categories).WithMany(e => e.BuildingCards);
 
-        modelBuilder.Entity<BuildingEvent>().OwnsOne(e => e.Date);
         modelBuilder.Entity<BuildingCard>().OwnsOne(e => e.ActualFrom);
         modelBuilder.Entity<Photo>().OwnsOne(e => e.ShootingDate);
         modelBuilder.Entity<Photo>().OwnsOne(e => e.Exif);
@@ -93,6 +89,7 @@ public class ModelContext : DbContext
 
         modelBuilder.Entity<Photo>().OwnsOne(p => p.Votes, v => { v.ToJson(); v.OwnsMany(v => v.Values); });
         modelBuilder.Entity<Comment>().OwnsOne(c => c.Votes, v => { v.ToJson(); v.OwnsMany(v => v.Values); });
+        modelBuilder.Entity<Building>().OwnsMany(b => b.Events, e => { e.ToJson(); e.OwnsOne(e => e.Date); });
 
         modelBuilder.Entity<PhotoAuthorMapping>()
             .ToView("View_PhotoAuthorMappings");

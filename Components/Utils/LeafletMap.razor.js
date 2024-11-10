@@ -1,19 +1,37 @@
 class LeafletMap {
     constructor(containerId, lat, lon, zoom, dotNetHelper) {
+        var osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution:
+                '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        });
+        // var ydx = L.yandex({ attribution: '&copy; <a href="https://yandex.ru/maps">Yandex</a>' });
         this.map = L.map(containerId).setView([lat, lon], zoom);
+        this.map._layersMaxZoom = 19;
         // de-Ukrainize the attribution prefix
         var attribution = this.map.attributionControl;
         attribution.setPrefix(
             '<a href="https://leafletjs.com">Leaflet</a> <img src="/flags/ru.svg" style="height: 12px"/>');
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution:
-                '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        }).addTo(this.map);
-        this.markers = {};
+        attribution.setPosition('bottomleft');
+        var baseMaps = {
+            "OpenStreetMap": osm,
+            // "Yandex": ydx
+        }
+        // no overlays yet
+        L.control.layers(baseMaps, {}, { collapsed: false }).addTo(this.map);
+        var selectedLayer = baseMaps[window.localStorage.getItem('archibaseSelectedLayer')];
+        if (selectedLayer != null) {
+            console.log(window.localStorage.getItem('archibaseSelectedLayer'));
+            selectedLayer.addTo(this.map);
+        }
+        this.map.on('click', onMapClick);
+        this.map.on('baselayerchange', function (e) {
+            window.localStorage.setItem('archibaseSelectedLayer', e.name);
+        });
         this.cameraMarker = null;
         this.principalMarker = null;
         this.buildingMarkersLayer = null;
+        this.sublocationMarkersLayer = null;
         window.dotNetHelper = dotNetHelper;
     }
 
@@ -33,11 +51,26 @@ class LeafletMap {
             var marker =
                 L.marker(new L.LatLng(a[0], a[1]), { title: title, icon: icon }).on('click', function (e) { onMarkerClick(e) });
             markers.addLayer(marker);
-            this.markers[text] = marker;
         }
         this.buildingMarkersLayer = markers;
         this.map.addLayer(markers);
-        this.map.on('click', onMapClick);
+    }
+
+    addSublocationMarkers(points) {
+        var markers = L.markerClusterGroup({ disableClusteringAtZoom: 14 });
+        for (var i = 0; i < points.length; i++) {
+            var a = points[i];
+            var title = a[2];
+            let circleSVGString =
+                `<svg version="1.2" baseProfile="tiny" xmlns="http://www.w3.org/2000/svg" width="250" height="250"><circle cx="125" cy="125" r="120" fill="#dc143c"/></svg>`
+            let iconURL = 'data:image/svg+xml,' + encodeURIComponent(circleSVGString);
+            var icon = L.icon({ iconUrl: iconURL, iconSize: [30, 30] });
+            var marker =
+                L.marker(new L.LatLng(a[0], a[1]), { title: title, icon: icon }).on('click', function (e) { onSublocationMarkerClick(e) });
+            markers.addLayer(marker);
+        }
+        this.sublocationMarkersLayer = markers;
+        this.map.addLayer(markers);
     }
 
     addCameraMarker(lat, lon, angle) {
@@ -53,6 +86,7 @@ class LeafletMap {
     addPrincipalMarker(lat, lon) {
         this.principalMarker =
             new L.marker(new L.LatLng(lat, lon));
+        this.principalMarker.options.icon.style = "filter: hue-rotate(120deg)";
         this.principalMarker.addTo(this.map);
     }
 
@@ -73,10 +107,19 @@ class LeafletMap {
     }
 
     updateBuildingMarkers(points) {
-        this.markers = {};
-        this.map.removeLayer(this.buildingMarkersLayer);
+        if (this.buildingMarkersLayer != null) {
+            this.buildingMarkersLayer.clearLayers();
+        }
         this.buildingMarkersLayer = null;
         addBuildingMarkers(points);
+    }
+
+    updateSublocationMarkers(points) {
+        if (this.sublocationMarkersLayer != null) {
+            this.sublocationMarkersLayer.clearLayers();
+        }
+        this.sublocationMarkersLayer = null;
+        addSublocationMarkers(points);
     }
 }
 
@@ -96,6 +139,10 @@ function addPrincipalMarker(lat, lon) {
     window.abLeafletMap.addPrincipalMarker(lat, lon)
 }
 
+function addSublocationMarkers(points) {
+    window.abLeafletMap.addSublocationMarkers(points)
+}
+
 function updateBuildingMarkers(points) {
     window.abLeafletMap.updateBuildingMarkers(points)
 }
@@ -108,6 +155,9 @@ function updatePrincipalMarker(lat, lon) {
     window.abLeafletMap.updatePrincipalMarker(lat, lon)
 }
 
+function updateSublocationMarkers(points) {
+    window.abLeafletMap.updateSublocationMarkers(points)
+}
 
 function onMapClick(e) {
     window.dotNetHelper.invokeMethodAsync("OnInternalMapClick", e.latlng);
@@ -115,4 +165,8 @@ function onMapClick(e) {
 
 function onMarkerClick(e) {
     window.dotNetHelper.invokeMethodAsync("OnInternalMarkerClick", e.latlng);
+}
+
+function onSublocationMarkerClick(e) {
+    window.dotNetHelper.invokeMethodAsync("OnInternalSublocationMarkerClick", e.latlng);
 }

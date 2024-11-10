@@ -18,6 +18,19 @@ public class PrincipalMarker : MarkerBase
     override public object[] Render => [Latitude, Longitude];
 }
 
+public class SublocationMarker : MarkerBase
+{
+    public string SublocationName { get; set; }
+
+    public SublocationMarker(Location location)
+    {
+        SublocationName = location.Name;
+        Latitude = location.Latitude;
+        Longitude = location.Longitude;
+    }
+    override public object[] Render => [Latitude, Longitude, SublocationName];
+}
+
 public class CameraMarker : MarkerBase
 {
     public CameraMarker() { }

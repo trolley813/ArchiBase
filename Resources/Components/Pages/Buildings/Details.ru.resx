@@ -113,9 +113,12 @@
         <value>Адрес</value>
     </data>
   <data name="Builder" xml:space="preserve">
-        <value>Застройщик</value>
+        <value>Подрядчик</value>
     </data>
   <data name="Customer" xml:space="preserve">
-        <value>Подрядчик</value>
+        <value>Застройщик</value>
+    </data>
+  <data name="Add photo" xml:space="preserve">
+        <value>Добавить фото</value>
     </data>
 </root>

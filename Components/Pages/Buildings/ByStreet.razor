@@ -156,8 +156,7 @@
         street = ModelContext.Streets.Include(s => s.Location).FirstOrDefault(s => s.Id == Id);
         if (street != null)
         {
-            buildings = ModelContext.Buildings
-            .Include(b => b.Events)
+            var rawBuildings = ModelContext.Buildings
             .Include(b => b.Cards)
             .ThenInclude(c => c.StreetAddresses)
             .ThenInclude(a => a.Street)
@@ -169,12 +168,13 @@
             .ThenInclude(d => d.Categories)
             .Where(b => b.Cards.Any(c => c.StreetAddresses.Any(a => a.Street == street)))
             .AsSplitQuery()
-            .ToList()
+            .ToList();
+            buildings = rawBuildings
             .Select(
             b => new BuildingInfo
                 {
                     Building = b,
-                    HouseNumber = b.Cards.SelectMany(c => c.StreetAddresses).First(c => c.Street == street).HouseNumber,
+                    HouseNumber = b.Cards.SelectMany(c => c.StreetAddresses).First(a => a.Street == street).HouseNumber,
                     FloorCount = String.Join("; ", b.ActualCard?.FloorCount ?? []),
                     Name = b.ActualCard?.Name ?? "",
                     Built = b.GetDateOfStatus(BuildingEventType.ConstructionFinished),
@@ -191,7 +191,7 @@
             .ThenInclude(b => b.Cards)
             .ThenInclude(c => c.StreetAddresses)
             .ThenInclude(a => a.Street)
-            .Where(b => b.Building.Cards.Any(c => c.StreetAddresses.Any(a => a.Street == street)))
+            .Where(b => rawBuildings.Contains(b.Building))
             .AsSplitQuery()
             .ToList()
             .GroupBy(b => b.Building)
@@ -245,7 +245,7 @@
         base.OnAfterRender(firstRender);
     }
 
-    async void OnMarkerClick(BuildingMarker marker)
+    async Task OnMarkerClick(BuildingMarker marker)
     {
         var lat = marker.Latitude;
         var lon = marker.Longitude;

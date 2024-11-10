@@ -52,14 +52,29 @@
     }
 
     [Parameter]
+    public List<SublocationMarker> SublocationMarkers
+    {
+        get => sublocationMarkers;
+        set
+        {
+            sublocationMarkers = value;
+            JS.InvokeVoidAsync("updateSublocationMarkers", sublocationMarkers.Select(b => b.Render).ToList());
+        }
+    }
+
+    [Parameter]
     public EventCallback<(double, double)> OnMapClick { get; set; }
 
     [Parameter]
     public EventCallback<BuildingMarker> OnMarkerClick { get; set; }
 
+    [Parameter]
+    public EventCallback<SublocationMarker> OnSublocationMarkerClick { get; set; }
+
     public CameraMarker? cameraMarker;
     public PrincipalMarker? principalMarker;
     public List<BuildingMarker> buildingMarkers = [];
+    public List<SublocationMarker> sublocationMarkers = [];
 
     override protected async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -68,6 +83,7 @@
             await JS.InvokeVoidAsync("createLeafletMap", ContainerId, Center.Item1, Center.Item2, Zoom,
             DotNetObjectReference.Create(this));
             await JS.InvokeVoidAsync("addBuildingMarkers", BuildingMarkers.Select(b => b.Render).ToList());
+            await JS.InvokeVoidAsync("addSublocationMarkers", SublocationMarkers.Select(b => b.Render).ToList());
             if (CameraMarker is not null)
             {
                 await JS.InvokeVoidAsync("addCameraMarker", CameraMarker.Render);
@@ -99,6 +115,18 @@
         if (marker is not null && OnMarkerClick.HasDelegate)
         {
             await OnMarkerClick.InvokeAsync(marker);
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnInternalSublocationMarkerClick(Dictionary<string, double> latlng)
+    {
+        var lat = latlng.GetValueOrDefault("lat");
+        var lon = latlng.GetValueOrDefault("lng");
+        var marker = SublocationMarkers.Find(m => m.Latitude == lat && m.Longitude == lon);
+        if (marker is not null && OnSublocationMarkerClick.HasDelegate)
+        {
+            await OnSublocationMarkerClick.InvokeAsync(marker);
         }
     }
 }

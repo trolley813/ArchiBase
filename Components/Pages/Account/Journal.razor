@@ -5,6 +5,7 @@
 @inject UserResolverService UserResolverService
 @inject UploadLimitService UploadLimitService
 @inject IStringLocalizer<Journal> Loc
+@inject ThumbnailService ThumbnailService
 
 <ArchibasePageTitle Title=@Loc["Journal"] />
 
@@ -14,7 +15,7 @@
     <Template Context="photo">
         <RadzenCard Style="width: 20%; max-width: 20%;">
             <RadzenLink Path=@($"/photos/{photo.Id}")>
-                <RadzenImage Path=@(photo.PhotoLink)
+                <RadzenImage Path=@($"data:image/webp;base64,{ThumbnailService.GetThumbnail(photo)}")
                     Style="display:block;margin:auto;max-height:150px;max-width:300px;height:auto;width:auto;"
                     AlternateText=@Loc["Photo not available"] onerror="this.src='/images/unavailable.png'" />
             </RadzenLink>

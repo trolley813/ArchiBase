@@ -4,6 +4,8 @@
 @inject UsersContext UsersContext
 @inject IStringLocalizer<Index> Loc
 @inject ITreeRepository<Location, Guid> TreeRepo
+@inject ThumbnailService ThumbnailService
+@inject IJSRuntime JSRuntime
 
 <LoadingScreen Loaded=@loaded>
     <RadzenBreadCrumb>
@@ -59,9 +61,12 @@
         <RadzenRow>
 
             <RadzenColumn SizeLG="6" SizeSM="12">
-                <LeafletMap @ref="map" Style="height: 480px; width: 640px; max-width: 100%;" Zoom="10"
-                    Center="(location.Latitude, location.Longitude)"
-                    PrincipalMarker="new PrincipalMarker { Latitude = location.Latitude, Longitude = location.Longitude }">
+                <LeafletMap @ref="map" Style="height: 480px; width: 640px; max-width: 100%;"
+                    Zoom="ChildLocations.Count > 0 ? 8 : 10"
+                    Center="(avgLat ?? location.Latitude, avgLon ?? location.Longitude)"
+                    PrincipalMarker="new PrincipalMarker { Latitude = location.Latitude, Longitude = location.Longitude }"
+                    SublocationMarkers="ChildLocations.Select(loc => new SublocationMarker(loc)).ToList()"
+                    OnSublocationMarkerClick="args => OpenChildLocation(args)">
                 </LeafletMap>
             </RadzenColumn>
 
@@ -108,7 +113,8 @@
                     @foreach (var photo in recentPhotos)
                     {
                         <RadzenLink Path=@($"/photos/{photo.Id}")>
-                            <RadzenImage Path=@(photo.PhotoLink) Style="height:200px;max-width:400px" />
+                            <RadzenImage Path=@($"data:image/webp;base64,{ThumbnailService.GetThumbnail(photo)}")
+                                Style="height:200px;max-width:400px" />
                         </RadzenLink>
                     }
                 </RadzenStack>
@@ -136,6 +142,10 @@
                 <RadzenLink Text=@Loc["Add Street"] Path=@($"locations/addstreet?locid={location.Id}")
                     Icon="add_circle_outline" />
                 <RadzenLink Text=@Loc["Add Building"] Path=@($"buildings/add?locid={location.Id}") Icon="add_circle_outline" />
+                <RadzenLink Text=@Loc["List of all buildings in the location"] Path=@($"locations/{location.Id}/buildings")
+                    Icon="list" />
+                <RadzenLink Text=@Loc["Stats by designs and categories"] Path=@($"locations/{location.Id}/designstats")
+                    Icon="analytics" />
                 <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
                     <RadzenButton Text=@Loc["Show all"] Click="args => currentStartingChar = null"
                         Variant="currentStartingChar == null ? Variant.Outlined : Variant.Filled" />
@@ -215,6 +225,8 @@
 
     LeafletMap map = null!;
 
+    double? avgLat = null, avgLon = null;
+
     protected override async Task OnParametersSetAsync()
     {
         loaded = false;
@@ -255,6 +267,11 @@
             startingChars = streets.Select(s => s.StartsWith).Distinct().ToList();
         }
         base.OnParametersSet();
+        if (ChildLocations.Count > 0)
+        {
+            avgLat = ChildLocations.Select(loc => loc.Latitude).Average();
+            avgLon = ChildLocations.Select(loc => loc.Longitude).Average();
+        }
         loaded = true;
     }
 
@@ -272,6 +289,17 @@
             sortKey = components.Skip(components.Count() > 1 ? 1 : 0).Aggregate("", (a, c) => a + c);
         }
         return sortKey;
+    }
+
+    void OpenChildLocation(SublocationMarker marker)
+    {
+        var location = ChildLocations.FirstOrDefault(loc => loc.Latitude == marker.Latitude && loc.Longitude ==
+        marker.Longitude);
+        if (location is not null)
+        {
+            JSRuntime.InvokeVoidAsync("open", $"/locations/{location.Id}", "_blank");
+        }
+
     }
 
 }

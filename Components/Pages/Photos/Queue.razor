@@ -3,6 +3,7 @@
 @inject ModelContext ModelContext
 @inject UserManager<ArchiBaseUser> UserManager
 @inject IStringLocalizer<Details> Loc
+@inject ThumbnailService ThumbnailService
 
 
 <ArchibasePageTitle Title=@Loc["Queue"] />
@@ -14,7 +15,7 @@
         <Template Context="photo">
             <RadzenCard Style="width: max(20%, 300px); max-width: 100%;">
                 <RadzenLink Path=@($"/photos/{photo.Id}")>
-                    <RadzenImage Path=@(photo.PhotoLink)
+                    <RadzenImage Path=@($"data:image/webp;base64,{ThumbnailService.GetThumbnail(photo)}")
                         Style="display:block;margin:auto;max-height:150px;max-width:300px;height:auto;width:auto;"
                         AlternateText=@Loc["Photo not available"] onerror="this.src='/images/unavailable.png'" />
                 </RadzenLink>

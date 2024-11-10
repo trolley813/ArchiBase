@@ -61,64 +61,34 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0,
       Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Add" xml:space="preserve">
-        <value>Добавить</value>
+  <data name="Buildings in location" xml:space="preserve">
+        <value>Здания в местоположении</value>
     </data>
-  <data name="Add Building" xml:space="preserve">
-        <value>Добавить здание</value>
+  <data name="Show photos" xml:space="preserve">
+        <value>Показывать фото</value>
     </data>
-  <data name="Add Street" xml:space="preserve">
-        <value>Добавить улицу</value>
+  <data name="Photo" xml:space="preserve">
+        <value>Фото</value>
     </data>
-  <data name="Count" xml:space="preserve">
-        <value>Количество</value>
+  <data name="Photo not available" xml:space="preserve">
+        <value>Фото недоступно</value>
     </data>
-  <data name="Delete" xml:space="preserve">
-        <value>Удалить</value>
+  <data name="Address" xml:space="preserve">
+        <value>Адрес</value>
     </data>
-  <data name="Edit" xml:space="preserve">
-        <value>Редактировать</value>
+  <data name="Design" xml:space="preserve">
+        <value>Проект</value>
     </data>
-  <data name="Locations" xml:space="preserve">
-        <value>Страны, регионы, населенные пункты</value>
+  <data name="Floor count" xml:space="preserve">
+        <value>Этажность</value>
     </data>
   <data name="Name" xml:space="preserve">
         <value>Название</value>
     </data>
-  <data name="Street Name" xml:space="preserve">
-        <value>Название улицы</value>
+  <data name="Built" xml:space="preserve">
+        <value>Построено</value>
     </data>
-  <data name="Streets" xml:space="preserve">
-        <value>Улицы</value>
-    </data>
-  <data name="Sub-locations" xml:space="preserve">
-        <value>Места в составе</value>
-    </data>
-  <data name="Recent photos" xml:space="preserve">
-        <value>Недавние фото</value>
-    </data>
-  <data name="Large map" xml:space="preserve">
-        <value>Большая карта</value>
-    </data>
-  <data name="No local editors." xml:space="preserve">
-        <value>Нет местных редакторов.</value>
-    </data>
-  <data name="Local editor:" xml:space="preserve">
-        <value>Местный редактор:</value>
-    </data>
-  <data name="Local editors:" xml:space="preserve">
-        <value>Местные редакторы:</value>
-    </data>
-  <data name="Galleries" xml:space="preserve">
-        <value>Галереи</value>
-    </data>
-  <data name="Show all" xml:space="preserve">
-        <value>Показать все</value>
-    </data>
-  <data name="List of all buildings in the location" xml:space="preserve">
-        <value>Список всех зданий в НП</value>
-    </data>
-  <data name="Stats by designs and categories" xml:space="preserve">
-        <value>Статистика по проектам и категориям</value>
+  <data name="Demolished" xml:space="preserve">
+        <value>Снесено</value>
     </data>
 </root>

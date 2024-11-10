@@ -2,11 +2,12 @@
 <html lang="en">
 
 <head>
-    <RadzenTheme Theme="material" @rendermode="RenderModeForPage" />
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
+    <RadzenTheme Theme="material" @rendermode="RenderModeForPage" />
     @* <link rel="stylesheet" href="bootstrap/bootstrap.min.css" /> *@
+    @* <link id="theme" rel="stylesheet" href=@themeURL> *@
     <link rel="stylesheet" href="app.css" />
     <link rel="stylesheet" href="ArchiBase.styles.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -27,6 +28,8 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" crossorigin=""></script>
+    @* <script src=@yandexMapsJSLink type="text/javascript"></script> *@
+    <script src="https://unpkg.com/leaflet-plugins@3.4.0/layer/tile/Yandex.js"></script>
     <script src="Components/Utils/LeafletMap.razor.js"></script>
 </body>
 
@@ -43,9 +46,21 @@
     [Inject]
     private ThemeService ThemeService { get; set; }
 
+    [Inject]
+    private IConfiguration Configuration { get; set; }
+
+    private string yandexMapsJSLink = "https://api-maps.yandex.ru/2.1/?lang=ru_RU";
+
+    private string themeURL = "_content/Radzen.Blazor/css/material.css";
+
     protected override void OnInitialized()
     {
         base.OnInitialized();
+
+        if (Configuration.GetValue<string>("YandexMapsApiKey") is string apiKey)
+        {
+            yandexMapsJSLink = $"https://api-maps.yandex.ru/2.1/?lang=ru_RU&apikey={apiKey}";
+        }
 
         if (HttpContext != null)
         {
@@ -53,6 +68,7 @@
 
             if (!string.IsNullOrEmpty(theme))
             {
+                themeURL = $"_content/Radzen.Blazor/css/{theme}.css";
                 ThemeService.SetTheme(theme, false);
             }
         }

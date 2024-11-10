@@ -43,14 +43,23 @@ builder.Services.AddRadzenComponents();
 builder.Services.AddScoped<BrowserTimeProvider>();
 
 builder.Services.AddDbContext<ModelContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("ArchitectureDatabase")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("ArchitectureDatabase"), npgsqlOptions => npgsqlOptions.CommandTimeout(600))
+           .UseTriggers(triggerOptions =>
+            {
+                triggerOptions.AddTrigger<SaveActualCardTrigger>();
+                triggerOptions.AddTrigger<SaveBuildingTrigger>();
+                triggerOptions.AddTrigger<CascadeOwnedChangesTrigger>();
+            })
+);
 
 builder.Services.AddSingleton<IIdentifierSerializer<Guid>, GuidIdentifierSerializer>();
 builder.Services.AddTreeRepository<ModelContext, Location, Guid>();
 builder.Services.AddTreeRepository<ModelContext, DesignCategory, Guid>();
 
 builder.Services.AddDbContext<UsersContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("ArchitectureDatabase")));
+{
+    options.UseNpgsql(builder.Configuration.GetConnectionString("ArchitectureDatabase"));
+});
 
 builder.Services.AddIdentity<ArchiBaseUser, ArchiBaseRole>(options =>
 {

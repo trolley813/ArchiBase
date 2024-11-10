@@ -5,6 +5,7 @@
 @inject ModelContext ModelContext
 @inject UsersContext UsersContext
 @inject UserResolverService UserResolverService
+@inject ThumbnailService ThumbnailService
 
 <ArchibasePageTitle Title=@Loc["Home"] />
 
@@ -120,7 +121,7 @@
 @foreach(var photo in recentPhotos)
 {
     <RadzenLink Path=@($"/photos/{photo.Id}")>
-        <RadzenImage Path=@(photo.PhotoLink) Style="max-height:200px;width:300px" onerror="this.src='/images/unavailable.png'" />
+        <RadzenImage Path=@($"data:image/webp;base64,{ThumbnailService.GetThumbnail(photo)}") Style="max-height:200px;width:300px" onerror="this.src='/images/unavailable.png'" />
     </RadzenLink>
 }
 </RadzenStack>
@@ -129,7 +130,7 @@
 @foreach(var photo in randomPhotos)
 {
     <RadzenLink Path=@($"/photos/{photo.Id}")>
-        <RadzenImage Path=@(photo.PhotoLink) Style="max-height:200px;width:300px" onerror="this.src='/images/unavailable.png'" />
+        <RadzenImage Path=@($"data:image/webp;base64,{ThumbnailService.GetThumbnail(photo)}") Style="max-height:200px;width:300px" onerror="this.src='/images/unavailable.png'" />
     </RadzenLink>
 }
 </RadzenStack>

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using ArchiBase.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ArchiBase.Migrations
 {
     [DbContext(typeof(ModelContext))]
-    partial class ModelContextModelSnapshot : ModelSnapshot
+    [Migration("20241110070817_AddActualCardField")]
+    partial class AddActualCardField
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -163,6 +166,25 @@ namespace ArchiBase.Migrations
                     b.HasIndex("StyleId");
 
                     b.ToTable("BuildingCards");
+                });
+
+            modelBuilder.Entity("ArchiBase.Models.BuildingEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BuildingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BuildingId");
+
+                    b.ToTable("BuildingEvents");
                 });
 
             modelBuilder.Entity("ArchiBase.Models.BuildingPart", b =>
@@ -773,56 +795,7 @@ namespace ArchiBase.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.OwnsMany("ArchiBase.Models.BuildingEvent", "Events", b1 =>
-                        {
-                            b1.Property<Guid>("BuildingId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<int>("Id")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("integer");
-
-                            b1.Property<int>("Type")
-                                .HasColumnType("integer");
-
-                            b1.HasKey("BuildingId", "Id");
-
-                            b1.ToTable("Buildings");
-
-                            b1.ToJson("Events");
-
-                            b1.WithOwner()
-                                .HasForeignKey("BuildingId");
-
-                            b1.OwnsOne("ArchiBase.Models.ImpreciseDate", "Date", b2 =>
-                                {
-                                    b2.Property<Guid>("BuildingEventBuildingId")
-                                        .HasColumnType("uuid");
-
-                                    b2.Property<int>("BuildingEventId")
-                                        .HasColumnType("integer");
-
-                                    b2.Property<DateTime>("Date")
-                                        .HasColumnType("timestamp without time zone");
-
-                                    b2.Property<int>("Precision")
-                                        .HasColumnType("integer");
-
-                                    b2.HasKey("BuildingEventBuildingId", "BuildingEventId");
-
-                                    b2.ToTable("Buildings");
-
-                                    b2.WithOwner()
-                                        .HasForeignKey("BuildingEventBuildingId", "BuildingEventId");
-                                });
-
-                            b1.Navigation("Date")
-                                .IsRequired();
-                        });
-
                     b.Navigation("ActualCard");
-
-                    b.Navigation("Events");
 
                     b.Navigation("Location");
                 });
@@ -910,6 +883,39 @@ namespace ArchiBase.Migrations
                     b.Navigation("Building");
 
                     b.Navigation("Style");
+                });
+
+            modelBuilder.Entity("ArchiBase.Models.BuildingEvent", b =>
+                {
+                    b.HasOne("ArchiBase.Models.Building", "Building")
+                        .WithMany("Events")
+                        .HasForeignKey("BuildingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("ArchiBase.Models.ImpreciseDate", "Date", b1 =>
+                        {
+                            b1.Property<Guid>("BuildingEventId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<DateTime>("Date")
+                                .HasColumnType("timestamp without time zone");
+
+                            b1.Property<int>("Precision")
+                                .HasColumnType("integer");
+
+                            b1.HasKey("BuildingEventId");
+
+                            b1.ToTable("BuildingEvents");
+
+                            b1.WithOwner()
+                                .HasForeignKey("BuildingEventId");
+                        });
+
+                    b.Navigation("Building");
+
+                    b.Navigation("Date")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ArchiBase.Models.BuildingPart", b =>
@@ -1311,6 +1317,8 @@ namespace ArchiBase.Migrations
             modelBuilder.Entity("ArchiBase.Models.Building", b =>
                 {
                     b.Navigation("Cards");
+
+                    b.Navigation("Events");
                 });
 
             modelBuilder.Entity("ArchiBase.Models.BuildingCard", b =>
