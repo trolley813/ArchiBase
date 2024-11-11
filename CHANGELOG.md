@@ -1,3 +1,9 @@
+## 0.2.4 (2024-11-10)
+- fixed photo upload
+- added city/locations buildings list and stats by design/category
+- added role badges to comment authors
+- added placeholders for Yandex maps (not working yet)
+
 ## 0.2.3 (2024-11-07)
 - new Leaflet-based map
 - photo previews
