@@ -50,6 +50,7 @@ public partial class BuildingMarker : MarkerBase
 {
     public BuildingMarker(Building building)
     {
+        BuildingId = building.Id;
         Latitude = building.Latitude;
         Longitude = building.Longitude;
         Label = string.Join("/", building.ActualCard.StreetAddresses.Select(a => GetHouseNumberAbbreviation(a.HouseNumber)));
@@ -57,6 +58,7 @@ public partial class BuildingMarker : MarkerBase
         Status = building.ActualStatus;
     }
 
+    public Guid BuildingId { get; set; }
     public string Label { get; set; }
     public string Tooltip { get; set; }
     public bool HasPhotos { get; set; } = false;

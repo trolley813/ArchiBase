@@ -69,14 +69,12 @@
                     <RadzenText Style="white-space: normal">@((MarkupString)building.Name)</RadzenText>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title=@Loc["Built"] FilterProperty="Built.Date" SortProperty="Built.Date" Property="Built" Width="10%" Visible=@(buildings?.Any(b => b.Built
-            != null) ?? false)  Sortable=false Filterable=false>
+            <RadzenDataGridColumn Title=@Loc["Built"] FilterProperty="BuiltSort" SortProperty="BuiltSort" Property="Built" Width="10%">
                 <Template Context="building">
                     <ImpreciseDateDisplay Value="@(building.Built)" />
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title=@Loc["Demolished"]  FilterProperty="Demolished.Date" SortProperty="Demolished.Date" Property="Demolished" Width="10%" Visible=@(buildings?.Any(b
-            => b.Demolished != null) ?? false) Sortable=false Filterable=false>
+            <RadzenDataGridColumn Title=@Loc["Demolished"]  FilterProperty="DemolishedSort" SortProperty="DemolishedSort" Property="Demolished" Width="10%">
                 <Template Context="building">
                     <ImpreciseDateDisplay Value="@(building.Demolished)" />
                 </Template>
@@ -153,31 +151,34 @@
         .ThenInclude(p => p.Design)
         .ThenInclude(d => d.Categories)
         .Include(b => b.Location)
-        .Where(b => b.Location == location);
+        .Join(ModelContext.BuildingStatusMappings, b => b.Id, m => m.BuildingId, (b, m) => new { Building = b, Mapping = m })
+        .Where(b => b.Building.Location == location);
 
         if (DesignIds is not null && DesignIds.Length > 0)
         {
-            rawQuery = rawQuery.Where(b => b.ActualCard.Parts.Select(p => p.Design).Any(d => DesignIds.Contains(d.Id)));
+            rawQuery = rawQuery.Where(b => b.Building.ActualCard.Parts.Select(p => p.Design).Any(d => DesignIds.Contains(d.Id)));
         }
 
         if (CategoryIds is not null && CategoryIds.Length > 0)
         {
-            rawQuery = rawQuery.Where(b => b.ActualCard.Categories.Any(c => CategoryIds.Contains(c.Id)) || 
-                b.ActualCard.Parts.Select(p => p.Design).Any(d => d.Categories.Any(c => CategoryIds.Contains(c.Id))));
+            rawQuery = rawQuery.Where(b => b.Building.ActualCard.Categories.Any(c => CategoryIds.Contains(c.Id)) || 
+                b.Building.ActualCard.Parts.Select(p => p.Design).Any(d => d.Categories.Any(c => CategoryIds.Contains(c.Id))));
         }
 
         var query = rawQuery.Select(
         b => new BuildingInfo
             {
-                Building = b,
-                HouseNumber = b.Cards.SelectMany(c => c.StreetAddresses).First().HouseNumber,
-                FloorCount = String.Join("; ", b.ActualCard.FloorCount),
-                Name = b.ActualCard.Name,
-                Built = b.GetDateOfStatus(BuildingEventType.ConstructionFinished),
-                Demolished = b.GetDateOfStatus(BuildingEventType.Demolished),
-                Addresses = b.ActualCard.StreetAddresses,
-                ActualCard = b.ActualCard,
-                LastCardWithAddress = b.ActualCard
+                Building = b.Building,
+                HouseNumber = b.Building.Cards.SelectMany(c => c.StreetAddresses).First().HouseNumber,
+                FloorCount = String.Join("; ", b.Building.ActualCard.FloorCount),
+                Name = b.Building.ActualCard.Name,
+                Built = b.Mapping.ConstructionFinished,
+                BuiltSort = (b.Mapping.ConstructionFinished != null) ? b.Mapping.ConstructionFinished.Date : DateTime.MinValue,
+                Demolished = b.Mapping.Demolished,
+                DemolishedSort = (b.Mapping.Demolished != null) ? b.Mapping.Demolished.Date : DateTime.MinValue,
+                Addresses = b.Building.ActualCard.StreetAddresses,
+                ActualCard = b.Building.ActualCard,
+                LastCardWithAddress = b.Building.ActualCard
             }
         );
 

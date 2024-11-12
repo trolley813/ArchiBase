@@ -36,7 +36,7 @@
         set
         {
             cameraMarker = value;
-            if (value != null) JS.InvokeVoidAsync("updateCameraMarker", cameraMarker.Render);
+            if (value != null) JS.InvokeVoidAsync("updateCameraMarker", cameraMarker?.Render);
         }
     }
 
@@ -47,7 +47,7 @@
         set
         {
             principalMarker = value;
-            if (value != null) JS.InvokeVoidAsync("updatePrincipalMarker", principalMarker.Render);
+            if (value != null) JS.InvokeVoidAsync("updatePrincipalMarker", principalMarker?.Render);
         }
     }
 
@@ -86,11 +86,11 @@
             await JS.InvokeVoidAsync("addSublocationMarkers", SublocationMarkers.Select(b => b.Render).ToList());
             if (CameraMarker is not null)
             {
-                await JS.InvokeVoidAsync("addCameraMarker", CameraMarker.Render);
+                await JS.InvokeVoidAsync("addCameraMarker", CameraMarker?.Render);
             }
             if (PrincipalMarker is not null)
             {
-                await JS.InvokeVoidAsync("addPrincipalMarker", PrincipalMarker.Render);
+                await JS.InvokeVoidAsync("addPrincipalMarker", PrincipalMarker?.Render);
             }
         }
     }
@@ -111,7 +111,7 @@
     {
         var lat = latlng.GetValueOrDefault("lat");
         var lon = latlng.GetValueOrDefault("lng");
-        var marker = BuildingMarkers.Find(m => m.Latitude == lat && m.Longitude == lon);
+        var marker = BuildingMarkers.FirstOrDefault(m => m.Latitude == lat && m.Longitude == lon);
         if (marker is not null && OnMarkerClick.HasDelegate)
         {
             await OnMarkerClick.InvokeAsync(marker);
@@ -123,7 +123,7 @@
     {
         var lat = latlng.GetValueOrDefault("lat");
         var lon = latlng.GetValueOrDefault("lng");
-        var marker = SublocationMarkers.Find(m => m.Latitude == lat && m.Longitude == lon);
+        var marker = SublocationMarkers.FirstOrDefault(m => m.Latitude == lat && m.Longitude == lon);
         if (marker is not null && OnSublocationMarkerClick.HasDelegate)
         {
             await OnSublocationMarkerClick.InvokeAsync(marker);

@@ -1,3 +1,7 @@
+## 0.2.5 (2024-11-12)
+- fixed excessive memory usage on large map
+- added sorting/filtering by dates on the general building list
+
 ## 0.2.4 (2024-11-10)
 - fixed photo upload
 - added city/locations buildings list and stats by design/category

@@ -11,6 +11,10 @@ class BuildingInfo
     public string FloorCount { get; set; }
     public string Name { get; set; }
     public ImpreciseDate? Built { get; set; }
+
+    public DateTime BuiltSort { get; set; }
     public ImpreciseDate? Demolished { get; set; }
+
+    public DateTime DemolishedSort { get; set; }
     public List<StreetAddress> Addresses { get; set; }
 }

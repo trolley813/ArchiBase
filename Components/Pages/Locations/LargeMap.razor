@@ -43,38 +43,11 @@
 
     Location? location;
 
-    List<BuildingInfo> buildings = [];
-
     List<BuildingMarker> markers = [];
 
-    protected override async Task OnParametersSetAsync()
+    protected override async Task OnInitializedAsync()
     {
         location = ModelContext.Locations.FirstOrDefault(loc => loc.Id == Id);
-        var buildingData = ModelContext.Buildings
-        .Include(b => b.Events)
-        .Include(b => b.Cards)
-        .ThenInclude(c => c.StreetAddresses)
-        .ThenInclude(a => a.Street)
-        .Where(b => b.Location == location)
-        .Select(b => new
-        {
-            Building = b,
-            HasPhotos = ModelContext.BuildingBinds.Include(bi => bi.Building).Any(bi => bi.Building.Id == b.Id)
-        })
-        .AsSplitQuery()
-        .ToList();
-
-        buildings = buildingData.Select(b => new BuildingInfo
-            {
-                BuildingId = b.Building.Id,
-                CurrentStatus = b.Building.Events.OrderBy(e => (e.Date.Date)).ThenBy(e => e.Type).LastOrDefault()?.Type,
-                Latitude = b.Building.Latitude,
-                Longitude = b.Building.Longitude,
-                Label = String.Join("/", b.Building.ActualCard.StreetAddresses.Select(a => a.HouseNumber)),
-                HasPhotos = b.HasPhotos
-            })
-        .ToList();
-        markers = buildingData.Select(b => new BuildingMarker(b.Building) { HasPhotos = b.HasPhotos }).ToList();
     }
 
     protected override void OnAfterRender(bool firstRender)
@@ -82,16 +55,30 @@
         if (firstRender)
         {
             loaded = false;
+
+            markers = ModelContext.Buildings
+            .AsNoTracking()
+            .Include(b => b.Events)
+            .Include(b => b.ActualCard)
+            .ThenInclude(c => c.StreetAddresses)
+            .ThenInclude(a => a.Street)
+            .Where(b => b.Location == location)
+            .Select(b => new BuildingMarker(b)
+            {
+                //HasPhotos = ModelContext.BuildingBinds.Include(bi => bi.Building).Any(bi => bi.Building.Id == b.Id)
+            })
+            .ToList();
+
             double avgLat = 0.0, avgLon = 0.0;
-            foreach (var b in buildings)
+            foreach (var b in markers)
             {
                 avgLat += b.Latitude;
                 avgLon += b.Longitude;
             }
-            if (buildings.Count != 0)
+            if (markers.Count != 0)
             {
-                avgLat /= buildings.Count;
-                avgLon /= buildings.Count;
+                avgLat /= markers.Count;
+                avgLon /= markers.Count;
                 map.Center = (avgLat, avgLon);
             }
             else
@@ -110,7 +97,7 @@
     {
         var lat = marker.Latitude;
         var lon = marker.Longitude;
-        Guid? buildingId = buildings
+        Guid? buildingId = markers
         .FirstOrDefault(b => b.Latitude == lat && b.Longitude == lon)?.BuildingId;
         if (buildingId is not null)
         {
