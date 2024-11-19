@@ -5,6 +5,13 @@ class LeafletMap {
             attribution:
                 '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         });
+        var ksm = L.tileLayer('https://{s}tilecart.kosmosnimki.ru/kosmo/{z}/{x}/{y}.png', {
+            attribution:
+                '&copy; <a href="https://kosmosnimki.ru/">ООО ИТЦ "СКАНЭКС"</a> | &copy; участники сообщества <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            updateWhenIdle: false,
+            maxZoom: 18,
+            maxNativeZoom: 17,
+        })
         // var ydx = L.yandex({ attribution: '&copy; <a href="https://yandex.ru/maps">Yandex</a>' });
         this.map = L.map(containerId).setView([lat, lon], zoom);
         this.map._layersMaxZoom = 19;
@@ -15,6 +22,7 @@ class LeafletMap {
         attribution.setPosition('bottomleft');
         var baseMaps = {
             "OpenStreetMap": osm,
+            "Kosmosnimki": ksm,
             // "Yandex": ydx
         }
         // no overlays yet

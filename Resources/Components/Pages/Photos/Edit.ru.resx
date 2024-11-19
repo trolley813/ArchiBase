@@ -1,0 +1,115 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0,
+      Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0,
+      Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Edit photo" xml:space="preserve">
+        <value>Редактировать фото</value>
+    </data>
+  <data name="Photo not available" xml:space="preserve">
+        <value>Фото недоступно</value>
+    </data>
+  <data name="Buildings" xml:space="preserve">
+        <value>Здания</value>
+    </data>
+  <data name="Bind a building" xml:space="preserve">
+        <value>Привязать здание</value>
+    </data>
+  <data name="Main" xml:space="preserve">
+        <value>Осн.</value>
+    </data>
+  <data name="EXIF Data" xml:space="preserve">
+        <value>Данные EXIF</value>
+    </data>
+  <data name="Shooting date" xml:space="preserve">
+        <value>Дата съемки</value>
+    </data>
+  <data name="Latitude" xml:space="preserve">
+        <value>Широта</value>
+    </data>
+  <data name="Longitude" xml:space="preserve">
+        <value>Долгота</value>
+    </data>
+  <data name="Direction" xml:space="preserve">
+        <value>Направление</value>
+    </data>
+  <data name="Re-read from file" xml:space="preserve">
+        <value>Перечитать из файла</value>
+    </data>
+  <data name="Save" xml:space="preserve">
+        <value>Сохранить</value>
+    </data>
+  <data name="Coordinates" xml:space="preserve">
+        <value>Координаты</value>
+    </data>
+  <data name="No date present" xml:space="preserve">
+        <value>Отсутствует дата</value>
+    </data>
+  <data name="The photo does not contain date/time information" xml:space="preserve">
+        <value>Фото не содержит информации о дате и времени</value>
+    </data>
+  <data name="No GPS data" xml:space="preserve">
+        <value>Отсутствуют данные GPS</value>
+    </data>
+  <data name="The photo does not contain GPS tags" xml:space="preserve">
+        <value>Фото не содержит GPS-тегов</value>
+    </data>
+</root>

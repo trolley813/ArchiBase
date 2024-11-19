@@ -109,4 +109,31 @@
   <data name="To mark responses as read, use the new comments page." xml:space="preserve">
         <value>Чтобы пометить ответы прочитанными, используйте страницу новых комментариев</value>
     </data>
+  <data name="Cite" xml:space="preserve">
+        <value>Цитировать</value>
+    </data>
+  <data name="Quote" xml:space="preserve">
+        <value>Цитата</value>
+    </data>
+  <data name="Admin" xml:space="preserve">
+        <value>Администратор</value>
+    </data>
+  <data name="Editor" xml:space="preserve">
+        <value>Общий редактор</value>
+    </data>
+  <data name="Local Editor" xml:space="preserve">
+        <value>Местный редактор</value>
+    </data>
+  <data name="Photo Moderator" xml:space="preserve">
+        <value>Фотомодератор</value>
+    </data>
+  <data name="Edit" xml:space="preserve">
+        <value>Редактировать</value>
+    </data>
+  <data name="Delete" xml:space="preserve">
+        <value>Удалить</value>
+    </data>
+  <data name="Comment text is required" xml:space="preserve">
+        <value>Текст комментария обязателен</value>
+    </data>
 </root>

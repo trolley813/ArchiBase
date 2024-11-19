@@ -7,7 +7,10 @@
 @if (location != null)
 {
     <ArchibasePageTitle Title=@($"{Loc["Large map for location"]}: {location.Name}") />
-
+    <RadzenText TextStyle="TextStyle.H4">
+        @(Loc["Large map for location"]):
+        <RadzenLink Path=@($"/locations/{location.Id}")>@(location.Name)</RadzenLink>
+    </RadzenText>
     @if (!loaded)
     {
         <RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.Center" Wrap="FlexWrap.Wrap">
@@ -56,6 +59,8 @@
         {
             loaded = false;
 
+
+
             markers = ModelContext.Buildings
             .AsNoTracking()
             .Include(b => b.Events)
@@ -65,9 +70,15 @@
             .Where(b => b.Location == location)
             .Select(b => new BuildingMarker(b)
             {
-                //HasPhotos = ModelContext.BuildingBinds.Include(bi => bi.Building).Any(bi => bi.Building.Id == b.Id)
+
             })
             .ToList();
+            var idsWithPhotos = ModelContext.BuildingBinds
+            .AsNoTracking()
+            .Where(b => markers.Select(m => m.BuildingId).Contains(b.Building.Id))
+            .Select(b => b.Building.Id)
+            .ToHashSet();
+            markers.ForEach(m => m.HasPhotos = idsWithPhotos.Contains(m.BuildingId));
 
             double avgLat = 0.0, avgLon = 0.0;
             foreach (var b in markers)

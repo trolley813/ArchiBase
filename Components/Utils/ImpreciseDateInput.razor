@@ -11,10 +11,16 @@
 
 @code
 {
+    [Parameter]
+    public DatePrecision? InitialPrecision { get; set; }
     Dictionary<DatePrecision, String> precisionDescriptions = [];
 
     protected override void OnInitialized()
     {
+        if (InitialPrecision is not null)
+        {
+            Value.Precision = InitialPrecision.Value;
+        }
         precisionDescriptions = new()
             {
                 [DatePrecision.None] = Loc["Do not show date"],

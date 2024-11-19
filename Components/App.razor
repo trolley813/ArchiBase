@@ -30,7 +30,10 @@
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" crossorigin=""></script>
     @* <script src=@yandexMapsJSLink type="text/javascript"></script> *@
     <script src="https://unpkg.com/leaflet-plugins@3.4.0/layer/tile/Yandex.js"></script>
-    <script src="Components/Utils/LeafletMap.razor.js"></script>
+    <script
+        src="Components/Utils/LeafletMap.razor.js?v=@(typeof(ArchiBase.Models.Building).Assembly.GetName().Version)"></script>
+    <script
+        src="Components/Utils/CommentView.razor.js?v=@(typeof(ArchiBase.Models.Building).Assembly.GetName().Version)"></script>
 </body>
 
 </html>

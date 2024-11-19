@@ -1,3 +1,9 @@
+## 0.2.6 (2024-11-19)
+- added photo editing (coordinates, binds, dates, EXIF)
+- added comment citing
+- added comment editing/deleting (only one's own unresponded, no later than 24 hours after writing)
+- optimized some memory usage
+
 ## 0.2.5 (2024-11-12)
 - fixed excessive memory usage on large map
 - added sorting/filtering by dates on the general building list

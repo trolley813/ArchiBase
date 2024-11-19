@@ -197,8 +197,11 @@
                         }
                         </Items>
                     </RadzenAccordion>
+                    <EditorOnly ShowAlert=false>
+                        <RadzenLink Path=@($"/photos/{photo.Id}/edit") Text=@Loc["Edit photo"] Icon="edit" />
+                    </EditorOnly>
                     <RadzenRow>
-                        <RadzenText TextStyle="TextStyle.Body1" Style="margin: auto">@(photo.Description)</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1" Style="margin: auto">@((MarkupString)photo.Description)</RadzenText>
                     </RadzenRow>
                 @if (photo.Galleries.Any())
                 {
@@ -264,196 +267,7 @@
                         </RadzenRow>
                         <RadzenRow>
                             <RadzenColumn>
-                                <RadzenRow>
-                                    <RadzenText TextStyle="TextStyle.Overline">@Loc["EXIF Data"]</RadzenText>
-                                </RadzenRow>
-                            @if (photo.Exif.PhotoDate is not null)
-                            {
-                                        <RadzenRow>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Caption">@Loc["Photo date"]</RadzenText>
-                                            </RadzenColumn>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Body1">@(photo.Exif.PhotoDate)</RadzenText>
-                                            </RadzenColumn>
-                                        </RadzenRow>
-                            }
-                            @if (photo.Exif.Cameraman?.Any() ?? false)
-                            {
-                                        <RadzenRow>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Caption">@Loc["Camera manufacturer"]</RadzenText>
-                                            </RadzenColumn>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Body1">@(photo.Exif.Cameraman)</RadzenText>
-                                            </RadzenColumn>
-                                        </RadzenRow>
-                            }
-                            @if (photo.Exif.CameraModel?.Any() ?? false)
-                            {
-                                        <RadzenRow>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Caption">@Loc["Camera model"]</RadzenText>
-                                            </RadzenColumn>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Body1">@(photo.Exif.CameraModel)</RadzenText>
-                                            </RadzenColumn>
-                                        </RadzenRow>
-                            }
-                            @if (photo.Exif.Editor?.Any() ?? false)
-                            {
-                                        <RadzenRow>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Caption">@Loc["Photo editor software"]</RadzenText>
-                                            </RadzenColumn>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Body1">@(photo.Exif.Editor)</RadzenText>
-                                            </RadzenColumn>
-                                        </RadzenRow>
-                            }
-                            @if (photo.Exif.AName?.Any() ?? false)
-                            {
-                                        <RadzenRow>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Caption">@Loc["Author name"]</RadzenText>
-                                            </RadzenColumn>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Body1">@(photo.Exif.AName)</RadzenText>
-                                            </RadzenColumn>
-                                        </RadzenRow>
-                            }
-                            @if (photo.Exif.Copy?.Any() ?? false)
-                            {
-                                        <RadzenRow>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Caption">@Loc["Copyright"]</RadzenText>
-                                            </RadzenColumn>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Body1">@(photo.Exif.Copy)</RadzenText>
-                                            </RadzenColumn>
-                                        </RadzenRow>
-                            }
-                            @if (photo.Exif.TV?.Any() ?? false)
-                            {
-                                        <RadzenRow>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Caption">@Loc["Exposure time"]</RadzenText>
-                                            </RadzenColumn>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Body1">@(photo.Exif.TV)</RadzenText>
-                                            </RadzenColumn>
-                                        </RadzenRow>
-                            }
-                            @if (photo.Exif.AV?.Any() ?? false)
-                            {
-                                        <RadzenRow>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Caption">@Loc["Aperture"]</RadzenText>
-                                            </RadzenColumn>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Body1">@(photo.Exif.AV)</RadzenText>
-                                            </RadzenColumn>
-                                        </RadzenRow>
-                            }
-                            @if (photo.Exif.ISO is not null)
-                            {
-                                        <RadzenRow>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Caption">@Loc["ISO"]</RadzenText>
-                                            </RadzenColumn>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Body1">@(photo.Exif.ISO)</RadzenText>
-                                            </RadzenColumn>
-                                        </RadzenRow>
-                            }
-                            @if (photo.Exif.EV?.Any() ?? false)
-                            {
-                                        <RadzenRow>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Caption">@Loc["Exposure compensation"]</RadzenText>
-                                            </RadzenColumn>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Body1">@(photo.Exif.EV)</RadzenText>
-                                            </RadzenColumn>
-                                        </RadzenRow>
-                            }
-                            @if (photo.Exif.FL?.Any() ?? false)
-                            {
-                                        <RadzenRow>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Caption">@Loc["Focal length"]</RadzenText>
-                                            </RadzenColumn>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Body1">@(photo.Exif.FL)</RadzenText>
-                                            </RadzenColumn>
-                                        </RadzenRow>
-                            }
-                            @if (photo.Exif.EFL?.Any() ?? false)
-                            {
-                                        <RadzenRow>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Caption">@Loc["Equivalent focal length"]</RadzenText>
-                                            </RadzenColumn>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Body1">@(photo.Exif.EFL)</RadzenText>
-                                            </RadzenColumn>
-                                        </RadzenRow>
-                            }
-                            @if (photo.Exif.Flash is not null)
-                            {
-                                        <RadzenRow>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Caption">@Loc["Flash"]</RadzenText>
-                                            </RadzenColumn>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Body1">@(photo.Exif.Flash)</RadzenText>
-                                            </RadzenColumn>
-                                        </RadzenRow>
-                            }
-                            @if (photo.Exif.WB is not null)
-                            {
-                                        <RadzenRow>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Caption">@Loc["White balance"]</RadzenText>
-                                            </RadzenColumn>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Body1">@(photo.Exif.WB)</RadzenText>
-                                            </RadzenColumn>
-                                        </RadzenRow>
-                            }
-                            @if (photo.Exif.EMeter is not null)
-                            {
-                                        <RadzenRow>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Caption">@Loc["Exposure metering"]</RadzenText>
-                                            </RadzenColumn>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Body1">@(photo.Exif.EMeter)</RadzenText>
-                                            </RadzenColumn>
-                                        </RadzenRow>
-                            }
-                            @if (photo.Exif.SMode is not null)
-                            {
-                                        <RadzenRow>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Caption">@Loc["Shooting mode"]</RadzenText>
-                                            </RadzenColumn>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Body1">@(photo.Exif.SMode)</RadzenText>
-                                            </RadzenColumn>
-                                        </RadzenRow>
-                            }
-                            @if (photo.Exif.DZoom?.Any() ?? false)
-                            {
-                                        <RadzenRow>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Caption">@Loc["Digital zoom"]</RadzenText>
-                                            </RadzenColumn>
-                                            <RadzenColumn>
-                                                <RadzenText TextStyle="TextStyle.Body1">@(photo.Exif.DZoom)</RadzenText>
-                                            </RadzenColumn>
-                                        </RadzenRow>
-                            }
+                                <ExifDisplay ExifData="photo.Exif" />
                             </RadzenColumn>
                         </RadzenRow>
                     </ChildContent>
@@ -560,16 +374,21 @@ else
         if (user is not null) isAdmin = await UserManager.IsInRoleAsync(user, "Admin");
         if (photo is not null)
         {
-            var authorIds = photo.Votes?.Values?.Select(v => v.Author) ?? [];
-            votes = UserManager.Users
-            .Where(u =>
-            authorIds.Contains(u.Id)).ToList()
-            .ToDictionary(
-                u => u.UserName ?? Loc["(unknown)"],
-                u => photo.Votes?.Values?.FirstOrDefault(v => v.Author == u.Id)?.VoteValue ?? 0
-            );
+            UpdateVoteData();
             canVote = await CanVoteForPhoto();
         }
+    }
+
+    void UpdateVoteData()
+    {
+        var authorIds = photo.Votes?.Values?.Select(v => v.Author) ?? [];
+        votes = UserManager.Users
+        .Where(u =>
+        authorIds.Contains(u.Id)).ToList()
+        .ToDictionary(
+            u => u.UserName ?? Loc["(unknown)"],
+            u => photo.Votes?.Values?.FirstOrDefault(v => v.Author == u.Id)?.VoteValue ?? 0
+        );
     }
 
     async Task<bool> CanVoteForPhoto() => photo?.Status switch
@@ -613,6 +432,8 @@ else
             else
                 photo.Votes.Values.RemoveAll(v => v.Author == user.Id);
             ModelContext.SaveChanges();
+            UpdateVoteData();
+            StateHasChanged();
         }
     }
 
@@ -627,6 +448,8 @@ else
             else
                 photo.Votes.Values.RemoveAll(v => v.Author == user.Id);
             ModelContext.SaveChanges();
+            UpdateVoteData();
+            StateHasChanged();
         }
     }
 

@@ -74,9 +74,10 @@
             <RadzenButton Icon="add" Text=@Loc["Add new card"] Size="ButtonSize.Small" Click="AddCard" />
             <RadzenTabs>
                 <Tabs>
-                    @foreach (var (card, index) in building.Cards.Select((item, index) => (item, index + 1)))
+                    @foreach (var (c, index) in building.Cards.Select((item, index) => (item, index + 1)))
                     {
                         var i = index - 1;
+                        var card = c;
                         <RadzenTabsItem>
                             <Template Context="c">
                                 @($"Card #{index}")
@@ -235,6 +236,8 @@
         .ThenInclude(a => a.Street)
         .Include(b => b.Cards)
         .ThenInclude(c => c.Categories)
+        .Include(b => b.Cards)
+        .ThenInclude(c => c.Architects)
         .Include(b => b.Cards)
         .ThenInclude(c => c.Parts)
         .ThenInclude(p => p.Design)

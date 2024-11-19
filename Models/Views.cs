@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace ArchiBase.Models;
 
@@ -27,4 +28,21 @@ public class BuildingStatusMapping
     public ImpreciseDate? RebuildingFinished { get; set; }
     public ImpreciseDate? Abandoned { get; set; }
     public ImpreciseDate? Demolished { get; set; }
+}
+
+[Owned]
+public class NamedStreetAddress
+{
+    public string StreetName { get; set; }
+    public string HouseNumber { get; set; }
+
+    override public string ToString() => $"{StreetName}, {HouseNumber}";
+}
+
+public class CardAddressMapping
+{
+    [Key]
+    public Guid BuildingCardId { get; set; }
+
+    public List<NamedStreetAddress> Addresses { get; set; }
 }

@@ -59,3 +59,19 @@ h1:focus {
 .ab-building-marker {
     border: 1px solid black;
 }
+
+blockquote {
+    background: var(--rz-base);
+    border-left: 10px solid var(--rz-primary);
+    margin: 1.5em 10px;
+    padding: 0.5em 10px;
+    quotes: "\201C" "\201D" "\2018" "\2019";
+}
+
+blockquote:before {
+    color: var(--rz-primary);
+    font-size: 4em;
+    line-height: 0.1em;
+    margin-right: 0.25em;
+    vertical-align: -0.4em;
+}

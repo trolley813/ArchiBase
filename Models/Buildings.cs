@@ -120,7 +120,7 @@ public class Building : IAuditable
 
     public BuildingCard? ActualCard { get; set; }
 
-    public BuildingCard? ActualToDate(DateTime date) => Cards.Where(c => c.ActualFrom.Date < date).MaxBy(c => c.ActualFrom.Date);
+    public BuildingCard? ActualToDate(DateTime date) => Cards.Where(c => c.ActualFrom.Date < date).MaxBy(c => c.ActualFrom.Date) ?? ActualCard;
 
     public string ActualAddress => string.Join(" / ", ActualCard?.StreetAddresses ?? []);
     public string ActualAddressWithLocation => $"{Location.Name}, {ActualAddress}";

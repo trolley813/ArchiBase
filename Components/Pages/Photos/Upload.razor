@@ -42,202 +42,13 @@
                         </RadzenRow>
                         <RadzenRow>
                             <RadzenColumn>
-                            <RadzenRow>
-                                <RadzenText TextStyle="TextStyle.Overline">@Loc["EXIF Data"]</RadzenText>
-                            </RadzenRow>
-                                @if (model.ExifData.PhotoDate is not null)
-                                {
-                                    <RadzenRow>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Caption">@Loc["Photo date"]</RadzenText>
-                                        </RadzenColumn>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Body1">@(model.ExifData.PhotoDate)</RadzenText>
-                                        </RadzenColumn>
-                                    </RadzenRow>
-                                }
-                                @if (model.ExifData.Cameraman?.Any() ?? false)
-                                {
-                                    <RadzenRow>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Caption">@Loc["Camera manufacturer"]</RadzenText>
-                                        </RadzenColumn>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Body1">@(model.ExifData.Cameraman)</RadzenText>
-                                        </RadzenColumn>
-                                    </RadzenRow>
-                                }
-                                @if (model.ExifData.CameraModel?.Any() ?? false)
-                                {
-                                    <RadzenRow>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Caption">@Loc["Camera model"]</RadzenText>
-                                        </RadzenColumn>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Body1">@(model.ExifData.CameraModel)</RadzenText>
-                                        </RadzenColumn>
-                                    </RadzenRow>
-                                }
-                                @if (model.ExifData.Editor?.Any() ?? false)
-                                {
-                                    <RadzenRow>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Caption">@Loc["Photo editor software"]</RadzenText>
-                                        </RadzenColumn>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Body1">@(model.ExifData.Editor)</RadzenText>
-                                        </RadzenColumn>
-                                    </RadzenRow>
-                                }
-                                @if (model.ExifData.AName?.Any() ?? false)
-                                {
-                                    <RadzenRow>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Caption">@Loc["Author name"]</RadzenText>
-                                        </RadzenColumn>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Body1">@(model.ExifData.AName)</RadzenText>
-                                        </RadzenColumn>
-                                    </RadzenRow>
-                                }
-                                @if (model.ExifData.Copy?.Any() ?? false)
-                                {
-                                    <RadzenRow>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Caption">@Loc["Copyright"]</RadzenText>
-                                        </RadzenColumn>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Body1">@(model.ExifData.Copy)</RadzenText>
-                                        </RadzenColumn>
-                                    </RadzenRow>
-                                }
-                                @if (model.ExifData.TV?.Any() ?? false)
-                                {
-                                    <RadzenRow>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Caption">@Loc["Exposure time"]</RadzenText>
-                                        </RadzenColumn>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Body1">@(model.ExifData.TV)</RadzenText>
-                                        </RadzenColumn>
-                                    </RadzenRow>
-                                }
-                                @if (model.ExifData.AV?.Any() ?? false)
-                                {
-                                    <RadzenRow>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Caption">@Loc["Aperture"]</RadzenText>
-                                        </RadzenColumn>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Body1">@(model.ExifData.AV)</RadzenText>
-                                        </RadzenColumn>
-                                    </RadzenRow>
-                                }
-                                @if (model.ExifData.ISO is not null)
-                                {
-                                    <RadzenRow>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Caption">@Loc["ISO"]</RadzenText>
-                                        </RadzenColumn>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Body1">@(model.ExifData.ISO)</RadzenText>
-                                        </RadzenColumn>
-                                    </RadzenRow>
-                                }
-                                @if (model.ExifData.EV?.Any() ?? false)
-                                {
-                                    <RadzenRow>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Caption">@Loc["Exposure compensation"]</RadzenText>
-                                        </RadzenColumn>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Body1">@(model.ExifData.EV)</RadzenText>
-                                        </RadzenColumn>
-                                    </RadzenRow>
-                                }
-                                @if (model.ExifData.FL?.Any() ?? false)
-                                {
-                                    <RadzenRow>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Caption">@Loc["Focal length"]</RadzenText>
-                                        </RadzenColumn>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Body1">@(model.ExifData.FL)</RadzenText>
-                                        </RadzenColumn>
-                                    </RadzenRow>
-                                }
-                                @if (model.ExifData.EFL?.Any() ?? false)
-                                {
-                                    <RadzenRow>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Caption">@Loc["Equivalent focal length"]</RadzenText>
-                                        </RadzenColumn>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Body1">@(model.ExifData.EFL)</RadzenText>
-                                        </RadzenColumn>
-                                    </RadzenRow>
-                                }
-                                @if (model.ExifData.Flash is not null)
-                                {
-                                    <RadzenRow>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Caption">@Loc["Flash"]</RadzenText>
-                                        </RadzenColumn>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Body1">@(model.ExifData.Flash)</RadzenText>
-                                        </RadzenColumn>
-                                    </RadzenRow>
-                                }
-                                @if (model.ExifData.WB is not null)
-                                {
-                                    <RadzenRow>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Caption">@Loc["White balance"]</RadzenText>
-                                        </RadzenColumn>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Body1">@(model.ExifData.WB)</RadzenText>
-                                        </RadzenColumn>
-                                    </RadzenRow>
-                                }
-                                @if (model.ExifData.EMeter is not null)
-                                {
-                                    <RadzenRow>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Caption">@Loc["Exposure metering"]</RadzenText>
-                                        </RadzenColumn>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Body1">@(model.ExifData.EMeter)</RadzenText>
-                                        </RadzenColumn>
-                                    </RadzenRow>
-                                }
-                                @if (model.ExifData.SMode is not null)
-                                {
-                                    <RadzenRow>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Caption">@Loc["Shooting mode"]</RadzenText>
-                                        </RadzenColumn>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Body1">@(model.ExifData.SMode)</RadzenText>
-                                        </RadzenColumn>
-                                    </RadzenRow>
-                                }
-                                @if (model.ExifData.DZoom?.Any() ?? false)
-                                {
-                                    <RadzenRow>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Caption">@Loc["Digital zoom"]</RadzenText>
-                                        </RadzenColumn>
-                                        <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Body1">@(model.ExifData.DZoom)</RadzenText>
-                                        </RadzenColumn>
-                                    </RadzenRow>
-                                }
-                        </RadzenColumn>
+                                <ExifDisplay ExifData="model.ExifData" />
+                            </RadzenColumn>
                         </RadzenRow>
                         <RadzenFieldset>
                             <RadzenRow>
                                 <RadzenColumn>
-                                    <ImpreciseDateInput Value="@model.ShootingDate" />
+                                    <ImpreciseDateInput Value="@model.ShootingDate" InitialPrecision="DatePrecision.Full" />
                                 </RadzenColumn>
                                 <RadzenColumn>
                                     <RadzenLabel Component="NonAuthor" Text=@Loc["I'm not the photo author"] />
@@ -270,11 +81,11 @@
                                 int i = index;
                                     <RadzenRow>
                                         <RadzenColumn Size="6">
-                                            <RadzenDropDown Data="filteredBuildings[i]" @bind-Value=@(model.Binds[i].Building) Style="width: 100%" @bind-SearchText="searchTexts[i]"
-                                                ValueProperty="Building" LoadData=@(args => LoadData(i, args)) Change="UpdateMap" Placeholder=@Loc["Select a building"] FilterPlaceholder=@Loc["Address"]
-                                                AllowFiltering=true FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" >
+                                            <RadzenDropDown Data="filteredBuildings[i]" Value=@(model.Binds[i].Building.Id) Style="width: 100%" @bind-SearchText="searchTexts[i]" TValue="Guid"
+                                                ValueProperty="Building.Id" LoadData=@(args => LoadData(i, args)) Change="args => SetBind(i, args)" Placeholder=@Loc["Select a building"] FilterPlaceholder=@Loc["Address"]
+                                                AllowFiltering=true FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
                                                 <Template Context="building">
-                                                    <RadzenText>@(building.Address)</RadzenText>
+                                                    <RadzenText>@(string.Join(" / ", building.Addresses))</RadzenText>
                                                     <RadzenText TextStyle="TextStyle.Overline">
                                                     @if (building.Building is not null)
                                                     {
@@ -297,7 +108,7 @@
                                         </RadzenColumn>
                                         <RadzenColumn Size="5">
                                             <RadzenText>
-                                            @if (model.Binds[i].Building is not null)
+                                            @*@if (model.Binds[i].Building is not null)
                                             {
                                                 var text = String.Join(" • ", model.Binds[i].Building.ActualCard?.Parts.Select(p => p.Design.Name) ?? []);
                                                 if (text.Length == 0)
@@ -305,7 +116,7 @@
                                                     text = String.Join(" • ", model.Binds[i].Building.ActualCard?.Categories.Select(c => c.Name) ?? []);
                                                 }
                                                 @(text)
-                                            }
+                                            }*@
                                             </RadzenText>
                                         </RadzenColumn>
                                     </RadzenRow>
@@ -376,7 +187,7 @@
     class BuildingWithAddress
     {
         public Building Building { get; set; }
-        public string Address { get; set; }
+        public List<NamedStreetAddress> Addresses { get; set; }
     }
 
     class BuildingBindModel
@@ -407,9 +218,9 @@
     }
 
     UploadModel model = new();
-    List<BuildingWithAddress> buildings;
+    IQueryable<BuildingWithAddress> buildings;
     List<List<BuildingWithAddress>> filteredBuildings = [];
-    List<Location> locations;
+    IQueryable<Location> locations;
 
     List<License> licenses;
 
@@ -418,6 +229,8 @@
     LeafletMap map;
 
     int sizeLimit = 2097152; // 2 MiB
+
+    int maxListSize = 20;
 
     protected override async Task OnInitializedAsync()
     {
@@ -429,7 +242,7 @@
         limit = Math.Max(UploadLimitService.GetUploadLimit(userId) - userPhotosCountThisWeek, 0);
         directLimit = Math.Max(UploadLimitService.GetDirectUploadLimit(userId) - userPhotosCountThisWeek, 0);
         if (directLimit == 0) useDirectUpload = false;
-        locations = ModelContext.Locations.Where(loc => loc.AllowStreets).OrderBy(loc => loc.Name).ToList();
+        locations = ModelContext.Locations.Where(loc => loc.AllowStreets).OrderBy(loc => loc.Name);
         licenses = ModelContext.Licenses.ToList();
         if (Binds is not null && Binds.Length > 0)
         {
@@ -454,7 +267,7 @@
                 }).ToList();
                 model.Binds.ForEach(b => {
                     searchTexts.Add("");
-                    filteredBuildings.Add([]);
+                    filteredBuildings.Add(new List<BuildingWithAddress>());
                 });
             }
         }
@@ -468,7 +281,7 @@
 
     public void AddBuilding()
     {
-        model.Binds.Add(new());
+        model.Binds.Add(new() { Building = new() { Id = Guid.Empty } });
         searchTexts.Add("");
         filteredBuildings.Add([]);
     }
@@ -485,21 +298,22 @@
     {
         model.Location = newLocation;
         buildings = ModelContext.Buildings.Where(b => b.Location == newLocation)
-        .Include(b => b.Cards)
+        .AsNoTracking()
+        .Include(b => b.ActualCard)
+        .ThenInclude(c => c.Categories)
+        .Include(b => b.ActualCard)
         .ThenInclude(c => c.StreetAddresses)
         .ThenInclude(a => a.Street)
-        .Include(b => b.Cards)
-        .ThenInclude(c => c.Categories)
-        .Include(b => b.Cards)
+        .Include(b => b.ActualCard)
         .ThenInclude(c => c.Parts)
         .ThenInclude(p => p.Design)
-        .Select(b => new BuildingWithAddress
+        .Join(ModelContext.CardAddressMappings, b => b.ActualCard.Id, m => m.BuildingCardId,
+            (b, m) => new BuildingWithAddress
             {
                 Building = b,
-                Address = String.Join(" / ", b.Cards.OrderByDescending(c => c.ActualFrom.Date).First().StreetAddresses)
-            })
-        .AsSplitQuery()
-        .ToList();
+                Addresses = m.Addresses
+            }
+        );
     }
 
     public void OnPhotoChanged(string photo)
@@ -510,71 +324,10 @@
             var p = photo[(photo.IndexOf(",") + 1)..];
             byte[] bytes = Convert.FromBase64String(p);
             if (bytes.Length > sizeLimit) throw new ArgumentOutOfRangeException("File size", $"{bytes.Length} exceeds the limit of {sizeLimit}");
-            using (MemoryStream ms = new MemoryStream(bytes))
+            (model.ExifData, model.ShootingDate, model.Latitude, model.Longitude) = PhotoExifReader.ReadExif(bytes);
+            if (model.Latitude != 0 || model.Longitude != 0)
             {
-                var directories = ImageMetadataReader.ReadMetadata(ms);
-                foreach (var d in directories)
-                {
-                    Console.WriteLine(d);
-                    foreach (var t in d.Tags)
-                    {
-                        Console.WriteLine(t);
-                    }
-                }
-                var exifIFD0 = directories.OfType<ExifIfd0Directory>().FirstOrDefault();
-                var exifSub = directories.OfType<ExifSubIfdDirectory>().FirstOrDefault();
-                var exifGPS = directories.OfType<GpsDirectory>().FirstOrDefault();
-                try
-                {
-                    DateTime photoDate = exifIFD0?.GetDateTime(ExifIfd0Directory.TagDateTimeOriginal)
-                        ?? exifIFD0?.GetDateTime(ExifIfd0Directory.TagDateTimeDigitized)
-                        ?? exifIFD0?.GetDateTime(ExifIfd0Directory.TagDateTime)
-                        ?? DateTime.MinValue;
-                    model.ShootingDate = new ImpreciseDate { Date = photoDate, Precision = DatePrecision.Full };
-                    model.ExifData.PhotoDate = photoDate;
-                }
-                catch (Exception ex)
-                {
-                    model.ShootingDate = new ImpreciseDate { Date = DateTime.MinValue, Precision = DatePrecision.None };
-                }
-                try
-                {
-                    var latitudeTag = exifGPS?.GetRationalArray(GpsDirectory.TagLatitude);
-                    var latitudeRefTag = exifGPS?.GetString(GpsDirectory.TagLatitudeRef);
-                    if (latitudeTag is not null)
-                    {
-                        model.Latitude = latitudeTag[0].ToDouble() + latitudeTag[1].ToDouble() / 60.0 + latitudeTag[2].ToDouble() / 3600.0;
-                        if (latitudeRefTag == "S") model.Latitude = -model.Latitude;
-                    }
-                    var longitudeTag = exifGPS?.GetRationalArray(GpsDirectory.TagLongitude);
-                    var longitudeRefTag = exifGPS?.GetString(GpsDirectory.TagLongitudeRef);
-                    if (longitudeTag is not null)
-                    {
-                        model.Longitude = longitudeTag[0].ToDouble() + longitudeTag[1].ToDouble() / 60.0 + longitudeTag[2].ToDouble() / 3600.0;
-                        if (longitudeRefTag == "W") model.Longitude = -model.Longitude;
-                    }
-                    OnMapClick((model.Latitude, model.Longitude), true);
-                }
-                catch (MetadataException ex)
-                {
-                    // TODO
-                }
-                model.ExifData.Cameraman = exifIFD0?.GetString(ExifIfd0Directory.TagMake);
-                model.ExifData.CameraModel = exifIFD0?.GetString(ExifIfd0Directory.TagModel);
-                model.ExifData.Editor = exifIFD0?.GetString(ExifIfd0Directory.TagSoftware);
-                model.ExifData.AName = exifIFD0?.GetString(ExifIfd0Directory.TagArtist);
-                model.ExifData.Copy = exifSub?.GetString(ExifSubIfdDirectory.TagCopyright);
-                model.ExifData.TV = exifSub?.GetString(ExifSubIfdDirectory.TagExposureTime);
-                model.ExifData.AV = exifSub?.GetString(ExifSubIfdDirectory.TagAperture);
-                if (exifSub?.TryGetInt32(ExifSubIfdDirectory.TagIsoEquivalent, out int resultISO) ?? false) model.ExifData.ISO = resultISO;
-                model.ExifData.EV = exifSub?.GetString(ExifSubIfdDirectory.TagExposureBias);
-                model.ExifData.FL = exifSub?.GetString(ExifSubIfdDirectory.TagFocalLength);
-                model.ExifData.EFL = exifSub?.GetString(ExifSubIfdDirectory.Tag35MMFilmEquivFocalLength);
-                if (exifSub?.TryGetInt32(ExifSubIfdDirectory.TagFlash, out int resultFlash) ?? false) model.ExifData.Flash = resultFlash;
-                if (exifSub?.TryGetInt32(ExifSubIfdDirectory.TagWhiteBalance, out int resultWB) ?? false) model.ExifData.WB = resultWB;
-                if (exifSub?.TryGetInt32(ExifSubIfdDirectory.TagMeteringMode, out int resultEM) ?? false) model.ExifData.EMeter = resultEM;
-                if (exifSub?.TryGetInt32(ExifSubIfdDirectory.TagExposureProgram, out int resultDZ) ?? false) model.ExifData.SMode = resultDZ;
-                model.ExifData.DZoom = exifSub?.GetString(ExifSubIfdDirectory.TagDigitalZoomRatio);
+                OnMapClick((model.Latitude, model.Longitude), true);
             }
 
         }
@@ -651,9 +404,12 @@
 
     void OnMapClick((double, double) coordinate, bool centerMap = false)
     {
+
         model.Latitude = coordinate.Item1;
         model.Longitude = coordinate.Item2;
         map.CameraMarker = new CameraMarker { Latitude = model.Latitude, Longitude = model.Longitude, Direction = model.Direction };
+        if (centerMap) map.Center = coordinate;
+        StateHasChanged();
     }
 
     void OnDirectionChange(int newDirection)
@@ -664,25 +420,43 @@
 
     void LoadData(int index, LoadDataArgs args)
     {
-        var query = buildings.AsQueryable();
+        var query = buildings;
         if (!string.IsNullOrEmpty(args.Filter))
         {
-            var filters = args.Filter.Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            query = query.Where(b => filters.All(f => b.Address.Contains(f, StringComparison.CurrentCultureIgnoreCase)));
+            var filters = args.Filter.Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(f => f.ToLower()).ToArray();
+            query = query.Where(
+                b => filters.All(
+                    f => b.Addresses.Any(
+                        a => a.StreetName.ToLower().Contains(f) ||
+                             a.HouseNumber.ToLower().Contains(f)
+                    )
+                )
+            );
         }
-        filteredBuildings[index] = query.ToList();
+        filteredBuildings[index] = query.Take(maxListSize).ToList();
         InvokeAsync(StateHasChanged);
     }
 
     void UpdateMap()
     {
-        if (model.Binds.Count > 0)
+        var binds = model.Binds.Where(b => b.Building != null && b.Building.Id != Guid.Empty);
+        if (binds.Count() > 0)
         {
-            var avgLat = model.Binds.Where(b => b.Building != null).Select(b => b.Building.Latitude).Average();
-            var avgLon = model.Binds.Where(b => b.Building != null).Select(b => b.Building.Longitude).Average();
+            var avgLat = binds.Select(b => b.Building.Latitude).Average();
+            var avgLon = binds.Select(b => b.Building.Longitude).Average();
             map.Center = (avgLat, avgLon);
-            map.BuildingMarkers = model.Binds.Where(b => b.Building != null)
-            .Select(b => new BuildingMarker(b.Building)).ToList();
+            map.BuildingMarkers = binds.Select(
+                b => new BuildingMarker(buildings.Where(bu => bu.Building.Id == b.Building.Id).First().Building)
+            ).ToList();
         }
+    }
+
+    void SetBind(int index, object value)
+    {
+        if (value is null) return;
+        var id = value as Guid?;
+        model.Binds[index].Building = ModelContext.Buildings.FirstOrDefault(b => b.Id == id);
+        UpdateMap();
     }
 }

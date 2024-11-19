@@ -1,4 +1,5 @@
 @using Microsoft.EntityFrameworkCore
+@using Humanizer
 @inject ModelContext ModelContext
 @inject UsersContext UsersContext
 @inject UserManager<ArchiBaseUser> UserManager
@@ -9,6 +10,7 @@
 @inject CommentService CommentService
 @inject ThumbnailService ThumbnailService
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
 <LoadingScreen Loaded="loaded">
     <RadzenText TextStyle="TextStyle.H5">@Loc["Comments"] (@(count))</RadzenText>
@@ -38,7 +40,9 @@
     {
         <RadzenPager ShowPagingSummary="true" PagingSummaryFormat=@Loc["Page {0} of {1} (total comments: {2})"] HorizontalAlign="HorizontalAlign.Right" Count="count" PageSize="@pageSize" PageChanged="@PageChanged" AlwaysVisible=true />
     }
-
+    @{
+        var lastCommentId = comments.LastOrDefault()?.Id;
+    }
     <RadzenDataList Data="comments" @ref="commentsList" Style="max-width: 100%">
         <Template Context="comment">
             <RadzenCard>
@@ -51,13 +55,28 @@
                     }
                     <RadzenColumn>
                         <RadzenStack Orientation="Orientation.Vertical" Gap="3">
-                            <RadzenStack Orientation="Orientation.Horizontal" Gap="8">
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap="8" Wrap="FlexWrap.Wrap">
                                 <RadzenLink Path=@($"/users/{comment.AuthorId}") >
                                     @(commentAuthors.GetValueOrDefault(comment.AuthorId, Loc["(unknown author)"]))
                                 </RadzenLink>
                                 @foreach(var role in commentAuthorRoles.GetValueOrDefault(comment.AuthorId, []))
                                 {
                                     <RadzenBadge Variant="Variant.Outlined"  Text="@Loc[role]" IsPill=true BadgeStyle=@(role.ToBadgeStyle()) />
+                                }
+                            </RadzenStack>
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap="8" Wrap="FlexWrap.Wrap">
+                                @if(ShowMode == CommentShowMode.ByEntity)
+                                {
+                                    
+                                    <RadzenButton ButtonStyle="ButtonStyle.Success" Variant="Variant.Text" Size="ButtonSize.Small" Click="args => AddQuote(comment)">@Loc["Cite"]</RadzenButton>
+                                    if(comment.Id == lastCommentId && comment.AuthorId == user?.Id && (DateTime.UtcNow - comment.PublicationDate) <= 24.Hours())
+                                    {
+                                        <RadzenLink Path=@($"/comments/{comment.Id}/edit")>
+                                            <RadzenButton ButtonStyle="ButtonStyle.Info" Variant="Variant.Text" Size="ButtonSize.Small">@Loc["Edit"]</RadzenButton>
+                                        </RadzenLink>
+                                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text" Size="ButtonSize.Small" Click="args => DeleteComment(comment)">@Loc["Delete"]</RadzenButton>
+
+                                    }
                                 }
                             </RadzenStack>
                             @if(ShowMode != CommentShowMode.ByEntity)
@@ -128,23 +147,23 @@
     </RadzenDataList>
 
     @if (ShowMode == CommentShowMode.ByEntity)
-    {
+    { 
         <CascadingAuthenticationState>
         <AuthorizeView Context="actx">
-            <RadzenTemplateForm Data="commentText" Style="width:90%;">
+            <RadzenTemplateForm Data="model" TItem="CommentModel" Style="max-width: 100%; padding: 16px;" Submit="args => AddComment(args)">
                 <RadzenStack Orientation="Orientation.Vertical">
                     <RadzenFormField>
-                        <RadzenHtmlEditor @bind-Value="commentText" Style="height: 300px" />
+                        <RadzenHtmlEditor Name="comment-editor" @ref="commentEditor" @bind-Value="model.Text" Style="height: 300px" />
                     </RadzenFormField>
+                    <RadzenRequiredValidator Component="comment-editor" Text=@Loc["Comment text is required"]></RadzenRequiredValidator>
                     <RadzenFormField>
-                        <RadzenButton ButtonType="ButtonType.Submit" Icon="add" Text=@Loc["Add comment"]
-                            Click="args => AddComment()" Disabled="!loaded" />
+                        <RadzenButton ButtonType="ButtonType.Submit" Icon="add" Text=@Loc["Add comment"] Disabled="!loaded" />
                     </RadzenFormField>
                 </RadzenStack>
             </RadzenTemplateForm>
         </AuthorizeView>
     </CascadingAuthenticationState>
-    }
+    } 
 </LoadingScreen>
 
 @code
@@ -156,6 +175,11 @@
         All,
         New,
         Responses
+    }
+
+    class CommentModel
+    {
+        public string Text { get; set; }
     }
 
     [Parameter]
@@ -181,7 +205,9 @@
 
     RadzenDataList<Comment> commentsList;
 
-    string commentText = "";
+    RadzenHtmlEditor? commentEditor;
+
+    CommentModel model = new();
 
     DateTime? lastReadTime;
 
@@ -193,6 +219,8 @@
 
     protected override async Task OnInitializedAsync()
     {
+        loaded = false;
+        await Task.Yield();
         user = UserManager.Users.FirstOrDefault(u => u.Id == UserResolverService.GetUser());
         if (ShowMode == CommentShowMode.New || ShowMode == CommentShowMode.Responses)
         {
@@ -275,9 +303,9 @@
         }
     }
 
-    void AddComment()
+    async Task AddComment(CommentModel commentModel)
     {
-        if (user is not null)
+        if (user is not null && commentModel.Text is not null && commentModel.Text != "")
         {
             var comment = new Comment()
                 {
@@ -285,7 +313,7 @@
                     PublicationDate = DateTime.UtcNow,
                     EntityId = EntityId,
                     EntityType = EntityType,
-                    Text = commentText
+                    Text = commentModel.Text
                 };
             ModelContext.Comments.Add(comment);
             try
@@ -297,6 +325,7 @@
                         Summary = "Comment added",
                         Detail = $"Your comment was saved!"
                     });
+                await LoadComments(0, pageSize);
                 this.StateHasChanged();
             }
             catch (Exception e)
@@ -393,5 +422,37 @@
     void OnRecord(Comment comment)
     {
         ModelContext.SaveChanges();
+    }
+
+    async Task AddQuote(Comment comment)
+    {
+        // window.getSelection().toString()
+        var selectedText = await JSRuntime.InvokeAsync<string>("getSelectionText");
+        if (selectedText == "") selectedText = comment.Text;
+        var html = $"<blockquote><b>{Loc["Quote"]} ({commentAuthors.GetValueOrDefault(comment.AuthorId)}, {comment.PublicationDate.ToString("dd.MM.yyyy")}):</b>"
+            + $"<br><i>{selectedText}</i></blockquote><br>";
+        model.Text += html;
+    }
+
+    async Task DeleteComment(Comment comment)
+    {
+        if (comment is not null)
+        {
+            try
+            {
+                ModelContext.Comments.Remove(comment);
+                ModelContext.SaveChanges();
+                await LoadComments(0, pageSize);
+            } 
+            catch (Exception e)
+            {
+                NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Error,
+                        Summary = "Error occured",
+                        Detail = $"{e.Message}"
+                    });
+            }
+        }
     }
 }
