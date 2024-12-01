@@ -46,3 +46,11 @@ public class CardAddressMapping
 
     public List<NamedStreetAddress> Addresses { get; set; }
 }
+public class PhotoLocationMapping
+{
+
+    public Photo Photo { get; set; }
+    public Guid PhotoId { get; set; }
+    public Location Location { get; set; }
+    public Guid LocationId { get; set; }
+}

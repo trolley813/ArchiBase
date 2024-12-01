@@ -23,12 +23,21 @@
             <RadzenDataGridColumn Property="Code" Title=@Loc["Code"] Width="10%"></RadzenDataGridColumn>
             <RadzenDataGridColumn Title=@Loc["Design"] Width="60%">
                 <Template Context="entry">
-                    <RadzenLink style="white-space:pre-wrap" Text="@(entry?.Description ?? "(no description)")"
-                        Path="@($"/series/{entry.Design.Id}")" />
+                    <RadzenText style="white-space:pre-wrap">
+                        @if (entry.Design is not null)
+                        {
+                            <RadzenLink Text="@(entry?.Description ?? "(no description)")"
+                                Path="@($"/series/{entry.Design.Id}")" />
+                        }
+                        else
+                        {
+                            @(entry?.Description ?? "(no description)")
+                        }
+                    </RadzenText>
                 </Template>
                 <FooterTemplate>
                     <RadzenText>
-                        @Loc["Total entries in the catalogue:"] <b>@(designCatalogue.Entries.Count)</b>
+                        @Loc["Total entries in the catalogue"]: <b>@(designCatalogue.Entries.Count)</b>
                     </RadzenText>
                 </FooterTemplate>
             </RadzenDataGridColumn>

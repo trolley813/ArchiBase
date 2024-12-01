@@ -1,3 +1,9 @@
+## 0.2.7 (2024-12-01)
+- added editing of design entries inside the catalogue
+- added ability to change password
+- added viewing photos by location
+- many tiny fixes
+
 ## 0.2.6 (2024-11-19)
 - added photo editing (coordinates, binds, dates, EXIF)
 - added comment citing

@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
       <xsd:complexType>
@@ -53,27 +54,32 @@
     <value>2.0</value>
   </resheader>
   <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0,
+      Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0,
+      Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="Administrators" xml:space="preserve">
-    <value>Администраторы</value>
-  </data>
+        <value>Администраторы</value>
+    </data>
   <data name="Database Editors" xml:space="preserve">
-    <value>Редакторы базы данных</value>
-  </data>
+        <value>Редакторы базы данных</value>
+    </data>
   <data name="Editorial board" xml:space="preserve">
-    <value>Редколлегия</value>
-  </data>
+        <value>Редколлегия</value>
+    </data>
   <data name="Edits for last 30 days" xml:space="preserve">
-    <value>Правок за последние 30 дней</value>
-  </data>
+        <value>Правок за последние 30 дней</value>
+    </data>
   <data name="Username" xml:space="preserve">
-    <value>Имя пользователя</value>
-  </data>
-  <data name="Photo Moderators" xml:space="preserve">
-    <value>Фотомодераторы</value>
-  </data>
+        <value>Имя пользователя</value>
+    </data>
+  <data name="Photo moderators" xml:space="preserve">
+        <value>Фотомодераторы</value>
+    </data>
+  <data name="Local editors" xml:space="preserve">
+        <value>Местные редакторы</value>
+    </data>
 </root>

@@ -238,7 +238,7 @@
         var userId = UserResolverService.GetUser();
         user = await UserManager.FindByIdAsync(userId.ToString());
         var userPhotosCountThisWeek = ModelContext.Photos.Where(p => p.AuthorId == userId &&
-        (DateTime.UtcNow.Date - p.PublicationDate.Date).Days < 7).Count();
+        (DateTime.UtcNow.Date - p.PublicationDate.Date).TotalDays < 7).Count();
         limit = Math.Max(UploadLimitService.GetUploadLimit(userId) - userPhotosCountThisWeek, 0);
         directLimit = Math.Max(UploadLimitService.GetDirectUploadLimit(userId) - userPhotosCountThisWeek, 0);
         if (directLimit == 0) useDirectUpload = false;

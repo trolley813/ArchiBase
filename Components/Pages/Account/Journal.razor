@@ -77,7 +77,7 @@
         .ThenInclude(c => c.StreetAddresses)
         .ThenInclude(a => a.Street)
         .Where(p => p.AuthorId == userId &&
-        (DateTime.UtcNow - p.PublicationDate).Days < 60)
+        (DateTime.UtcNow - p.PublicationDate).TotalDays < 60)
         .OrderByDescending(p => p.PublicationDate);
     }
 }

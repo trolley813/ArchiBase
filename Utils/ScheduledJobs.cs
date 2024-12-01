@@ -20,12 +20,12 @@ public class PhotoApprovalJob(IServiceProvider provider) : IScheduledJob
         foreach (var photo in pendingPhotos)
         {
             var hasPositiveVotes = photo.Votes.Upvotes > 0;
-            var (approvalLimit, rejectionLimit) = (now - photo.PublicationDate).Days switch
+            var (approvalLimit, rejectionLimit) = (now - photo.PublicationDate).TotalDays switch
             {
-                int d when d < 7 => (+2, -3),
-                int d when d >= 7 && d < 14 => (+2, hasPositiveVotes ? -2 : -3),
-                int d when d >= 14 && d < 28 => (+1, hasPositiveVotes ? -1 : -2),
-                int d when d >= 28 && d < 56 => (0, hasPositiveVotes ? -1 : -2),
+                double d when d < 7 => (+2, -3),
+                double d when d >= 7 && d < 14 => (+2, hasPositiveVotes ? -2 : -3),
+                double d when d >= 14 && d < 28 => (+1, hasPositiveVotes ? -1 : -2),
+                double d when d >= 28 && d < 56 => (0, hasPositiveVotes ? -1 : -2),
                 _ => (0, -1)
             };
             if (photo.Votes.Votes >= approvalLimit) photo.Status = PhotoStatus.Published;
@@ -54,7 +54,7 @@ public class PhotoCleanupJob(IServiceProvider provider, IWebHostEnvironment webH
         var modelContext = scope.ServiceProvider.GetRequiredService<ModelContext>();
         var now = DateTime.UtcNow;
         var photosToRemove = modelContext.Photos
-            .Where(p => p.Status == PhotoStatus.Rejected && (now - p.PublicationDate).Days > 30).ToList();
+            .Where(p => p.Status == PhotoStatus.Rejected && (now - p.PublicationDate).TotalDays > 30).ToList();
         // clean up the storage
         var wwwroot = webHostEnvironment.WebRootPath;
         foreach (var photo in photosToRemove)

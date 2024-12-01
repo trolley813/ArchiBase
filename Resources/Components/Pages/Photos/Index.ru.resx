@@ -94,4 +94,10 @@
   <data name="To user's page" xml:space="preserve">
         <value>На страницу пользователя</value>
     </data>
+  <data name="(from the location: {Location})" xml:space="preserve">
+        <value>(из населенного пункта: {Location})</value>
+    </data>
+  <data name="To location page" xml:space="preserve">
+        <value>На страницу НП</value>
+    </data>
 </root>

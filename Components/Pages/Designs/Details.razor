@@ -174,12 +174,12 @@
             buildings = ModelContext.Buildings.Where(b => buildingsIds.Contains(b.Id))
             .Include(b => b.Events)
             .Include(b => b.Location)
-            .Include(b => b.Cards)
+            .Include(b => b.ActualCard)
             .ThenInclude(c => c.StreetAddresses)
             .ThenInclude(a => a.Street)
-            .Include(b => b.Cards)
+            .Include(b => b.ActualCard)
             .ThenInclude(c => c.Categories)
-            .Include(b => b.Cards)
+            .Include(b => b.ActualCard)
             .ThenInclude(c => c.Parts)
             .ThenInclude(p => p.Design)
             .ThenInclude(d => d.Categories)
@@ -189,7 +189,7 @@
             b => new BuildingInfo
                 {
                     Building = b,
-                    HouseNumber = b.Cards.SelectMany(c => c.StreetAddresses).First().HouseNumber,
+                    HouseNumber = b.ActualCard.StreetAddresses.Count > 0 ? b.ActualCard?.StreetAddresses.First().HouseNumber : "000",
                     FloorCount = String.Join("; ", b.ActualCard?.FloorCount ?? []),
                     Name = b.ActualCard?.Name ?? "",
                     Built = b.GetDateOfStatus(BuildingEventType.ConstructionFinished),

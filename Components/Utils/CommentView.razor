@@ -343,14 +343,14 @@
 
     bool CanUpvote(Comment comment)
     {
-        if (comment.AuthorId == user?.Id || (DateTime.UtcNow - comment.PublicationDate).Days > 30) return false;
+        if (comment.AuthorId == user?.Id || (DateTime.UtcNow - comment.PublicationDate).TotalDays > 30) return false;
         if (comment.Votes?.Values?.Any(v => v.Author == user?.Id && v.VoteValue > 0) ?? false) return false;
         return true;
     }
 
     bool CanDownvote(Comment comment)
     {
-        if (comment.AuthorId == user?.Id || (DateTime.UtcNow - comment.PublicationDate).Days > 30) return false;
+        if (comment.AuthorId == user?.Id || (DateTime.UtcNow - comment.PublicationDate).TotalDays > 30) return false;
         if (comment.Votes?.Values?.Any(v => v.Author == user?.Id && v.VoteValue < 0) ?? false) return false;
         return true;
     }

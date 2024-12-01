@@ -121,4 +121,10 @@
   <data name="Stats by designs and categories" xml:space="preserve">
         <value>Статистика по проектам и категориям</value>
     </data>
+  <data name="No recent photos" xml:space="preserve">
+        <value>Нет недавних фото</value>
+    </data>
+  <data name="Show all photos" xml:space="preserve">
+        <value>Показать все фото</value>
+    </data>
 </root>

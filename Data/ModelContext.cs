@@ -49,6 +49,7 @@ public class ModelContext : DbContext
     public DbSet<CommentAuthorMapping> CommentAuthorMappings { get; set; }
     public DbSet<BuildingStatusMapping> BuildingStatusMappings { get; set; }
     public DbSet<CardAddressMapping> CardAddressMappings { get; set; }
+    public DbSet<PhotoLocationMapping> PhotoLocationMappings { get; set; }
 
 
 
@@ -102,6 +103,8 @@ public class ModelContext : DbContext
             .ToView("View_BuildingStatusMappings");
         modelBuilder.Entity<CardAddressMapping>()
             .ToView("View_CardAddressMappings");
+        modelBuilder.Entity<PhotoLocationMapping>()
+            .ToView("View_PhotoLocationMappings");
 
         modelBuilder.Entity<BuildingStatusMapping>().OwnsOne(m => m.ConstructionStarted, d => d.ToJson());
         modelBuilder.Entity<BuildingStatusMapping>().OwnsOne(m => m.ConstructionFinished, d => d.ToJson());
@@ -111,6 +114,8 @@ public class ModelContext : DbContext
         modelBuilder.Entity<BuildingStatusMapping>().OwnsOne(m => m.Demolished, d => d.ToJson());
 
         modelBuilder.Entity<CardAddressMapping>().OwnsMany(m => m.Addresses, a => a.ToJson());
+
+        modelBuilder.Entity<PhotoLocationMapping>().HasKey(m => new { m.PhotoId, m.LocationId });
     }
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)

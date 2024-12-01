@@ -94,4 +94,10 @@
   <data name="Active users" xml:space="preserve">
         <value>Активных пользователей</value>
     </data>
+  <data name="Photos for last 30 days" xml:space="preserve">
+        <value>Фото за последние 30 дней</value>
+    </data>
+  <data name="Show all photos" xml:space="preserve">
+        <value>Показать все фотографии</value>
+    </data>
 </root>

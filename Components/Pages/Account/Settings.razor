@@ -2,6 +2,7 @@
 @using SmartFormat
 @inject UserManager<ArchiBaseUser> UserManager
 @inject NotificationService NotificationService
+@inject NavigationManager NavigationManager
 @inject ModelContext ModelContext
 @inject UsersContext UsersContext
 @inject UserResolverService UserResolverService
@@ -41,6 +42,9 @@
                     <RadzenButton ButtonType="ButtonType.Submit" Text=@Loc["Show all"] Icon="visibility"
                         Disabled="hiddenPhotos.Count == 0" Click="ShowHiddenPhotos" />
                 </RadzenStack>
+            </RadzenTabsItem>
+            <RadzenTabsItem Text=@Loc["Security"]>
+                <RadzenButton Text=@Loc["Change password"] Icon="key_vertical" Click="RedirectToChangePassword" />
             </RadzenTabsItem>
         </Tabs>
     </RadzenTabs>
@@ -87,5 +91,10 @@
                     Detail = $"{e.Message}"
                 });
         }
+    }
+
+    void RedirectToChangePassword()
+    {
+        NavigationManager.NavigateTo("/changepassword", true);
     }
 }

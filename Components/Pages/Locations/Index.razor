@@ -120,6 +120,12 @@
                 </RadzenStack>
             </RadzenRow>
         }
+        else
+        {
+            <RadzenText TextStyle="TextStyle.H4" class="mx-4 my-4">@Loc["No recent photos"]</RadzenText>
+        }
+
+        <RadzenLink Path=@($"/photos?locid={location.Id}") Text=@Loc["Show all photos"] Icon="select_all" />
 
         if (galleries.Any())
         {

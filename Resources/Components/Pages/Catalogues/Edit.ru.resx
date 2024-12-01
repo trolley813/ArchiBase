@@ -61,43 +61,34 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0,
       Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Admin" xml:space="preserve">
-        <value>Администратор</value>
+  <data name="Edit catalogue" xml:space="preserve">
+        <value>Редактировать каталог</value>
     </data>
-  <data name="Bio" xml:space="preserve">
-        <value>О себе</value>
+  <data name="Name" xml:space="preserve">
+        <value>Название</value>
     </data>
-  <data name="Date of birth" xml:space="preserve">
-        <value>Дата рождения</value>
+  <data name="Description" xml:space="preserve">
+        <value>Описание</value>
     </data>
-  <data name="Editor" xml:space="preserve">
-        <value>Общий редактор</value>
+  <data name="Abbreviated format" xml:space="preserve">
+        <value>Сокращенный формат</value>
     </data>
-  <data name="Local Editor" xml:space="preserve">
-        <value>Местный редактор</value>
+  <data name="Format must include {Code} placeholder" xml:space="preserve">
+        <value>Формат должен включать "заглушку" {Code}</value>
     </data>
-  <data name="Roles" xml:space="preserve">
-        <value>Роли</value>
+  <data name="Add new entry" xml:space="preserve">
+        <value>Добавить новую запись</value>
     </data>
-  <data name="User information" xml:space="preserve">
-        <value>Информация о пользователе</value>
+  <data name="Code" xml:space="preserve">
+        <value>Шифр</value>
     </data>
-  <data name="Username" xml:space="preserve">
-        <value>Имя пользователя</value>
+  <data name="Description" xml:space="preserve">
+        <value>Описание</value>
     </data>
-  <data name="Photo Moderator" xml:space="preserve">
-        <value>Фотомодератор</value>
+  <data name="Design" xml:space="preserve">
+        <value>Проект</value>
     </data>
-  <data name="not specified" xml:space="preserve">
-        <value>не указана</value>
-    </data>
-  <data name="Locations" xml:space="preserve">
-        <value>Местоположения</value>
-    </data>
-  <data name="Photos published" xml:space="preserve">
-        <value>Опубликовано фотографий</value>
-    </data>
-  <data name="By location" xml:space="preserve">
-        <value>По населенным пунктам</value>
+  <data name="Save" xml:space="preserve">
+        <value>Сохранить</value>
     </data>
 </root>

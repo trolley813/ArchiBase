@@ -105,7 +105,11 @@
                             var card = b.Building.ActualToDate(photo.ShootingDate.Date);
                             var address = String.Join(" / ", card?.StreetAddresses.Select(a => $"{a.Street?.Name}, {a.HouseNumber}") ?? []);
                             var name = card?.Name;
-                            <RadzenAccordionItem Text="@(name != "" ? $"{address} ({name})" : address)">
+                            var designs = String.Join(" • ", card?.Parts.Select(p => p.Design.Name) ?? []);
+                            var collapsedText = address;
+                            if (name != "") collapsedText += $" —  {name}";
+                            if (designs != "") collapsedText += $" ({designs})";
+                            <RadzenAccordionItem Text=@collapsedText>
                                 <RadzenTimeline Orientation="useVerticalTimelines ? Orientation.Vertical : Orientation.Horizontal" 
                                 LinePosition="LinePosition.Start" Wrap="FlexWrap.Wrap">
                                     <Items>
