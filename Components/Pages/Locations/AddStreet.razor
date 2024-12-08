@@ -1,5 +1,6 @@
 @page "/locations/addstreet"
 @using ArchiBase.Components.Utils
+@using Microsoft.EntityFrameworkCore
 @inject ModelContext ModelContext
 @inject NotificationService NotificationService
 @inject DialogService DialogService
@@ -13,11 +14,20 @@
         <RadzenTextBox @bind-Value="@name" />
     </RadzenFormField>
     <RadzenFormField Text="Location">
-        <RadzenDropDown @bind-Value="@location" Data="Locations" TextProperty="Name" AllowFiltering=true>
+        <RadzenDropDown @bind-Value="@location" Data="locations" TextProperty="Name" AllowFiltering=true
+            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+            Change="args => OnLocationChanged(args as Location)">
+        </RadzenDropDown>
+    </RadzenFormField>
+    <RadzenFormField Text="Actual street (optional)">
+        <RadzenDropDown @bind-Value="@actualStreet" Data="streets" TextProperty="Name" AllowFiltering=true
+            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowClear=true
+            Change="args => OnActualStreetChanged(args as Street)">
         </RadzenDropDown>
     </RadzenFormField>
     <RadzenText TextStyle="TextStyle.H5">Add Buildings</RadzenText>
-    <RadzenButton Text="Add Building" Icon="add_circle_outline" Click="@AddBuildingEntry" />
+    <RadzenButton Text="Add Building" Icon="add_circle_outline" Click="@AddBuildingEntry"
+        Disabled="actualStreet is not null" />
     <RadzenFieldset>
         @foreach (var buildingEntry in buildingsToAdd.Select((item, index) => (Item: item, Index: index)))
         {
@@ -29,13 +39,13 @@
                 </RadzenColumn>
                 <RadzenColumn>
                     <RadzenFormField Text="Design">
-                        <RadzenDropDown Data="Designs" AllowFiltering=true @bind-Value="buildingEntry.Item.Design"
+                        <RadzenDropDown Data="designs" AllowFiltering=true @bind-Value="buildingEntry.Item.Design"
                             TextProperty="Name" />
                     </RadzenFormField>
                 </RadzenColumn>
                 <RadzenColumn>
                     <RadzenFormField Text="Categories">
-                        <RadzenDropDown Data="Categories" AllowFiltering=true Multiple=true
+                        <RadzenDropDown Data="categories" AllowFiltering=true Multiple=true
                             @bind-Value="buildingEntry.Item.Categories" TextProperty="Name" />
                     </RadzenFormField>
                 </RadzenColumn>
@@ -79,11 +89,15 @@
 
 @code
 {
-    List<Location> Locations { get; set; }
-    List<Design> Designs { get; set; }
-    List<DesignCategory> Categories { get; set; }
+    List<Location> locations;
+    List<Design> designs;
+    List<DesignCategory> categories;
+
+    List<Street> streets;
 
     Location? location;
+
+    Street? actualStreet;
 
     public class BuildingInputModel
     {
@@ -101,10 +115,11 @@
     List<BuildingInputModel> buildingsToAdd = [];
     protected override void OnInitialized()
     {
-        Locations = ModelContext.Locations.Where(loc => loc.AllowStreets).ToList();
-        Designs = ModelContext.Designs.ToList();
-        Categories = ModelContext.DesignCategories.ToList();
-        location = Locations.FirstOrDefault(loc => loc.Id == LocId);
+        locations = ModelContext.Locations.Where(loc => loc.AllowStreets).ToList();
+        designs = ModelContext.Designs.ToList();
+        categories = ModelContext.DesignCategories.ToList();
+        location = locations.FirstOrDefault(loc => loc.Id == LocId);
+        streets = ModelContext.Streets.Include(s => s.Location).Where(s => s.Location == location).ToList();
     }
 
     [Parameter]
@@ -152,7 +167,8 @@
             {
                 Id = Guid.NewGuid(),
                 Location = location,
-                Name = name
+                Name = name,
+                ActualStreet = actualStreet
             };
         ModelContext.Streets.Add(street);
         foreach (var buildingEntry in buildingsToAdd)
@@ -214,5 +230,22 @@
     {
         var result = await DialogService.OpenAsync<MapDialog>("Select the location on map",
         new Dictionary<string, object> { ["Model"] = model, ["Location"] = location });
+    }
+
+    void OnLocationChanged(Location? newLocation)
+    {
+        if (newLocation is not null)
+        {
+            location = newLocation;
+            streets = ModelContext.Streets.Include(s => s.Location).Where(s => s.Location == location).ToList();
+        }
+    }
+
+    void OnActualStreetChanged(Street? street)
+    {
+        if (street is not null)
+        {
+            buildingsToAdd.Clear();
+        }
     }
 }

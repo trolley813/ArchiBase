@@ -54,6 +54,10 @@ public class Street : IAuditable
 
     public ImpreciseDate? From { get; set; }
     public ImpreciseDate? To { get; set; }
+
+    public Street? ActualStreet { get; set; }
+
+    public bool IsActual => ActualStreet is null && To is null;
 }
 
 [Owned]

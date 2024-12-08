@@ -112,4 +112,7 @@
   <data name="The photo does not contain GPS tags" xml:space="preserve">
         <value>Фото не содержит GPS-тегов</value>
     </data>
+  <data name="Suggested" xml:space="preserve">
+        <value>Предложенное</value>
+    </data>
 </root>

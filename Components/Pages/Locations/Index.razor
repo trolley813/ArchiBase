@@ -144,7 +144,8 @@
         {
             <RadzenText TextStyle="TextStyle.DisplayH5">@Loc["Streets"]</RadzenText>
             <RadzenRow>
-
+                <RadzenLabel Component="ShowActualOnly" Text=@Loc["Show actual streets only"] />
+                <RadzenCheckBox Name="ShowActualOnly" @bind-Value="showActualStreetsOnly" />
                 <RadzenLink Text=@Loc["Add Street"] Path=@($"locations/addstreet?locid={location.Id}")
                     Icon="add_circle_outline" />
                 <RadzenLink Text=@Loc["Add Building"] Path=@($"buildings/add?locid={location.Id}") Icon="add_circle_outline" />
@@ -163,10 +164,17 @@
                 </RadzenStack>
 
                 <RadzenDataList WrapItems=true
-                    Data="streets.Where(s => s.StartsWith == currentStartingChar || currentStartingChar == null)">
+                    Data="streets.Where(s => (s.Street.IsActual || !showActualStreetsOnly) && (s.StartsWith == currentStartingChar || currentStartingChar == null))">
                     <Template Context="street">
                         <RadzenText TextStyle="TextStyle.H6" Style="width: max(25%, 300px); max-width: 100%;">
-                            <RadzenLink Text="@(street.Street.Name)" Path="@($"buildings/by-street/{street.Street.Id}")" />
+                            @if(street.Street.ActualStreet is null)
+                            {
+                                <RadzenLink Text="@(street.Street.Name)" Path="@($"buildings/by-street/{street.Street.Id}")" />
+                            }
+                            else
+                            {
+                                <i><RadzenLink Text="@(street.Street.Name)" Path="@($"buildings/by-street/{street.Street.Id}")" /></i>
+                            }
                         </RadzenText>
                     </Template>
                 </RadzenDataList>
@@ -229,6 +237,8 @@
 
     char? currentStartingChar;
 
+    bool showActualStreetsOnly = true;
+
     LeafletMap map = null!;
 
     double? avgLat = null, avgLon = null;
@@ -236,7 +246,7 @@
     protected override async Task OnParametersSetAsync()
     {
         loaded = false;
-        location = await ModelContext.Locations.Include(loc => loc.Streets).FirstOrDefaultAsync(loc => loc.Id == Id);
+        location = await ModelContext.Locations.Include(loc => loc.Streets).ThenInclude(s => s.ActualStreet).FirstOrDefaultAsync(loc => loc.Id == Id);
         ChildLocations = await (location is null ? TreeRepo.QueryRoots() : TreeRepo.QueryChildren(location)).ToListAsync();
         SublocationCounts = ChildLocations.Where(loc => loc is not null)
         .Select(loc => (loc!, TreeRepo.QueryDescendants(loc!).Count())).ToDictionary();
@@ -272,7 +282,7 @@
             .ToList();
             startingChars = streets.Select(s => s.StartsWith).Distinct().ToList();
         }
-        base.OnParametersSet();
+        await base.OnParametersSetAsync();
         if (ChildLocations.Count > 0)
         {
             avgLat = ChildLocations.Select(loc => loc.Latitude).Average();

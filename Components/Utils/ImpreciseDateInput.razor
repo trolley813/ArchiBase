@@ -17,6 +17,7 @@
 
     protected override void OnInitialized()
     {
+        if (Value is null) Value = new();
         if (InitialPrecision is not null)
         {
             Value.Precision = InitialPrecision.Value;
@@ -42,7 +43,7 @@
     public string FieldName { get; set; } = "Date";
 
     [Parameter]
-    public ImpreciseDate Value { get; set; } = new();
+    public ImpreciseDate? Value { get; set; } = new();
 
     [Parameter]
     public EventCallback<ImpreciseDate> ValueChanged { get; set; }

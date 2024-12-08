@@ -132,13 +132,21 @@
 
     List<BuildingEventType> eventTypes = Enum.GetValues(typeof(BuildingEventType)).Cast<BuildingEventType>().ToList();
 
-    protected override void OnParametersSet()
+    protected override void OnInitialized()
     {
         Locations = ModelContext.Locations.ToList();
         Designs = ModelContext.Designs.ToList();
         Categories = ModelContext.DesignCategories.ToList();
         location = Locations.FirstOrDefault(loc => loc.Id == LocId);
         SelectStreets();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            SelectStreets();
+        }
     }
 
     void OnMapClick((double, double) coordinate)

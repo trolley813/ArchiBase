@@ -16,7 +16,13 @@
                 AlternateText=@Loc["Photo not available"] onerror="this.src='/images/unavailable.png'" />
                 <RadzenFieldset Text=@Loc["Buildings"]>
                     <RadzenRow>
-                        <RadzenText>@(location?.Name)</RadzenText>
+                        <RadzenText>
+                            @(location?.Name) &emsp;
+                            @if(suggestedLocation)
+                            {
+                                <RadzenBadge Text=@Loc["Suggested"] BadgeStyle="BadgeStyle.Info" Style="vertical-align: middle" />
+                            }
+                        </RadzenText>
                     </RadzenRow>
                     <RadzenRow RowGap="10">
                         <RadzenButton Icon="add" Text=@Loc["Bind a building"] Size="ButtonSize.Small" Click="AddBuilding" />
@@ -139,6 +145,8 @@
 
     bool loaded = false;
 
+    bool suggestedLocation = false;
+
     int maxListSize = 20;
 
     bool rereadExif = true, rereadCoordinates = false, rereadDate = false;
@@ -163,7 +171,18 @@
         .AsSplitQuery()
         .FirstOrDefaultAsync(p => p.Id == Id);
 
-        location = photo.BuildingBinds.First()?.Building?.Location;
+        if (photo.BuildingBinds.Count > 0)
+        {
+            location = photo.BuildingBinds.First()?.Building?.Location;
+        }
+        else
+        {
+            location = ModelContext.Buildings
+            .Include(b => b.Location)
+            .OrderBy(b => (photo.Latitude - b.Latitude) * (photo.Latitude - b.Latitude) + (photo.Longitude - b.Longitude) * (photo.Longitude - b.Longitude))
+            .First().Location;
+            suggestedLocation = true;
+        }
 
         buildings = ModelContext.Buildings.Where(b => b.Location == location)
         .AsNoTracking()

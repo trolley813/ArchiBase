@@ -1,3 +1,9 @@
+## 0.2.8 (2024-12-08)
+- fixed photo upload page
+- added linking of renamed streets
+- when street is renamed, the name effective to shooting date is displayed on the photo page
+- added suggestion of building binds upon uploading photos
+
 ## 0.2.7 (2024-12-01)
 - added editing of design entries inside the catalogue
 - added ability to change password

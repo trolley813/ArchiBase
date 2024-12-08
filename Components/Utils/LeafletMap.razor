@@ -129,4 +129,11 @@
             await OnSublocationMarkerClick.InvokeAsync(marker);
         }
     }
+
+    public void SetCenter((double, double) coordinate)
+    {
+        Center = coordinate;
+        JS.InvokeVoidAsync("centerMap", new object[] { coordinate.Item1, coordinate.Item2 });
+        StateHasChanged();
+    }
 }

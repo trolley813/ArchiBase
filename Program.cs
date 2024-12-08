@@ -105,6 +105,7 @@ builder.Services.AddTransient<CommentService>();
 builder.Services.AddScoped<UploadLimitService>();
 builder.Services.AddScoped<CadastreRecordService>();
 builder.Services.AddScoped<ThumbnailService>();
+builder.Services.AddScoped<StreetNameService>();
 
 builder.Services.AddScoped<LocalEditorService>();
 builder.Services.AddScoped<IAuthorizationHandler, LocalEditorRequirementHandler>();

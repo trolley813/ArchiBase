@@ -8,12 +8,23 @@
 @inject ThumbnailService ThumbnailService
 
 <LoadingScreen Loaded=@loaded>
-    @if (street != null)
+    @if (street is not null)
     {
-        <ArchibasePageTitle Title=@($"{Loc["List of buildings at the street"]}: {street.Name}") />
-        <RadzenText TextStyle="TextStyle.H4">@Loc["List of buildings at the street"]: @(street.Name)</RadzenText>
-        <RadzenLink Text="@(street.Location.Name)" Path=@($"locations/{street.Location.Id}") />
-
+        if (street.ActualStreet is null)
+        {
+            <ArchibasePageTitle Title=@($"{Loc["List of buildings at the street"]}: {street.Name}") />
+            <RadzenText TextStyle="TextStyle.H4">@Loc["List of buildings at the street"]: @(street.Name)</RadzenText>
+            <RadzenLink Text="@(street.Location.Name)" Path=@($"locations/{street.Location.Id}") />
+        }
+        else
+        {
+            <ArchibasePageTitle Title=@($"{street.Name} ({Loc["now renamed"]})") />
+            <RadzenText TextStyle="TextStyle.H4">@(street.Name)</RadzenText>
+            <RadzenText TextStyle="TextStyle.H6">
+                @Loc["This street is now renamed into"]:
+                <RadzenLink Path=@($"/buildings/by-street/{street.ActualStreet.Id}") Text=@(street.ActualStreet.Name) />
+            </RadzenText>
+        }
         <RadzenRow>
             <RadzenLink Path=@($"streets/{Id}/edit") Text=@Loc["Edit"] Icon="edit" />
             <RadzenLink Path=@($"streets/{Id}/delete") Text=@Loc["Delete"] Icon="delete" />
@@ -35,6 +46,43 @@
             <RadzenText>
         <b>@(Smart.Format(Loc["{FromDate} — {ToDate}"], new { FromDate = street.From, ToDate = street.To })) </b>
     </RadzenText>
+        }
+
+        @if(oldStreetNames.Count > 0)
+        {
+            <RadzenText TextStyle="TextStyle.H6">@Loc["Former names"]</RadzenText>
+            <RadzenStack>
+                @foreach(var s in oldStreetNames)
+                {
+                    @if (s.From is null && s.To is not null)
+                    {
+                        <RadzenText>
+                            <b>@(Smart.Format(Loc["Until {ToDate}"], new { ToDate = s.To })) </b> &mdash;
+                            <i><RadzenLink Text=@(s.Name) Path=@($"/buildings/by-street/{s.Id}") /></i>
+                        </RadzenText>
+                    }
+                    else if (s.From is not null && s.To is null)
+                    {
+                        <RadzenText>
+                            <b>@(Smart.Format(Loc["Since {FromDate}"], new { FromDate = s.From })) </b> &mdash;
+                            <i><RadzenLink Text=@(s.Name) Path=@($"/buildings/by-street/{s.Id}") /></i>
+                        </RadzenText>
+                    }
+                    else if (s.From is not null && s.To is not null)
+                    {
+                        <RadzenText>
+                            <b>@(Smart.Format(Loc["{FromDate} — {ToDate}"], new { FromDate = s.From, ToDate = s.To })) </b> &mdash;
+                            <i><RadzenLink Text=@(s.Name) Path=@($"/buildings/by-street/{s.Id}") /></i>
+                        </RadzenText>
+                    }
+                    else
+                    {
+                        <RadzenText>
+                            <i><RadzenLink Text=@(s.Name) Path=@($"/buildings/by-street/{s.Id}") /></i>
+                        </RadzenText>
+                    }
+                }
+            </RadzenStack>
         }
 
         <RadzenRow>
@@ -125,6 +173,10 @@
             </Columns>
         </RadzenDataGrid>
     }
+    else if (street?.ActualStreet is not null)
+    {
+        
+    }
     else
     {
 
@@ -143,6 +195,8 @@
 
     List<BuildingInfo> buildings = [];
 
+    List<Street> oldStreetNames = [];
+
     bool showPhotos;
 
     Dictionary<Guid, string> photoLinks = [];
@@ -153,9 +207,13 @@
     {
         loaded = false;
         await Task.Yield();
-        street = ModelContext.Streets.Include(s => s.Location).FirstOrDefault(s => s.Id == Id);
+        street = ModelContext.Streets
+        .Include(s => s.ActualStreet)
+        .Include(s => s.Location)
+        .FirstOrDefault(s => s.Id == Id);
         if (street != null)
         {
+            oldStreetNames = ModelContext.Streets.Include(s => s.ActualStreet).Where(s => s.ActualStreet == street).ToList();
             var rawBuildings = ModelContext.Buildings
             .Include(b => b.Cards)
             .ThenInclude(c => c.StreetAddresses)

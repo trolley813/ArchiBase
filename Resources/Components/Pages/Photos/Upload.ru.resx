@@ -73,8 +73,8 @@
   <data name="Select image" xml:space="preserve">
         <value>Выберите изображение</value>
     </data>
-  <data name="Upload form" xml:space="preserve">
-        <value>Форма загрузки</value>
+  <data name="Select a photo" xml:space="preserve">
+        <value>Выберите фото</value>
     </data>
   <data name="Buildings" xml:space="preserve">
         <value>Здания</value>
@@ -183,5 +183,53 @@
     </data>
   <data name="Address" xml:space="preserve">
         <value>Адрес</value>
+    </data>
+  <data name="Fill photo info" xml:space="preserve">
+        <value>Заполните информацию о фото</value>
+    </data>
+  <data name="Bind buildings and set position on map" xml:space="preserve">
+        <value>Привяжите здания и укажите место на карте</value>
+    </data>
+  <data name="Check if everything is OK" xml:space="preserve">
+        <value>Проверьте, все ли в порядке</value>
+    </data>
+  <data name="Image file is uploaded" xml:space="preserve">
+        <value>Файл изображения загружен</value>
+    </data>
+  <data name="Image file is not uploaded" xml:space="preserve">
+        <value>Файл изображения не загружен</value>
+    </data>
+  <data name="You have chosen a license {License} for your photo" xml:space="preserve">
+        <value>Вы выбрали лицензию {License} для фото</value>
+    </data>
+  <data name="You have not chosen a license. Please choose one" xml:space="preserve">
+        <value>Вы не выбрали лицензию. Пожалуйста, выберите</value>
+    </data>
+  <data name="You have set the date: {Date} for the photo" xml:space="preserve">
+        <value>Вы установили дату съемки {Date} для фото</value>
+    </data>
+  <data name="You have not set a date for the photo" xml:space="preserve">
+        <value>Вы не установили дату съемки для фото</value>
+    </data>
+  <data name="You have bound {Count} building(s)" xml:space="preserve">
+        <value>Вы привязали {Count} здание(ия, ий)</value>
+    </data>
+  <data name="You have not bound any buildings" xml:space="preserve">
+        <value>Вы не привязали ни одного здания</value>
+    </data>
+  <data name="Upload anyway" xml:space="preserve">
+        <value>Все равно загрузить</value>
+    </data>
+  <data name="Suggested" xml:space="preserve">
+        <value>Предложенные</value>
+    </data>
+  <data name="Max distance" xml:space="preserve">
+        <value>Макс. расстояние</value>
+    </data>
+  <data name="Shooting angle" xml:space="preserve">
+        <value>Угол съемки</value>
+    </data>
+  <data name="Suggest buildings" xml:space="preserve">
+        <value>Предложить здания</value>
     </data>
 </root>

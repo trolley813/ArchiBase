@@ -129,6 +129,10 @@ class LeafletMap {
         this.sublocationMarkersLayer = null;
         addSublocationMarkers(points);
     }
+
+    centerMap(lat, lon) {
+        this.map.panTo(new L.LatLng(lat, lon));
+    }
 }
 
 function createLeafletMap(containerId, lat, lon, zoom, dotNetHelper) {
@@ -165,6 +169,10 @@ function updatePrincipalMarker(lat, lon) {
 
 function updateSublocationMarkers(points) {
     window.abLeafletMap.updateSublocationMarkers(points)
+}
+
+function centerMap(lat, lon) {
+    window.abLeafletMap.centerMap(lat, lon)
 }
 
 function onMapClick(e) {

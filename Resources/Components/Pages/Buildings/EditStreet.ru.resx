@@ -64,4 +64,7 @@
   <data name="Edit street" xml:space="preserve">
         <value>Редактировать улицу</value>
     </data>
+  <data name="Enable" xml:space="preserve">
+        <value>Включить</value>
+    </data>
 </root>

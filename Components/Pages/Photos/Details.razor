@@ -4,6 +4,7 @@
 @inject ModelContext ModelContext
 @inject UserManager<ArchiBaseUser> UserManager
 @inject UserResolverService UserResolverService
+@inject StreetNameService StreetNameService
 @inject IStringLocalizer<Details> Loc
 @inject IStringLocalizer<BuildingEvent> ELoc
 
@@ -50,10 +51,7 @@
                     
                     @foreach (var b in g)
                     {
-                        <RadzenLink
-                                Text="@(String.Join(" / ",
-                    b.Building.ActualCard?.StreetAddresses.Select(a => $"{a.Street?.Name}, {a.HouseNumber}") ?? []))"
-                                            Path=@($"/buildings/{b.Building.Id}") style=@(b.IsMain ? "font-weight:bold" :
+                        <RadzenLink Text="@(buildingAddresses[b.Building])" Path=@($"/buildings/{b.Building.Id}") style=@(b.IsMain ? "font-weight:bold" :
                     "font-style:italic") />
                         if (b != lastBind)
                         {
@@ -103,7 +101,7 @@
                         {
                             var currentEvent = b.Building.ActualEventToDate(photo.ShootingDate.Date);
                             var card = b.Building.ActualToDate(photo.ShootingDate.Date);
-                            var address = String.Join(" / ", card?.StreetAddresses.Select(a => $"{a.Street?.Name}, {a.HouseNumber}") ?? []);
+                            var address = buildingAddresses[b.Building];
                             var name = card?.Name;
                             var designs = String.Join(" • ", card?.Parts.Select(p => p.Design.Name) ?? []);
                             var collapsedText = address;
@@ -358,6 +356,8 @@ else
 
     bool useVerticalTimelines = false;
 
+    Dictionary<Building, string> buildingAddresses = [];
+
     protected override async Task OnInitializedAsync()
     {
         user = UserManager.Users.FirstOrDefault(u => u.Id == UserResolverService.GetUser());
@@ -365,7 +365,7 @@ else
         .Include(p => p.BuildingBinds).ThenInclude(b => b.Building).ThenInclude(b => b.Location)
         .Include(p => p.BuildingBinds).ThenInclude(b => b.Building).ThenInclude(b => b.Events)
         .Include(p => p.BuildingBinds).ThenInclude(b => b.Building).ThenInclude(b => b.Cards).ThenInclude(c =>
-        c.StreetAddresses).ThenInclude(a => a.Street)
+        c.StreetAddresses).ThenInclude(a => a.Street).ThenInclude(s => s.ActualStreet)
         .Include(p => p.BuildingBinds).ThenInclude(b => b.Building).ThenInclude(b => b.Cards).ThenInclude(c => 
         c.Parts).ThenInclude(p => p.Design).ThenInclude(d => d.Categories)
         .Include(p => p.BuildingBinds).ThenInclude(b => b.Building).ThenInclude(b => b.Cards).ThenInclude(c => 
@@ -374,6 +374,10 @@ else
         .Include(p => p.Galleries)
         .AsSplitQuery()
         .FirstOrDefaultAsync(p => p.Id == Id);
+        buildingAddresses = photo.BuildingBinds.ToDictionary(
+            b => b.Building, 
+            b => String.Join(" / ", b.Building.ActualToDate(photo.ShootingDate.Date)?.StreetAddresses.Select(a => $"{(StreetNameService.GetStreetNameForDate(a.Street, photo.ShootingDate))?.Name}, {a.HouseNumber}") ?? [])
+        );
         author = await UserManager.FindByIdAsync(photo?.AuthorId.ToString());
         if (user is not null) isAdmin = await UserManager.IsInRoleAsync(user, "Admin");
         if (photo is not null)

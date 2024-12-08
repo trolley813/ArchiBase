@@ -127,4 +127,7 @@
   <data name="Show all photos" xml:space="preserve">
         <value>Показать все фото</value>
     </data>
+  <data name="Show actual streets only" xml:space="preserve">
+        <value>Показывать только актуальные улицы</value>
+    </data>
 </root>

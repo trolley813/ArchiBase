@@ -112,4 +112,13 @@
   <data name="(no description)" xml:space="preserve">
         <value>(нет описания)</value>
     </data>
+  <data name="Former names" xml:space="preserve">
+        <value>Прежние названия</value>
+    </data>
+  <data name="now renamed" xml:space="preserve">
+        <value>теперь переименована</value>
+    </data>
+  <data name="This street is now renamed into" xml:space="preserve">
+        <value>Эта улица теперь переименована в</value>
+    </data>
 </root>
