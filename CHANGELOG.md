@@ -1,3 +1,8 @@
+## 0.2.9 (2024-12-31)
+- fixed cadastre link for Russia
+- fixed builder/customer translation
+- added New Year/Christmas garland
+
 ## 0.2.8 (2024-12-08)
 - fixed photo upload page
 - added linking of renamed streets

@@ -58,79 +58,64 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Photo" xml:space="preserve">
-    <value>Foto</value>
-  </data>
-  <data name="Photo not available" xml:space="preserve">
-    <value>Foto ei ole saadaval</value>
-  </data>
-  <data name="Shooting date" xml:space="preserve">
-    <value>Ülesvõtte kuupäev</value>
-  </data>
-  <data name="Sent by" xml:space="preserve">
-    <value>Saadetud</value>
-  </data>
-  <data name="Author" xml:space="preserve">
-    <value>Autor</value>
-  </data>
-  <data name="Details" xml:space="preserve">
-    <value>Üksikasjad</value>
-  </data>
-  <data name="License" xml:space="preserve">
-    <value>Litsents</value>
-  </data>
-  <data name="Published" xml:space="preserve">
-    <value>Publitseeritud</value>
-  </data>
-  <data name="Photo not found" xml:space="preserve">
-    <value>Fotot ei leitud</value>
-  </data>
-  <data name="Photo with this ID does not exist" xml:space="preserve">
-    <value>Seesugune identifikaatoriga foto ei ole olemas</value>
-  </data>
-  <data name="Galleries" xml:space="preserve">
-    <value>Galleriid</value>
-  </data>
-  <data name="Coordinates and shooting direction" xml:space="preserve">
-    <value>Koordinaadid ja suund</value>
-  </data>
-  <data name="Photo is lost" xml:space="preserve">
-    <value>TODO: Translate 'Photo is lost'</value>
-  </data>
-  <data name="This photo is lost and needs to be restored." xml:space="preserve">
-    <value>TODO: Translate 'This photo is lost and needs to be restored.'</value>
-  </data>
-  <data name="Restore" xml:space="preserve">
-    <value>TODO: Translate 'Restore'</value>
-  </data>
-  <data name="Pending publication" xml:space="preserve">
-    <value>TODO: Translate 'Pending publication'</value>
-  </data>
-  <data name="This photo is pending publication and was not checked by moderators. It may be published or rejected later." xml:space="preserve">
-    <value>TODO: Translate 'This photo is pending publication and was not checked by moderators. It may be published or rejected later.'</value>
-  </data>
-  <data name="Rejected" xml:space="preserve">
-    <value>TODO: Translate 'Rejected'</value>
-  </data>
-  <data name="This photo was rejected since it does not meets the quality guidelines and/or violates the terms of service." xml:space="preserve">
-    <value>TODO: Translate 'This photo was rejected since it does not meets the quality guidelines and/or violates the terms of service.'</value>
-  </data>
-  <data name="(author hidden)" xml:space="preserve">
-    <value>TODO: Translate '(author hidden)'</value>
-  </data>
-  <data name="Design" xml:space="preserve">
-    <value>TODO: Translate 'Design'</value>
-  </data>
-  <data name="Categories" xml:space="preserve">
-    <value>TODO: Translate 'Categories'</value>
-  </data>
   <data name="Edit photo" xml:space="preserve">
     <value>TODO: Translate 'Edit photo'</value>
   </data>
-  <data name="Votes" xml:space="preserve">
-    <value>TODO: Translate 'Votes'</value>
+  <data name="Photo not available" xml:space="preserve">
+    <value>TODO: Translate 'Photo not available'</value>
   </data>
-  <data name="(unknown)" xml:space="preserve">
-    <value>TODO: Translate '(unknown)'</value>
+  <data name="Buildings" xml:space="preserve">
+    <value>TODO: Translate 'Buildings'</value>
+  </data>
+  <data name="Suggested" xml:space="preserve">
+    <value>TODO: Translate 'Suggested'</value>
+  </data>
+  <data name="Bind a building" xml:space="preserve">
+    <value>TODO: Translate 'Bind a building'</value>
+  </data>
+  <data name="Main" xml:space="preserve">
+    <value>TODO: Translate 'Main'</value>
+  </data>
+  <data name="EXIF Data" xml:space="preserve">
+    <value>TODO: Translate 'EXIF Data'</value>
+  </data>
+  <data name="Shooting date" xml:space="preserve">
+    <value>TODO: Translate 'Shooting date'</value>
+  </data>
+  <data name="Latitude" xml:space="preserve">
+    <value>TODO: Translate 'Latitude'</value>
+  </data>
+  <data name="Longitude" xml:space="preserve">
+    <value>TODO: Translate 'Longitude'</value>
+  </data>
+  <data name="Direction" xml:space="preserve">
+    <value>TODO: Translate 'Direction'</value>
+  </data>
+  <data name="Re-read from file" xml:space="preserve">
+    <value>TODO: Translate 'Re-read from file'</value>
+  </data>
+  <data name="EXIF Data" xml:space="preserve">
+    <value>TODO: Translate 'EXIF Data'</value>
+  </data>
+  <data name="Shooting date" xml:space="preserve">
+    <value>TODO: Translate 'Shooting date'</value>
+  </data>
+  <data name="Coordinates" xml:space="preserve">
+    <value>TODO: Translate 'Coordinates'</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>TODO: Translate 'Save'</value>
+  </data>
+  <data name="No date present" xml:space="preserve">
+    <value>TODO: Translate 'No date present'</value>
+  </data>
+  <data name="The photo does not contain date/time information" xml:space="preserve">
+    <value>TODO: Translate 'The photo does not contain date/time information'</value>
+  </data>
+  <data name="No GPS data" xml:space="preserve">
+    <value>TODO: Translate 'No GPS data'</value>
+  </data>
+  <data name="The photo does not contain GPS tags" xml:space="preserve">
+    <value>TODO: Translate 'The photo does not contain GPS tags'</value>
   </data>
 </root>

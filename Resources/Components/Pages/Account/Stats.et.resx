@@ -58,76 +58,19 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Bulk editing" xml:space="preserve">
-    <value>Массовое редактирование</value>
+  <data name="My stats and limits" xml:space="preserve">
+    <value>TODO: Translate 'My stats and limits'</value>
   </data>
-  <data name="Catalogues" xml:space="preserve">
-    <value>Kataloogid</value>
+  <data name="My stats and limits" xml:space="preserve">
+    <value>TODO: Translate 'My stats and limits'</value>
   </data>
-  <data name="Categories" xml:space="preserve">
-    <value>Kategooriad</value>
+  <data name="Upload limit" xml:space="preserve">
+    <value>TODO: Translate 'Upload limit'</value>
   </data>
-  <data name="Category to design" xml:space="preserve">
-    <value>Категорию в проект</value>
+  <data name="Direct upload limit" xml:space="preserve">
+    <value>TODO: Translate 'Direct upload limit'</value>
   </data>
-  <data name="Comments" xml:space="preserve">
-    <value>Kommentaarid</value>
-  </data>
-  <data name="Conversions" xml:space="preserve">
-    <value>Muutused</value>
-  </data>
-  <data name="Design to category" xml:space="preserve">
-    <value>Проект в категорию</value>
-  </data>
-  <data name="Editorial board" xml:space="preserve">
-    <value>Toimetuskolleegium</value>
-  </data>
-  <data name="For editors" xml:space="preserve">
-    <value>Toimetajate jaoks</value>
-  </data>
-  <data name="Home" xml:space="preserve">
-    <value>Koduleht</value>
-  </data>
-  <data name="Locations" xml:space="preserve">
-    <value>Asukohad</value>
-  </data>
-  <data name="New" xml:space="preserve">
-    <value>Uued</value>
-  </data>
-  <data name="Pages" xml:space="preserve">
-    <value>Leheküljed</value>
-  </data>
-  <data name="Photos" xml:space="preserve">
-    <value>Fotosid</value>
-  </data>
-  <data name="Series and Designs" xml:space="preserve">
-    <value>Seeriad ja projektid</value>
-  </data>
-  <data name="Split categories" xml:space="preserve">
-    <value>Разделить категории</value>
-  </data>
-  <data name="Split designs" xml:space="preserve">
-    <value>Разделить проекты</value>
-  </data>
-  <data name="Upload photo" xml:space="preserve">
-    <value>Fotot üles laadida</value>
-  </data>
-  <data name="Galleries" xml:space="preserve">
-    <value>Galeriid</value>
-  </data>
-  <data name="For photo moderators" xml:space="preserve">
-    <value>Fotomoderaatorite jaoks</value>
-  </data>
-  <data name="Photo queue" xml:space="preserve">
-    <value>Fotojärjekord</value>
-  </data>
-  <data name="Merge streets" xml:space="preserve">
-    <value>Tänavaid ühendada</value>
-  </data>
-  <data name="Architects" xml:space="preserve">
-    <value>Arhitektid</value>
-  </data>
-  <data name="Responses" xml:space="preserve">
-    <value>TODO: Translate 'Responses'</value>
+  <data name="Loading..." xml:space="preserve">
+    <value>TODO: Translate 'Loading...'</value>
   </data>
 </root>

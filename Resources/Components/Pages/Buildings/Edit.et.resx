@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
       <xsd:complexType>
@@ -54,95 +53,78 @@
     <value>2.0</value>
   </resheader>
   <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0,
-      Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0,
-      Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Cadastre record number" xml:space="preserve">
-        <value>Кадастровый номер</value>
-    </data>
-  <data name="Categories" xml:space="preserve">
-        <value>Категории</value>
-    </data>
-  <data name="Design" xml:space="preserve">
-        <value>Проект</value>
-    </data>
-  <data name="Details" xml:space="preserve">
-        <value>Подробности</value>
-    </data>
-  <data name="Floor count" xml:space="preserve">
-        <value>Этажность</value>
-    </data>
-  <data name="Name" xml:space="preserve">
-        <value>Название</value>
-    </data>
-  <data name="Photo" xml:space="preserve">
-        <value>Фото</value>
-    </data>
-  <data name="Photos" xml:space="preserve">
-        <value>Фотографии</value>
-    </data>
-  <data name="Sent by" xml:space="preserve">
-        <value>Прислал</value>
-    </data>
-  <data name="Timeline" xml:space="preserve">
-        <value>Хронология</value>
-    </data>
-  <data name="Architects" xml:space="preserve">
-        <value>Архитекторы</value>
-    </data>
-  <data name="Style" xml:space="preserve">
-        <value>Стиль</value>
-    </data>
-  <data name="Address" xml:space="preserve">
-        <value>Адрес</value>
-    </data>
   <data name="Edit building" xml:space="preserve">
-        <value>Редактировать здание</value>
-    </data>
-  <data name="Addresses" xml:space="preserve">
-        <value>Адреса</value>
-    </data>
-  <data name="Street name" xml:space="preserve">
-        <value>Название улицы</value>
-    </data>
-  <data name="House number" xml:space="preserve">
-        <value>Номер дома</value>
-    </data>
+    <value>TODO: Translate 'Edit building'</value>
+  </data>
+  <data name="Timeline" xml:space="preserve">
+    <value>TODO: Translate 'Timeline'</value>
+  </data>
   <data name="Latitude" xml:space="preserve">
-        <value>Широта</value>
-    </data>
+    <value>TODO: Translate 'Latitude'</value>
+  </data>
   <data name="Longitude" xml:space="preserve">
-        <value>Долгота</value>
-    </data>
+    <value>TODO: Translate 'Longitude'</value>
+  </data>
   <data name="Description" xml:space="preserve">
-        <value>Описание</value>
-    </data>
+    <value>TODO: Translate 'Description'</value>
+  </data>
+  <data name="Cadastre record number" xml:space="preserve">
+    <value>TODO: Translate 'Cadastre record number'</value>
+  </data>
   <data name="Add new card" xml:space="preserve">
-        <value>Доб. карточку</value>
-    </data>
+    <value>TODO: Translate 'Add new card'</value>
+  </data>
+  <data name="Addresses" xml:space="preserve">
+    <value>TODO: Translate 'Addresses'</value>
+  </data>
   <data name="Add" xml:space="preserve">
-        <value>Добавить</value>
-    </data>
+    <value>TODO: Translate 'Add'</value>
+  </data>
+  <data name="Street name" xml:space="preserve">
+    <value>TODO: Translate 'Street name'</value>
+  </data>
+  <data name="House number" xml:space="preserve">
+    <value>TODO: Translate 'House number'</value>
+  </data>
   <data name="Actual from" xml:space="preserve">
-        <value>Актуально с</value>
-    </data>
-  <data name="Parts" xml:space="preserve">
-        <value>Части</value>
-    </data>
-  <data name="Part name" xml:space="preserve">
-        <value>Название части</value>
-    </data>
-  <data name="Save" xml:space="preserve">
-        <value>Сохранить</value>
-    </data>
+    <value>TODO: Translate 'Actual from'</value>
+  </data>
+  <data name="Categories" xml:space="preserve">
+    <value>TODO: Translate 'Categories'</value>
+  </data>
+  <data name="Floor count" xml:space="preserve">
+    <value>TODO: Translate 'Floor count'</value>
+  </data>
+  <data name="Style" xml:space="preserve">
+    <value>TODO: Translate 'Style'</value>
+  </data>
+  <data name="Architects" xml:space="preserve">
+    <value>TODO: Translate 'Architects'</value>
+  </data>
   <data name="Builder" xml:space="preserve">
-        <value>Подрядчик</value>
-    </data>
+    <value>TODO: Translate 'Builder'</value>
+  </data>
   <data name="Customer" xml:space="preserve">
-        <value>Застройщик</value>
-    </data>
+    <value>TODO: Translate 'Customer'</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>TODO: Translate 'Name'</value>
+  </data>
+  <data name="Parts" xml:space="preserve">
+    <value>TODO: Translate 'Parts'</value>
+  </data>
+  <data name="Part name" xml:space="preserve">
+    <value>TODO: Translate 'Part name'</value>
+  </data>
+  <data name="Design" xml:space="preserve">
+    <value>TODO: Translate 'Design'</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>TODO: Translate 'Save'</value>
+  </data>
 </root>

@@ -61,88 +61,61 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0,
       Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Cadastre record number" xml:space="preserve">
-        <value>Кадастровый номер</value>
+  <data name="Comments" xml:space="preserve">
+        <value>Kommentaarid</value>
     </data>
-  <data name="Categories" xml:space="preserve">
-        <value>Категории</value>
+  <data name="New comments written after:" xml:space="preserve">
+        <value>Uued kommentaarid kirjutatud kuupäeva pärast</value>
+    </data>
+  <data name="Mark all as read" xml:space="preserve">
+        <value>Märgi kõik loetud</value>
+    </data>
+  <data name="New responses written after:" xml:space="preserve">
+        <value>Uued vastused kirjutatud kuupäeva pärast</value>
+    </data>
+  <data name="To mark responses as read, use the new comments page." xml:space="preserve">
+        <value>TODO: Translate 'To mark responses as read, use the new comments page.'</value>
+    </data>
+  <data name="Page {0} of {1} (total comments: {2})" xml:space="preserve">
+        <value>TODO: Translate 'Page {0} of {1} (total comments: {2})'</value>
+    </data>
+  <data name="(unknown author)" xml:space="preserve">
+        <value>(tundmatu autor)</value>
+    </data>
+  <data name="Cite" xml:space="preserve">
+        <value>Tsiteeri</value>
+    </data>
+  <data name="Edit" xml:space="preserve">
+        <value>Toimeta</value>
+    </data>
+  <data name="Delete" xml:space="preserve">
+        <value>Eemalda</value>
+    </data>
+  <data name="Building" xml:space="preserve">
+        <value>Hoone</value>
     </data>
   <data name="Design" xml:space="preserve">
-        <value>Проект</value>
+        <value>Projekt</value>
     </data>
-  <data name="Details" xml:space="preserve">
-        <value>Подробности</value>
-    </data>
-  <data name="Floor count" xml:space="preserve">
-        <value>Этажность</value>
-    </data>
-  <data name="Name" xml:space="preserve">
-        <value>Название</value>
+  <data name="Category" xml:space="preserve">
+        <value>Kategooria</value>
     </data>
   <data name="Photo" xml:space="preserve">
-        <value>Фото</value>
+        <value>Foto</value>
     </data>
-  <data name="Photos" xml:space="preserve">
-        <value>Фотографии</value>
+  <data name="Mark up to this comment as read" xml:space="preserve">
+        <value>TODO: Translate 'Mark up to this comment as read'</value>
     </data>
-  <data name="Sent by" xml:space="preserve">
-        <value>Прислал</value>
+  <data name="Thank you! Comment was recorded." xml:space="preserve">
+        <value>Aitäh! Teie kommentaar oli arvestatud.</value>
     </data>
-  <data name="Timeline" xml:space="preserve">
-        <value>Хронология</value>
+  <data name="Comment text is required" xml:space="preserve">
+        <value>Kommentaari tekst on kohustuslik</value>
     </data>
-  <data name="Architects" xml:space="preserve">
-        <value>Архитекторы</value>
+  <data name="Add comment" xml:space="preserve">
+        <value>Kommentaari lisa</value>
     </data>
-  <data name="Style" xml:space="preserve">
-        <value>Стиль</value>
-    </data>
-  <data name="Address" xml:space="preserve">
-        <value>Адрес</value>
-    </data>
-  <data name="Edit building" xml:space="preserve">
-        <value>Редактировать здание</value>
-    </data>
-  <data name="Addresses" xml:space="preserve">
-        <value>Адреса</value>
-    </data>
-  <data name="Street name" xml:space="preserve">
-        <value>Название улицы</value>
-    </data>
-  <data name="House number" xml:space="preserve">
-        <value>Номер дома</value>
-    </data>
-  <data name="Latitude" xml:space="preserve">
-        <value>Широта</value>
-    </data>
-  <data name="Longitude" xml:space="preserve">
-        <value>Долгота</value>
-    </data>
-  <data name="Description" xml:space="preserve">
-        <value>Описание</value>
-    </data>
-  <data name="Add new card" xml:space="preserve">
-        <value>Доб. карточку</value>
-    </data>
-  <data name="Add" xml:space="preserve">
-        <value>Добавить</value>
-    </data>
-  <data name="Actual from" xml:space="preserve">
-        <value>Актуально с</value>
-    </data>
-  <data name="Parts" xml:space="preserve">
-        <value>Части</value>
-    </data>
-  <data name="Part name" xml:space="preserve">
-        <value>Название части</value>
-    </data>
-  <data name="Save" xml:space="preserve">
-        <value>Сохранить</value>
-    </data>
-  <data name="Builder" xml:space="preserve">
-        <value>Подрядчик</value>
-    </data>
-  <data name="Customer" xml:space="preserve">
-        <value>Застройщик</value>
+  <data name="Quote" xml:space="preserve">
+        <value>Tsitaat</value>
     </data>
 </root>

@@ -61,88 +61,43 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0,
       Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Cadastre record number" xml:space="preserve">
-        <value>Кадастровый номер</value>
+  <data name="Home" xml:space="preserve">
+        <value>Koduleht</value>
     </data>
-  <data name="Categories" xml:space="preserve">
-        <value>Категории</value>
+  <data name="Welcome to USSR (and other countries) Architectural Database" xml:space="preserve">
+        <value>Tere tulemast NSV Liidu (ja teiste maade) arhitektuuriandmebaasi</value>
     </data>
-  <data name="Design" xml:space="preserve">
-        <value>Проект</value>
+  <data name="Total locations" xml:space="preserve">
+        <value>TODO: Translate 'Total locations'</value>
     </data>
-  <data name="Details" xml:space="preserve">
-        <value>Подробности</value>
+  <data name="Total buildings" xml:space="preserve">
+        <value>TODO: Translate 'Total buildings'</value>
     </data>
-  <data name="Floor count" xml:space="preserve">
-        <value>Этажность</value>
+  <data name="Total designs" xml:space="preserve">
+        <value>TODO: Translate 'Total designs'</value>
     </data>
-  <data name="Name" xml:space="preserve">
-        <value>Название</value>
+  <data name="Total photos" xml:space="preserve">
+        <value>TODO: Translate 'Total photos'</value>
     </data>
-  <data name="Photo" xml:space="preserve">
-        <value>Фото</value>
+  <data name="Active users" xml:space="preserve">
+        <value>TODO: Translate 'Active users'</value>
     </data>
-  <data name="Photos" xml:space="preserve">
-        <value>Фотографии</value>
+  <data name="Photos for last 30 days" xml:space="preserve">
+        <value>TODO: Translate 'Photos for last 30 days'</value>
     </data>
-  <data name="Sent by" xml:space="preserve">
-        <value>Прислал</value>
+  <data name="News" xml:space="preserve">
+        <value>Uudised</value>
     </data>
-  <data name="Timeline" xml:space="preserve">
-        <value>Хронология</value>
+  <data name="All news" xml:space="preserve">
+        <value>TODO: Translate 'All news'</value>
     </data>
-  <data name="Architects" xml:space="preserve">
-        <value>Архитекторы</value>
+  <data name="Recent photos" xml:space="preserve">
+        <value>TODO: Translate 'Recent photos'</value>
     </data>
-  <data name="Style" xml:space="preserve">
-        <value>Стиль</value>
+  <data name="Show all photos" xml:space="preserve">
+        <value>TODO: Translate 'Show all photos'</value>
     </data>
-  <data name="Address" xml:space="preserve">
-        <value>Адрес</value>
-    </data>
-  <data name="Edit building" xml:space="preserve">
-        <value>Редактировать здание</value>
-    </data>
-  <data name="Addresses" xml:space="preserve">
-        <value>Адреса</value>
-    </data>
-  <data name="Street name" xml:space="preserve">
-        <value>Название улицы</value>
-    </data>
-  <data name="House number" xml:space="preserve">
-        <value>Номер дома</value>
-    </data>
-  <data name="Latitude" xml:space="preserve">
-        <value>Широта</value>
-    </data>
-  <data name="Longitude" xml:space="preserve">
-        <value>Долгота</value>
-    </data>
-  <data name="Description" xml:space="preserve">
-        <value>Описание</value>
-    </data>
-  <data name="Add new card" xml:space="preserve">
-        <value>Доб. карточку</value>
-    </data>
-  <data name="Add" xml:space="preserve">
-        <value>Добавить</value>
-    </data>
-  <data name="Actual from" xml:space="preserve">
-        <value>Актуально с</value>
-    </data>
-  <data name="Parts" xml:space="preserve">
-        <value>Части</value>
-    </data>
-  <data name="Part name" xml:space="preserve">
-        <value>Название части</value>
-    </data>
-  <data name="Save" xml:space="preserve">
-        <value>Сохранить</value>
-    </data>
-  <data name="Builder" xml:space="preserve">
-        <value>Подрядчик</value>
-    </data>
-  <data name="Customer" xml:space="preserve">
-        <value>Застройщик</value>
+  <data name="Random photos" xml:space="preserve">
+        <value>TODO: Translate 'Random photos'</value>
     </data>
 </root>

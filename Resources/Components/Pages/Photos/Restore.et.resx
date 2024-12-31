@@ -58,76 +58,34 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Bulk editing" xml:space="preserve">
-    <value>Массовое редактирование</value>
+  <data name="Photo restore" xml:space="preserve">
+    <value>TODO: Translate 'Photo restore'</value>
   </data>
-  <data name="Catalogues" xml:space="preserve">
-    <value>Kataloogid</value>
+  <data name="Photo restore" xml:space="preserve">
+    <value>TODO: Translate 'Photo restore'</value>
   </data>
-  <data name="Categories" xml:space="preserve">
-    <value>Kategooriad</value>
+  <data name="File exists" xml:space="preserve">
+    <value>TODO: Translate 'File exists'</value>
   </data>
-  <data name="Category to design" xml:space="preserve">
-    <value>Категорию в проект</value>
+  <data name="File exists on server, so the photo does not need to be restored." xml:space="preserve">
+    <value>TODO: Translate 'File exists on server, so the photo does not need to be restored.'</value>
   </data>
-  <data name="Comments" xml:space="preserve">
-    <value>Kommentaarid</value>
+  <data name="Photo may be hidden although. To show it, use personal page if you are the author; otherwise, contact the photo author." xml:space="preserve">
+    <value>TODO: Translate 'Photo may be hidden although. To show it, use personal page if you are the author; otherwise, contact the photo author.'</value>
   </data>
-  <data name="Conversions" xml:space="preserve">
-    <value>Muutused</value>
+  <data name="Cannot restore photo" xml:space="preserve">
+    <value>TODO: Translate 'Cannot restore photo'</value>
   </data>
-  <data name="Design to category" xml:space="preserve">
-    <value>Проект в категорию</value>
+  <data name="You can restore a photo only if you are either its author or an admin." xml:space="preserve">
+    <value>TODO: Translate 'You can restore a photo only if you are either its author or an admin.'</value>
   </data>
-  <data name="Editorial board" xml:space="preserve">
-    <value>Toimetuskolleegium</value>
+  <data name="Upload form" xml:space="preserve">
+    <value>TODO: Translate 'Upload form'</value>
   </data>
-  <data name="For editors" xml:space="preserve">
-    <value>Toimetajate jaoks</value>
+  <data name="Select image" xml:space="preserve">
+    <value>TODO: Translate 'Select image'</value>
   </data>
-  <data name="Home" xml:space="preserve">
-    <value>Koduleht</value>
-  </data>
-  <data name="Locations" xml:space="preserve">
-    <value>Asukohad</value>
-  </data>
-  <data name="New" xml:space="preserve">
-    <value>Uued</value>
-  </data>
-  <data name="Pages" xml:space="preserve">
-    <value>Leheküljed</value>
-  </data>
-  <data name="Photos" xml:space="preserve">
-    <value>Fotosid</value>
-  </data>
-  <data name="Series and Designs" xml:space="preserve">
-    <value>Seeriad ja projektid</value>
-  </data>
-  <data name="Split categories" xml:space="preserve">
-    <value>Разделить категории</value>
-  </data>
-  <data name="Split designs" xml:space="preserve">
-    <value>Разделить проекты</value>
-  </data>
-  <data name="Upload photo" xml:space="preserve">
-    <value>Fotot üles laadida</value>
-  </data>
-  <data name="Galleries" xml:space="preserve">
-    <value>Galeriid</value>
-  </data>
-  <data name="For photo moderators" xml:space="preserve">
-    <value>Fotomoderaatorite jaoks</value>
-  </data>
-  <data name="Photo queue" xml:space="preserve">
-    <value>Fotojärjekord</value>
-  </data>
-  <data name="Merge streets" xml:space="preserve">
-    <value>Tänavaid ühendada</value>
-  </data>
-  <data name="Architects" xml:space="preserve">
-    <value>Arhitektid</value>
-  </data>
-  <data name="Responses" xml:space="preserve">
-    <value>TODO: Translate 'Responses'</value>
+  <data name="Upload" xml:space="preserve">
+    <value>TODO: Translate 'Upload'</value>
   </data>
 </root>

@@ -10,7 +10,7 @@ public class CadastreRecordService(ITreeRepository<Location, Guid> treeRepositor
 
     static readonly Dictionary<string, string> linksByCountry = new()
     {
-        ["ru"] = "https://pkk.rosreestr.ru/#/?text={Number}&type=5&opened={Number}",
+        ["ru"] = "https://egrp365.org/reestr?egrp={Number}",
         ["ee"] = "https://livekluster.ehr.ee/ui/ehr/v1/building/{Number}",
     };
 

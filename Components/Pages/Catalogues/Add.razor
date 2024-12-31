@@ -8,17 +8,17 @@
     <AuthorizeView>
         <Authorized Context="ctx">
             <RadzenText TextStyle="TextStyle.H3">Create new</RadzenText>
-            <RadzenTemplateForm Data="@cat" TItem="DesignCatalogue" Submit="(DesignCatalogue c) => { CreateNew(c); }">
+            <RadzenTemplateForm Data="@catalogue" TItem="DesignCatalogue" Submit="CreateNew">
                 <RadzenStack Orientation="Orientation.Vertical">
 
                     <RadzenFormField Text="Name">
-                        <RadzenTextBox @bind-Value="@cat.Name" />
+                        <RadzenTextBox @bind-Value="@catalogue.Name" />
                     </RadzenFormField>
                     <RadzenFormField Text="Description">
-                        <RadzenHtmlEditor @bind-Value="@cat.Description" style="height: 300px;" />
+                        <RadzenHtmlEditor @bind-Value="@catalogue.Description" style="height: 300px;" />
                     </RadzenFormField>
                     <RadzenFormField Text="Abbreviated Format">
-                        <RadzenTextBox Name="Abbr" @bind-Value="@cat.AbbreviatedFormat" />
+                        <RadzenTextBox Name="Abbr" @bind-Value="@catalogue.AbbreviatedFormat" />
                         <RadzenRegexValidator Component="Abbr" Text="Format must include {Code} placeholder"
                             Pattern=".*?\{Code\}.*">
                         </RadzenRegexValidator>
@@ -42,9 +42,9 @@
 {
     string name = "", description = "", abbreviatedFormat = "";
 
-    DesignCatalogue cat = new();
+    DesignCatalogue catalogue = new();
 
-    void CreateNew(DesignCatalogue catalogue)
+    void CreateNew()
     {
         ModelContext.DesignCatalogues.Add(catalogue);
         try
@@ -56,6 +56,7 @@
                     Summary = "Catalogue added",
                     Detail = $"ID: {catalogue.Id}"
                 });
+            catalogue = new();
         }
         catch (Exception e)
         {

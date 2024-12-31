@@ -1,0 +1,166 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Upload photo" xml:space="preserve">
+    <value>TODO: Translate 'Upload photo'</value>
+  </data>
+  <data name="Photo upload" xml:space="preserve">
+    <value>TODO: Translate 'Photo upload'</value>
+  </data>
+  <data name="Select a photo" xml:space="preserve">
+    <value>TODO: Translate 'Select a photo'</value>
+  </data>
+  <data name="Suggest photo for publication" xml:space="preserve">
+    <value>TODO: Translate 'Suggest photo for publication'</value>
+  </data>
+  <data name="Upload photo directly" xml:space="preserve">
+    <value>TODO: Translate 'Upload photo directly'</value>
+  </data>
+  <data name="You can upload {Limit} more photos this week." xml:space="preserve">
+    <value>TODO: Translate 'You can upload {Limit} more photos this week.'</value>
+  </data>
+  <data name="Select image" xml:space="preserve">
+    <value>TODO: Translate 'Select image'</value>
+  </data>
+  <data name="Fill photo info" xml:space="preserve">
+    <value>TODO: Translate 'Fill photo info'</value>
+  </data>
+  <data name="I'm not the photo author" xml:space="preserve">
+    <value>TODO: Translate 'I'm not the photo author'</value>
+  </data>
+  <data name="License" xml:space="preserve">
+    <value>TODO: Translate 'License'</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>TODO: Translate 'Description'</value>
+  </data>
+  <data name="Bind buildings and set position on map" xml:space="preserve">
+    <value>TODO: Translate 'Bind buildings and set position on map'</value>
+  </data>
+  <data name="Suggested" xml:space="preserve">
+    <value>TODO: Translate 'Suggested'</value>
+  </data>
+  <data name="Max distance" xml:space="preserve">
+    <value>TODO: Translate 'Max distance'</value>
+  </data>
+  <data name="Shooting angle" xml:space="preserve">
+    <value>TODO: Translate 'Shooting angle'</value>
+  </data>
+  <data name="Suggest buildings" xml:space="preserve">
+    <value>TODO: Translate 'Suggest buildings'</value>
+  </data>
+  <data name="Buildings" xml:space="preserve">
+    <value>TODO: Translate 'Buildings'</value>
+  </data>
+  <data name="Select a location" xml:space="preserve">
+    <value>TODO: Translate 'Select a location'</value>
+  </data>
+  <data name="Bind a building" xml:space="preserve">
+    <value>TODO: Translate 'Bind a building'</value>
+  </data>
+  <data name="Main" xml:space="preserve">
+    <value>TODO: Translate 'Main'</value>
+  </data>
+  <data name="On map" xml:space="preserve">
+    <value>TODO: Translate 'On map'</value>
+  </data>
+  <data name="Direction" xml:space="preserve">
+    <value>TODO: Translate 'Direction'</value>
+  </data>
+  <data name="Check if everything is OK" xml:space="preserve">
+    <value>TODO: Translate 'Check if everything is OK'</value>
+  </data>
+  <data name="Image file is uploaded" xml:space="preserve">
+    <value>TODO: Translate 'Image file is uploaded'</value>
+  </data>
+  <data name="Image file is not uploaded" xml:space="preserve">
+    <value>TODO: Translate 'Image file is not uploaded'</value>
+  </data>
+  <data name="You have chosen a license {License} for your photo" xml:space="preserve">
+    <value>TODO: Translate 'You have chosen a license {License} for your photo'</value>
+  </data>
+  <data name="You have not chosen a license. Please choose one" xml:space="preserve">
+    <value>TODO: Translate 'You have not chosen a license. Please choose one'</value>
+  </data>
+  <data name="You have set the date: {Date} for the photo" xml:space="preserve">
+    <value>TODO: Translate 'You have set the date: {Date} for the photo'</value>
+  </data>
+  <data name="You have not set a date for the photo" xml:space="preserve">
+    <value>TODO: Translate 'You have not set a date for the photo'</value>
+  </data>
+  <data name="You have bound {Count} building(s)" xml:space="preserve">
+    <value>TODO: Translate 'You have bound {Count} building(s)'</value>
+  </data>
+  <data name="You have not bound any buildings" xml:space="preserve">
+    <value>TODO: Translate 'You have not bound any buildings'</value>
+  </data>
+  <data name="Limit exhausted" xml:space="preserve">
+    <value>TODO: Translate 'Limit exhausted'</value>
+  </data>
+  <data name="You have exhausted your direct upload limit for today." xml:space="preserve">
+    <value>TODO: Translate 'You have exhausted your direct upload limit for today.'</value>
+  </data>
+  <data name="Unauthorized" xml:space="preserve">
+    <value>TODO: Translate 'Unauthorized'</value>
+  </data>
+  <data name="To upload photos, you must be authorized." xml:space="preserve">
+    <value>TODO: Translate 'To upload photos, you must be authorized.'</value>
+  </data>
+</root>

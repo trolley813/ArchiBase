@@ -15,11 +15,64 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" crossorigin="" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
         crossorigin="" />
+    <style type="text/css">
+        #garland {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-image: url('https://sitespectr.ru/test/girlyanda/christmas-lights.png');
+            height: 36px;
+            width: 100%;
+            overflow: hidden;
+            z-index: 99
+        }
+
+        .garland_1 {
+            background-position: 0 0
+        }
+
+        .garland_2 {
+            background-position: 0 -36px
+        }
+
+        .garland_3 {
+            background-position: 0 -72px
+        }
+
+        .garland_4 {
+            background-position: 0 -108px
+        }
+    </style>
+    <script type="text/javascript">
+        function garland() {
+            nums = document.getElementById('nums_1').innerHTML
+            if (nums == 1) {
+                document.getElementById('garland').className = 'garland_1';
+                document.getElementById('nums_1').innerHTML = '2'
+            }
+            if (nums == 2) {
+                document.getElementById('garland').className = 'garland_2';
+                document.getElementById('nums_1').innerHTML = '3'
+            }
+            if (nums == 3) {
+                document.getElementById('garland').className = 'garland_3';
+                document.getElementById('nums_1').innerHTML = '4'
+            }
+            if (nums == 4) {
+                document.getElementById('garland').className = 'garland_4';
+                document.getElementById('nums_1').innerHTML = '1'
+            }
+        }
+        setInterval(function () { garland() }, 600)
+    </script>
     <HeadOutlet @rendermode="RenderModeForPage" />
 </head>
 
 <body>
     <Routes @rendermode="RenderModeForPage" />
+    <div id="garland" class="garland_4">
+        <div id="nums_1">1</div>
+    </div>
     <div id="reconnect-modal" style="display: none;"></div>
     <script src="_framework/blazor.web.js" autostart="false"></script>
     <script src="boot.js"></script>

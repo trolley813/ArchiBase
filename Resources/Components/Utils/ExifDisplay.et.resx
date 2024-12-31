@@ -58,79 +58,58 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Photo" xml:space="preserve">
-    <value>Foto</value>
+  <data name="EXIF Data" xml:space="preserve">
+    <value>TODO: Translate 'EXIF Data'</value>
   </data>
-  <data name="Photo not available" xml:space="preserve">
-    <value>Foto ei ole saadaval</value>
+  <data name="Photo date" xml:space="preserve">
+    <value>TODO: Translate 'Photo date'</value>
   </data>
-  <data name="Shooting date" xml:space="preserve">
-    <value>Ülesvõtte kuupäev</value>
+  <data name="Camera manufacturer" xml:space="preserve">
+    <value>TODO: Translate 'Camera manufacturer'</value>
   </data>
-  <data name="Sent by" xml:space="preserve">
-    <value>Saadetud</value>
+  <data name="Camera model" xml:space="preserve">
+    <value>TODO: Translate 'Camera model'</value>
   </data>
-  <data name="Author" xml:space="preserve">
-    <value>Autor</value>
+  <data name="Photo editor software" xml:space="preserve">
+    <value>TODO: Translate 'Photo editor software'</value>
   </data>
-  <data name="Details" xml:space="preserve">
-    <value>Üksikasjad</value>
+  <data name="Author name" xml:space="preserve">
+    <value>TODO: Translate 'Author name'</value>
   </data>
-  <data name="License" xml:space="preserve">
-    <value>Litsents</value>
+  <data name="Copyright" xml:space="preserve">
+    <value>TODO: Translate 'Copyright'</value>
   </data>
-  <data name="Published" xml:space="preserve">
-    <value>Publitseeritud</value>
+  <data name="Exposure time" xml:space="preserve">
+    <value>TODO: Translate 'Exposure time'</value>
   </data>
-  <data name="Photo not found" xml:space="preserve">
-    <value>Fotot ei leitud</value>
+  <data name="Aperture" xml:space="preserve">
+    <value>TODO: Translate 'Aperture'</value>
   </data>
-  <data name="Photo with this ID does not exist" xml:space="preserve">
-    <value>Seesugune identifikaatoriga foto ei ole olemas</value>
+  <data name="ISO" xml:space="preserve">
+    <value>TODO: Translate 'ISO'</value>
   </data>
-  <data name="Galleries" xml:space="preserve">
-    <value>Galleriid</value>
+  <data name="Exposure compensation" xml:space="preserve">
+    <value>TODO: Translate 'Exposure compensation'</value>
   </data>
-  <data name="Coordinates and shooting direction" xml:space="preserve">
-    <value>Koordinaadid ja suund</value>
+  <data name="Focal length" xml:space="preserve">
+    <value>TODO: Translate 'Focal length'</value>
   </data>
-  <data name="Photo is lost" xml:space="preserve">
-    <value>TODO: Translate 'Photo is lost'</value>
+  <data name="Equivalent focal length" xml:space="preserve">
+    <value>TODO: Translate 'Equivalent focal length'</value>
   </data>
-  <data name="This photo is lost and needs to be restored." xml:space="preserve">
-    <value>TODO: Translate 'This photo is lost and needs to be restored.'</value>
+  <data name="Flash" xml:space="preserve">
+    <value>TODO: Translate 'Flash'</value>
   </data>
-  <data name="Restore" xml:space="preserve">
-    <value>TODO: Translate 'Restore'</value>
+  <data name="White balance" xml:space="preserve">
+    <value>TODO: Translate 'White balance'</value>
   </data>
-  <data name="Pending publication" xml:space="preserve">
-    <value>TODO: Translate 'Pending publication'</value>
+  <data name="Exposure metering" xml:space="preserve">
+    <value>TODO: Translate 'Exposure metering'</value>
   </data>
-  <data name="This photo is pending publication and was not checked by moderators. It may be published or rejected later." xml:space="preserve">
-    <value>TODO: Translate 'This photo is pending publication and was not checked by moderators. It may be published or rejected later.'</value>
+  <data name="Shooting mode" xml:space="preserve">
+    <value>TODO: Translate 'Shooting mode'</value>
   </data>
-  <data name="Rejected" xml:space="preserve">
-    <value>TODO: Translate 'Rejected'</value>
-  </data>
-  <data name="This photo was rejected since it does not meets the quality guidelines and/or violates the terms of service." xml:space="preserve">
-    <value>TODO: Translate 'This photo was rejected since it does not meets the quality guidelines and/or violates the terms of service.'</value>
-  </data>
-  <data name="(author hidden)" xml:space="preserve">
-    <value>TODO: Translate '(author hidden)'</value>
-  </data>
-  <data name="Design" xml:space="preserve">
-    <value>TODO: Translate 'Design'</value>
-  </data>
-  <data name="Categories" xml:space="preserve">
-    <value>TODO: Translate 'Categories'</value>
-  </data>
-  <data name="Edit photo" xml:space="preserve">
-    <value>TODO: Translate 'Edit photo'</value>
-  </data>
-  <data name="Votes" xml:space="preserve">
-    <value>TODO: Translate 'Votes'</value>
-  </data>
-  <data name="(unknown)" xml:space="preserve">
-    <value>TODO: Translate '(unknown)'</value>
+  <data name="Digital zoom" xml:space="preserve">
+    <value>TODO: Translate 'Digital zoom'</value>
   </data>
 </root>
