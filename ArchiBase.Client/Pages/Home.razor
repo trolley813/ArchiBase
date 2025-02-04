@@ -1,0 +1,190 @@
+﻿@page "/"
+@using ArchiBase.Components.Utils
+@using Microsoft.EntityFrameworkCore
+@inject IHttpClientFactory ClientFactory
+@inject IStringLocalizer<Home> Loc
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<ArchibasePageTitle Title=@Loc["Home"] />
+
+<RadzenText TextStyle="TextStyle.H3" class="mx-4 my-4">@Loc["Welcome to USSR (and other countries) Architectural Database"]</RadzenText>
+
+<RadzenRow>
+    <CascadingAuthenticationState>
+        <AuthorizeView Context="actx">
+            <Authorized>
+                <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
+                    @if (myLocation is not null)
+                    {
+                            <RadzenCard Variant="Variant.Text" Style="font-weight:bold">
+                                <RadzenLink Text=@(myLocation.Name) Path=@($"/locations/{myLocation.Id}") />
+                            </RadzenCard>
+                    }
+                @foreach(var loc in locations)
+                {
+                    <RadzenCard Variant="Variant.Text">
+                        <RadzenLink Text=@(loc.Name) Path=@($"/locations/{loc.Id}") />
+                    </RadzenCard>
+                }
+                </RadzenStack>
+            </Authorized>
+        </AuthorizeView>
+    </CascadingAuthenticationState>
+</RadzenRow>
+
+<RadzenRow>
+    <RadzenColumn SizeSM="12" SizeMD="4" SizeLG="3">
+        <RadzenCard>
+            <RadzenRow>
+                <RadzenColumn>
+                    <RadzenText TextStyle="TextStyle.Overline">@Loc["Total locations"]</RadzenText>
+                    <RadzenText TextStyle="TextStyle.H1">
+                        <RadzenIcon Icon="location_on" Style="font-size:36px" />
+                        @locationsCount
+                    </RadzenText>
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenCard>
+    </RadzenColumn>
+
+    <RadzenColumn SizeSM="12" SizeMD="4" SizeLG="3">
+        <RadzenCard>
+            <RadzenRow>
+                <RadzenColumn>
+                    <RadzenText TextStyle="TextStyle.Overline">@Loc["Total buildings"]</RadzenText>
+                    <RadzenText TextStyle="TextStyle.H1">
+                        <RadzenIcon Icon="apartment" Style="font-size:36px" />
+                        @buildingsCount
+                    </RadzenText>
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenCard>
+    </RadzenColumn>
+
+    <RadzenColumn SizeSM="12" SizeMD="4" SizeLG="3">
+        <RadzenCard>
+            <RadzenRow>
+                <RadzenColumn>
+                    <RadzenText TextStyle="TextStyle.Overline">@Loc["Total designs"]</RadzenText>
+                    <RadzenText TextStyle="TextStyle.H1">
+                        <RadzenIcon Icon="architecture" Style="font-size:36px" />
+                        @designsCount
+                    </RadzenText>
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenCard>
+    </RadzenColumn>
+
+    <RadzenColumn SizeSM="12" SizeMD="4" SizeLG="3">
+        <RadzenCard>
+            <RadzenRow>
+                <RadzenColumn>
+                    <RadzenText TextStyle="TextStyle.Overline">@Loc["Total photos"]</RadzenText>
+                    <RadzenText TextStyle="TextStyle.H1">
+                        <RadzenIcon Icon="photo_camera" Style="font-size:36px" />
+                        @photosCount
+                    </RadzenText>
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenCard>
+    </RadzenColumn>
+
+    <RadzenColumn SizeSM="12" SizeMD="4" SizeLG="3">
+        <RadzenCard>
+            <RadzenRow>
+                <RadzenColumn>
+                    <RadzenText TextStyle="TextStyle.Overline">@Loc["Active users"]</RadzenText>
+                    <RadzenText TextStyle="TextStyle.H1">
+                        <RadzenIcon Icon="person" Style="font-size:36px" />
+                        @activeUsersCount
+                    </RadzenText>
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenCard>
+    </RadzenColumn>
+
+    <RadzenColumn SizeSM="12" SizeMD="4" SizeLG="3">
+        <RadzenCard>
+            <RadzenRow>
+                <RadzenColumn>
+                    <RadzenText TextStyle="TextStyle.Overline">@Loc["Photos for last 30 days"]</RadzenText>
+                    <RadzenText TextStyle="TextStyle.H1">
+                        <RadzenIcon Icon="schedule" Style="font-size:36px" />
+                        @recentPhotosCount
+                    </RadzenText>
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenCard>
+    </RadzenColumn>
+</RadzenRow>
+
+
+<RadzenText TextStyle="TextStyle.H4" class="mx-4 my-4">@Loc["News"]</RadzenText>
+<RadzenLink Path="news" Text=@Loc["All news"] />
+@* @foreach (var n in news)
+{
+        <RadzenText>
+            <b><LocalTime DateTime="n.PublicationDate"/></b>
+        @((MarkupString)n.Text)
+        </RadzenText>
+} *@
+<RadzenText TextStyle="TextStyle.H4" class="mx-4 my-4">@Loc["Recent photos"]</RadzenText>
+<RadzenLink Path="/photos" Text=@Loc["Show all photos"] Icon="select_all" />
+<RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Center" AlignItems="AlignItems.Center">
+    @foreach (var photo in recentPhotos)
+    {
+        <RadzenLink Path=@($"/photos/{photo.Id}")>
+            <RadzenImage Path=@($"data:image/webp;base64,{Convert.ToBase64String(photo.ThumbnailData ?? [])}") Style="max-height:180px;max-width:240px" onerror="this.src='/images/unavailable.png'" />
+        </RadzenLink>
+    }
+    </RadzenStack>
+    <RadzenText TextStyle="TextStyle.H4" class="mx-4 my-4">@Loc["Random photos"]</RadzenText>
+    <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Center" AlignItems="AlignItems.Center">
+        @foreach (var photo in randomPhotos)
+    {
+        <RadzenLink Path=@($"/photos/{photo.Id}")>
+            <RadzenImage Path=@($"data:image/webp;base64,{Convert.ToBase64String(photo.ThumbnailData ?? [])}") Style="max-height:180px;max-width:240px" onerror="this.src='/images/unavailable.png'" />
+        </RadzenLink>
+    }
+    </RadzenStack>
+
+    @code
+    {
+    int locationsCount, designsCount, buildingsCount, photosCount, activeUsersCount, recentPhotosCount;
+
+    List<PhotoOutputModel> recentPhotos = [];
+    List<PhotoOutputModel> randomPhotos = [];
+
+    //List<NewsItemOutputModel> news = [];
+
+    UserOutputModel? user;
+    LocationOutputModel? myLocation;
+
+    List<LocationOutputModel> locations = [];
+
+    // TEMP
+    List<BuildingMarker> markers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var client = ClientFactory.CreateClient();
+        locationsCount = await client.GetFromJsonAsyncExtended<int>("/api/locations/count");
+        designsCount = await client.GetFromJsonAsyncExtended<int>("/api/designs/count");
+        buildingsCount = await client.GetFromJsonAsyncExtended<int>("/api/buildings/count");
+        photosCount = await client.GetFromJsonAsyncExtended<int>("/api/photos/count?active=true");
+        activeUsersCount = await client.GetFromJsonAsyncExtended<int>("/api/users/activecount");
+        //news = await client.GetFromJsonAsyncExtended<List<NewsItemOutputModel>>("/api/news") ?? [];
+        recentPhotos = await client.GetFromJsonAsyncExtended<List<PhotoOutputModel>>("/api/photos/recent?limit=10") ?? [];
+        randomPhotos = await client.GetFromJsonAsyncExtended<List<PhotoOutputModel>>("/api/photos/random?limit=10") ?? [];
+        recentPhotosCount = await client.GetFromJsonAsyncExtended<int>("/api/photos/recentcount?days=30");
+        user = await client.GetFromJsonAsyncExtended<UserOutputModel>("/api/users/current");
+        if (user is not null)
+        {
+            locations = await client.GetFromJsonAsyncExtended<List<LocationOutputModel>>($"/api/users/{user.Id}/locations") ?? [];
+            if (user.MyLocation is Guid locId)
+            {
+                myLocation = await client.GetFromJsonAsyncExtended<LocationOutputModel>($"/api/locations/{locId}");
+            }
+        }
+    }
+}

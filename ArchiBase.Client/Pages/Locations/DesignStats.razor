@@ -1,0 +1,80 @@
+@page "/locations/{id:guid}/designstats"
+@using Microsoft.EntityFrameworkCore
+
+@inject IHttpClientFactory ClientFactory
+@inject IStringLocalizer<DesignStats> Loc
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<LoadingScreen Loaded=@loaded>
+    @if (location is not null)
+    {
+        <ArchibasePageTitle Title=@(Loc["Stats by category"] + " — " + location.Name) />
+        <RadzenText TextStyle="TextStyle.H5">@Loc["Stats by category"] — @(location.Name)</RadzenText>
+        <RadzenDataGrid Data="byCategory" AllowFiltering=true AllowSorting=true>
+            <Template Context="row">
+                <RadzenDataGrid Data="byDesign.Where(ds => ds.Item1.Categories.Contains(row.Item1))" AllowFiltering=true
+                    AllowSorting=true>
+                    <Columns>
+                        <RadzenDataGridColumn FilterProperty="Item1.Name" SortProperty="Item1.Name"
+                            SortOrder="SortOrder.Ascending">
+                            <Template Context="entry">
+                                @(entry.Item1.Name)
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn FilterProperty="Item2" SortProperty="Item2">
+                            <Template Context="entry">
+                                <RadzenLink Path=@($"/locations/{location.Id}/buildings?designids={entry.Item1.Id}")>
+                                    @(entry.Item2)</RadzenLink>
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+            </Template>
+            <Columns>
+                <RadzenDataGridColumn FilterProperty="Item1.Name" SortProperty="Item1.Name" SortOrder="SortOrder.Ascending">
+                    <Template Context="entry">
+                        @(entry.Item1.Name)
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn FilterProperty="Item2" SortProperty="Item2">
+                    <Template Context="entry">
+                        <RadzenLink Path=@($"/locations/{location.Id}/buildings?categoryids={entry.Item1.Id}")>
+                            @(entry.Item2 + byDesign.Where(ds => ds.Item1.Categories.Contains(entry.Item1)).Select(x =>
+                            x.Item2).Sum())
+                        </RadzenLink>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    }
+
+</LoadingScreen>
+
+@code
+{
+    [Parameter]
+    public Guid Id { get; set; }
+
+    LocationOutputModel? location;
+
+    List<(DesignCategoryOutputModel, int)> byCategory;
+    List<(DesignOutputModel, int)> byDesign;
+
+    bool loaded;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        loaded = false;
+        await Task.Yield();
+        using var client = ClientFactory.CreateClient();
+        location = await client.GetFromJsonAsyncExtended<LocationOutputModel>($"/api/locations/{Id}");
+        if (location is not null)
+        {
+            byCategory = await client.GetFromJsonAsyncExtended<List<(DesignCategoryOutputModel,
+            int)>>($"/api/locations/{Id}/categorystats");
+            byDesign = await client.GetFromJsonAsyncExtended<List<(DesignOutputModel, int)>>($"/api/locations/{Id}/designstats");
+        }
+        loaded = true;
+    }
+}

@@ -1,0 +1,205 @@
+@page "/locations/addstreet"
+@using ArchiBase.Components.Utils
+@using Microsoft.EntityFrameworkCore
+@inject IHttpClientFactory ClientFactory
+@inject NotificationService NotificationService
+@inject DialogService DialogService
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<EditorOnly Location=@LocId>
+    <RadzenFormField Text="Name">
+        <RadzenTextBox @bind-Value="@name" />
+    </RadzenFormField>
+    <RadzenFormField Text="Location">
+        <RadzenDropDown @bind-Value="@location" Data="locations" TextProperty="Name" AllowFiltering=true
+            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+            Change="args => OnLocationChanged(args as LocationOutputModel)">
+        </RadzenDropDown>
+    </RadzenFormField>
+    <RadzenFormField Text="Actual street (optional)">
+        <RadzenDropDown @bind-Value="@actualStreet" Data="streets" TextProperty="Name" AllowFiltering=true
+            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowClear=true
+            Change="args => OnActualStreetChanged(args as StreetOutputModel)">
+        </RadzenDropDown>
+    </RadzenFormField>
+    <RadzenText TextStyle="TextStyle.H5">Add Buildings</RadzenText>
+    <RadzenButton Text="Add Building" Icon="add_circle_outline" Click="@AddBuildingEntry"
+        Disabled="actualStreet is not null" />
+    <RadzenFieldset>
+        @foreach (var buildingEntry in buildingsToAdd.Select((item, index) => (Item: item, Index: index)))
+        {
+            <RadzenRow>
+                <RadzenColumn>
+                    <RadzenFormField Text="Number">
+                        <RadzenTextBox @bind-Value="buildingEntry.Item.Number" />
+                    </RadzenFormField>
+                </RadzenColumn>
+                <RadzenColumn>
+                    <RadzenFormField Text="Design">
+                        <RadzenDropDown Data="designs" AllowFiltering=true @bind-Value="buildingEntry.Item.Design"
+                            TextProperty="Name" />
+                    </RadzenFormField>
+                </RadzenColumn>
+                <RadzenColumn>
+                    <RadzenFormField Text="Categories">
+                        <RadzenDropDown Data="categories" AllowFiltering=true Multiple=true
+                            @bind-Value="buildingEntry.Item.Categories" TextProperty="Name" />
+                    </RadzenFormField>
+                </RadzenColumn>
+                <RadzenColumn>
+                    <RadzenFormField Text="Built">
+                        <RadzenNumeric @bind-Value="buildingEntry.Item.ConstructionYear" />
+                    </RadzenFormField>
+                </RadzenColumn>
+                <RadzenColumn>
+                    <RadzenFormField Text="Demolished">
+                        <RadzenNumeric @bind-Value="buildingEntry.Item.DemolitionYear" />
+                    </RadzenFormField>
+                </RadzenColumn>
+                <RadzenColumn>
+                    <RadzenFormField Text="Latitude">
+                        <RadzenNumeric @bind-Value="buildingEntry.Item.Latitude" />
+                    </RadzenFormField>
+                </RadzenColumn>
+                <RadzenColumn>
+                    <RadzenFormField Text="Longitude">
+                        <RadzenNumeric @bind-Value="buildingEntry.Item.Longitude" />
+                    </RadzenFormField>
+                </RadzenColumn>
+                <RadzenColumn>
+                    <RadzenFormField>
+                        <RadzenButton Icon="pin_drop" Text="On map" Click="args => OpenMapDialog(buildingEntry.Item)" />
+                    </RadzenFormField>
+                </RadzenColumn>
+                <RadzenColumn>
+                    <RadzenFormField>
+                        <RadzenButton Icon="delete" Click="args => RemoveBuildingEntry(buildingEntry.Index)" />
+                    </RadzenFormField>
+                </RadzenColumn>
+            </RadzenRow>
+        }
+    </RadzenFieldset>
+    <RadzenButton Text="Add street" Icon="add_circle_outline" Click="@Add" />
+</EditorOnly>
+
+
+
+@code
+{
+    List<LocationOutputModel> locations;
+    List<DesignOutputModel> designs;
+    List<DesignCategoryOutputModel> categories;
+
+    List<StreetOutputModel> streets;
+
+    LocationOutputModel? location;
+
+    StreetOutputModel? actualStreet;
+
+    List<BuildingCreateInputModel> buildingsToAdd = [];
+    protected override async Task OnInitializedAsync()
+    {
+        using var client = ClientFactory.CreateClient();
+        locations = await client.GetFromJsonAsyncExtended<List<LocationOutputModel>>("/api/locations?allowstreets=true") ?? [];
+        designs = await client.GetFromJsonAsyncExtended<List<DesignOutputModel>>("/api/designs") ?? [];
+        categories = await client.GetFromJsonAsyncExtended<List<DesignCategoryOutputModel>>("/api/categories") ?? [];
+        location = await client.GetFromJsonAsyncExtended<LocationOutputModel>($"/api/location/{LocId}");
+        streets = await client.GetFromJsonAsyncExtended<List<StreetOutputModel>>($"/api/location/{LocId}/streets") ?? [];
+    }
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public Guid? LocId { get; set; }
+
+    string name = "";
+
+    public void AddBuildingEntry()
+    {
+        buildingsToAdd.Add(new());
+    }
+
+    public void RemoveBuildingEntry(int index)
+    {
+        buildingsToAdd.RemoveAt(index);
+    }
+
+    public async Task Add()
+    {
+        using var client = ClientFactory.CreateClient();
+        var user = await client.GetFromJsonAsyncExtended<UserOutputModel>("/api/users/current");
+        var isEditor = user is not null && location is not null && (await
+        client.GetFromJsonAsyncExtended<bool>($"/api/users/{user.Id}/canedit?locid={location.Id}"));
+        if (!isEditor)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = "As a local editor, you cannot add a street to this location."
+                });
+            return;
+        }
+        if (buildingsToAdd.Any(b => b.Design is null && !b.Categories.Any()))
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"Please specify design or category for all the buildings added."
+                });
+            return;
+        }
+        StreetInputModel street = new()
+            {
+                Id = Guid.NewGuid(),
+                LocationId = location.Id,
+                Name = name,
+                ActualStreetId = actualStreet.Id
+            };
+        var streetWithBuildings = new StreetWithBuildings { Street = street, Buildings = buildingsToAdd };
+        var response = await client.PostAsJsonAsyncExtended<StreetWithBuildings>($"/api/locations/{location.Id}/addstreet",
+        streetWithBuildings);
+        if (response.IsSuccessStatusCode)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Street added",
+                    Detail = $"ID: {street.Id}"
+                });
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"{response}"
+                });
+        }
+    }
+
+    public async Task OpenMapDialog(BuildingCreateInputModel model)
+    {
+        var result = await DialogService.OpenAsync<MapDialog>("Select the location on map",
+        new Dictionary<string, object> { ["Model"] = model, ["Location"] = location });
+    }
+
+    async void OnLocationChanged(LocationOutputModel? newLocation)
+    {
+        if (newLocation is not null)
+        {
+            using var client = ClientFactory.CreateClient();
+            location = newLocation;
+            streets = await client.GetFromJsonAsyncExtended<List<StreetOutputModel>>($"/api/location/{location.Id}/streets") ?? [];
+        }
+    }
+
+    void OnActualStreetChanged(StreetOutputModel? street)
+    {
+        if (street is not null)
+        {
+            buildingsToAdd.Clear();
+        }
+    }
+}

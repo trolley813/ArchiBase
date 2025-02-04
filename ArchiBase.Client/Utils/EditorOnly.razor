@@ -1,0 +1,80 @@
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+@if (Location is not null)
+{
+    <CascadingAuthenticationState>
+    <AuthorizeView Roles="Admin, Editor, Local Editor">
+    @* TODO: Local editor policy? *@
+    @* <AuthorizeView Policy=@($"LocalEditor-{Location}")> *@
+        <Authorized Context="actx">
+            @ChildContent
+        </Authorized>
+        <NotAuthorized>
+            <RadzenAlert AllowClose="false" Title="Unauthorized" AlertStyle="AlertStyle.Danger" Variant="Variant.Flat"
+                Shade="Shade.Lighter">
+                @AlertText
+                @if (ShowLoginLink)
+                    {
+                        <RadzenLink Path="login" Text="Log in" />
+                    }
+                </RadzenAlert>
+            </NotAuthorized>
+        </AuthorizeView>
+    </CascadingAuthenticationState>
+}
+else
+{
+    <CascadingAuthenticationState>
+    <AuthorizeView Roles=@roles>
+        <Authorized Context="actx">
+            @ChildContent
+        </Authorized>
+        <NotAuthorized>
+            @if (ShowAlert)
+                {
+                    <RadzenAlert AllowClose="false" Title="Unauthorized" AlertStyle="AlertStyle.Danger" Variant="Variant.Flat"
+                        Shade="Shade.Lighter">
+                        @AlertText
+                        @if (ShowLoginLink)
+                        {
+                            <RadzenLink Path="login" Text="Log in" />
+                        }
+                    </RadzenAlert>
+                }
+            </NotAuthorized>
+        </AuthorizeView>
+    </CascadingAuthenticationState>
+}
+
+
+@code
+{
+    [Parameter]
+    public Guid? Location { get; set; }
+
+    [Parameter]
+    public bool AllowLocal { get; set; } = false;
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public string AlertText { get; set; } = "";
+
+    [Parameter]
+    public bool ShowAlert { get; set; } = true;
+
+    [Parameter]
+    public bool ShowLoginLink { get; set; } = true;
+
+    string roles = "Admin, Editor";
+
+    protected override void OnInitialized()
+    {
+        if (AllowLocal) roles = "Admin, Editor, Local Editor";
+        if (AlertText == "")
+        {
+            AlertText = (Location is null) ? "To create or edit items, you must be authorized as admin/editor."
+            : "To create or edit items in location, you must be authorized as admin/editor/local editor.";
+        }
+    }
+}

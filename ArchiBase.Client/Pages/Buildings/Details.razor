@@ -1,0 +1,298 @@
+@page "/buildings/{id:guid}"
+@using Microsoft.EntityFrameworkCore
+@using SmartFormat
+@inject IHttpClientFactory ClientFactory
+@inject IStringLocalizer<Details> Loc
+@inject IStringLocalizer<BuildingEvent> ELoc
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+@if (building != null)
+{
+    <ArchibasePageTitle Title=@buildingDisplayString />
+    <RadzenText TextStyle="TextStyle.H4">@buildingDisplayString</RadzenText>
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="18" Wrap="FlexWrap.Wrap">
+        @foreach (var sa in building.ActualCard?.StreetAddresses ?? [])
+        {
+            <RadzenLink Text=@($"{sa.Street.Name}") Path=@($"buildings/by-street/{sa.Street.Id}") />
+        }
+        </RadzenStack>
+    <RadzenLink Text="Edit" Icon="edit" Path=@($"buildings/{building.Id}/edit") Target="_blank" />
+    <RadzenRow>
+        <RadzenColumn>
+            <RadzenText TextStyle="TextStyle.H6">@Loc["Timeline"]</RadzenText>
+            <RadzenCard>
+                <RadzenTimeline>
+                    <Items>
+                        @foreach (var ev in building.Events.OrderBy(ev => ev.Date.Date))
+                        {
+                            <RadzenTimelineItem PointStyle="GetPointStyleByEventType(ev.Type)" PointVariant="Variant.Outlined"
+                                PointShadow="0" PointSize="PointSize.Large">
+                                <PointContent>
+                                    <RadzenIcon Icon="@(GetIconByEventType(ev.Type))" />
+                                </PointContent>
+                                <LabelContent>
+                                    <RadzenText TextStyle="TextStyle.H5" Class="@(GetTextStyleByEventType(ev.Type))">
+                                        <ImpreciseDateDisplay Value="ev.Date" />
+                                    </RadzenText>
+                                </LabelContent>
+                                <ChildContent>
+                                    <RadzenText Class="@(GetTextStyleByEventType(ev.Type))">@(ELoc[ev.Type.GetDisplayName()])
+                                    </RadzenText>
+                                </ChildContent>
+                            </RadzenTimelineItem>
+                        }
+                    </Items>
+                </RadzenTimeline>
+            </RadzenCard>
+        </RadzenColumn>
+        <RadzenColumn>
+            <RadzenText TextStyle="TextStyle.H6">@Loc["Building on map"]</RadzenText>
+            <RadzenCard>
+                <LeafletMap Style="min-height: 300px; width: 100%" Center="(building.Latitude, building.Longitude)"
+                    Zoom="15"
+                    PrincipalMarker="new PrincipalMarker { Latitude = building.Latitude, Longitude = building.Longitude }">
+                </LeafletMap>
+            </RadzenCard>
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenText TextStyle="TextStyle.H6">@Loc["Details"]</RadzenText>
+    @if (building.CadastreRecordNumber is not null)
+    {
+        <RadzenText />
+        <RadzenRow>
+            <RadzenColumn>
+                <RadzenText TextStyle="TextStyle.Overline">@Loc["Cadastre record number"]</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body1">
+                    <RadzenLink Path=@(cadastreLink) Target="_blank">
+                        <b>@(building.CadastreRecordNumber)</b>
+                    </RadzenLink>
+                </RadzenText>
+            </RadzenColumn>
+        </RadzenRow>
+    }
+    <RadzenRow>
+        <RadzenText>@((MarkupString)building.Description)</RadzenText>
+    </RadzenRow>
+    <RadzenTabs>
+        <Tabs>
+            @foreach (var (card, index) in building.Cards.OrderBy(c => c.ActualFrom.Date)
+           .Select((item, index) => (item, index + 1)))
+            {
+                <RadzenTabsItem Text=@( card.ActualFrom.Precision == DatePrecision.None ? Smart.Format(Loc["Card #{Index}"], new
+            { Index = index}) : Smart.Format(Loc["Card #{Index} actual from {ActualFrom}"], new { Index = index,
+            ActualFrom = card.ActualFrom}))>
+                    <RadzenCard>
+                        <RadzenRow>
+                            @if (card.Parts.Any())
+                            {
+                                <RadzenColumn>
+
+                                    <RadzenText TextStyle="TextStyle.Overline">@Loc["Design"]</RadzenText>
+                                    <RadzenRow>
+                                        @foreach (var part in card.Parts.OrderBy(p => p.Name))
+                                        {
+                                            <RadzenColumn>
+                                                <RadzenText TextStyle="TextStyle.Body1">
+                                                    @if (part.Name is not null)
+                                                    {
+                                                        <i>@(part.Name):</i>
+                                                    }
+                                                    <b>
+                                                        <RadzenLink Text=@(part.Design.Name) Path=@($"/series/{part.Design.Id}") />
+                                                    </b>
+                                                </RadzenText>
+                                                <RadzenText TextStyle="TextStyle.Body2"><i>@(String.Join(" · ",
+                                        part.Design.CatalogueEntries.OrderBy(e => (e.Catalogue.Id, e.Code)).Select(e =>
+                                        e.Formatted)))</i>
+                                                </RadzenText>
+                                            </RadzenColumn>
+                                        }
+                                    </RadzenRow>
+                                </RadzenColumn>
+                            }
+                            <RadzenColumn>
+                                <RadzenText TextStyle="TextStyle.Overline">@Loc["Address"]</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1">
+                                    <b>@(String.Join(" / ",
+                                             card.StreetAddresses
+                                             .OrderByDescending(a => a.HouseNumber,
+                                             StringComparison.OrdinalIgnoreCase.WithNaturalSort())
+                                             .Select(a => $"{a.Street.Name}, {a.HouseNumber}") ?? []))</b>
+                                </RadzenText>
+                            </RadzenColumn>
+                            <RadzenColumn>
+                                <RadzenText TextStyle="TextStyle.Overline">@Loc["Floor count"]</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1">
+                                    <b>@(String.Join("; ", card.FloorCount))</b>
+                                </RadzenText>
+                            </RadzenColumn>
+                        </RadzenRow>
+                        <RadzenRow>
+                            <RadzenColumn>
+                                <RadzenText TextStyle="TextStyle.Overline">@Loc["Name"]</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1"><b>@((MarkupString)(card?.Name ?? ""))</b></RadzenText>
+                            </RadzenColumn>
+                        </RadzenRow>
+                        @if (card.Architects.Count > 0)
+                        {
+                            <RadzenRow>
+                                <RadzenColumn>
+                                    <RadzenText TextStyle="TextStyle.Overline">@Loc["Architects"]</RadzenText>
+                                    <RadzenStack Orientation="Orientation.Horizontal">
+                                        @foreach (var architect in card.Architects)
+                                        {
+                                            <RadzenLink Path=@($"/architects/{architect.Id}")>
+                                                <b>@(architect.AbbreviatedName)</b>
+                                            </RadzenLink>
+                                        }
+                                    </RadzenStack>
+                                </RadzenColumn>
+                            </RadzenRow>
+                        }
+                        @if (card.Style is not null)
+                        {
+                            <RadzenRow>
+                                <RadzenColumn>
+                                    <RadzenText TextStyle="TextStyle.Overline">@Loc["Style"]</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1"><b>@(card.Style.Name)</b></RadzenText>
+                                </RadzenColumn>
+                            </RadzenRow>
+                        }
+                        @if (card.Builder is not null)
+                        {
+                            <RadzenRow>
+                                <RadzenColumn>
+                                    <RadzenText TextStyle="TextStyle.Overline">@Loc["Builder"]</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1"><b>@(card.Builder)</b></RadzenText>
+                                </RadzenColumn>
+                            </RadzenRow>
+                        }
+                        @if (card.Customer is not null)
+                        {
+                            <RadzenRow>
+                                <RadzenColumn>
+                                    <RadzenText TextStyle="TextStyle.Overline">@Loc["Customer"]</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1"><b>@(card.Customer)</b></RadzenText>
+                                </RadzenColumn>
+                            </RadzenRow>
+                        }
+                        <RadzenRow>
+                            <RadzenColumn>
+                                <RadzenText TextStyle="TextStyle.Overline">@Loc["Categories"]</RadzenText>
+                                <RadzenStack Orientation="Orientation.Horizontal">
+                                    @foreach (var cat in card.Categories)
+                                    {
+                                        <RadzenLink Path=@($"/categories/{cat.Id}")>
+                                            <RadzenBadge Text=@(cat.Name) BadgeStyle="BadgeStyle.Info" Shade="Shade.Darker" />
+                                        </RadzenLink>
+                                    }
+                                    @foreach (var cat in card.CategoriesOfDesigns)
+                                    {
+                                        <RadzenLink Path=@($"/categories/{cat.Id}")>
+                                            <RadzenBadge Text=@(cat.Name) BadgeStyle="BadgeStyle.Info" Shade="Shade.Lighter" />
+                                        </RadzenLink>
+                                    }
+                                </RadzenStack>
+                            </RadzenColumn>
+                        </RadzenRow>
+                    </RadzenCard>
+                </RadzenTabsItem>
+            }
+        </Tabs>
+    </RadzenTabs>
+    <RadzenText TextStyle="TextStyle.H6">@Loc["Photos"] (@(photos.Count))</RadzenText>
+    <RadzenLink Text=@Loc["Add photo"] Icon="add_circle_outline" Path=@($"/photos/upload?binds={building.Id}")
+        Target="_blank" />
+    <RadzenDataGrid Data="photos" Responsive=true>
+        <Columns>
+            <RadzenDataGridColumn Title=@Loc["Photo"]>
+                <Template Context="photo">
+                    <RadzenLink Path="@($"/photos/{photo.Id}")" Text="Photo" Target="_blank">
+                        <RadzenImage Path="@($"data:image/webp;base64,{photo.ThumbnailData}")"
+                            Style="display:block;margin:auto;max-height:200px;max-width:400px;height:auto;width:auto;"
+                            AlternateText="Photo not available" onerror="this.src='/images/unavailable.png'" />
+                    </RadzenLink>
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title=@Loc["Details"]>
+                <Template Context="photo">
+                    <RadzenText TextStyle="TextStyle.Body1"><b>
+                            <ImpreciseDateDisplay Value="@(photo.ShootingDate)"></ImpreciseDateDisplay>
+                        </b></RadzenText>
+                    @* <RadzenText TextStyle="TextStyle.Overline">
+                        @(photo.NonAuthor ? @Loc["Sent by"] : @Loc["Author"]):
+                        @(UserManager.Users.FirstOrDefault(u => u.Id == photo.AuthorId)?.UserName)
+                    </RadzenText> *@
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+
+    <CommentView EntityId="building.Id" EntityType="Building" />
+}
+
+@code
+{
+    [Parameter]
+    public Guid Id { get; set; }
+
+    BuildingOutputModel? building;
+
+    string buildingDisplayString = "";
+
+    string? cadastreLink = "";
+
+    List<PhotoOutputModel> photos = [];
+
+    protected override async Task OnParametersSetAsync()
+    {
+        using var client = ClientFactory.CreateClient();
+        building = await client.GetFromJsonAsyncExtended<BuildingOutputModel>($"/api/buildings/{Id}");
+        photos = await client.GetFromJsonAsyncExtended<List<PhotoOutputModel>>($"/api/buildings/{Id}/photos");
+
+        if (building is not null)
+        {
+            buildingDisplayString = building.Location.Name + ", " + String.Join(" / ",
+            building.ActualCard?.StreetAddresses
+            .OrderByDescending(a => a.HouseNumber, StringComparison.OrdinalIgnoreCase.WithNaturalSort())
+            .Select(a => $"{a.Street.Name}, {a.HouseNumber}") ?? []);
+        }
+        if (building?.CadastreRecordNumber is not null)
+        {
+            cadastreLink = await client.GetFromJsonAsyncExtended<string?>($"/api/buildings/{Id}/cadastrelink");
+        }
+
+    }
+
+    public PointStyle GetPointStyleByEventType(BuildingEventType eventType) => eventType switch
+    {
+        BuildingEventType.ConstructionStarted => PointStyle.Success,
+        BuildingEventType.ConstructionFinished => PointStyle.Success,
+        BuildingEventType.RebuildingStarted => PointStyle.Warning,
+        BuildingEventType.RebuildingFinished => PointStyle.Warning,
+        BuildingEventType.Abandoned => PointStyle.Dark,
+        BuildingEventType.Demolished => PointStyle.Danger,
+        _ => PointStyle.Info
+    };
+
+    public string GetTextStyleByEventType(BuildingEventType eventType) => eventType switch
+    {
+        BuildingEventType.ConstructionStarted => "rz-color-success",
+        BuildingEventType.ConstructionFinished => "rz-color-success",
+        BuildingEventType.RebuildingStarted => "rz-color-warning",
+        BuildingEventType.RebuildingFinished => "rz-color-warning",
+        BuildingEventType.Abandoned => "rz-color-dark",
+        BuildingEventType.Demolished => "rz-color-danger",
+        _ => "rz-color-info"
+    };
+    public string GetIconByEventType(BuildingEventType eventType) => eventType switch
+    {
+        BuildingEventType.ConstructionStarted => "build",
+        BuildingEventType.ConstructionFinished => "check",
+        BuildingEventType.RebuildingStarted => "edit",
+        BuildingEventType.RebuildingFinished => "check",
+        BuildingEventType.Abandoned => "block",
+        BuildingEventType.Demolished => "close",
+        _ => "block"
+    };
+}

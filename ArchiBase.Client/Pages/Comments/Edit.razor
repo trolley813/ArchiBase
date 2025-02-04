@@ -1,0 +1,99 @@
+@page "/comments/{id:guid}/edit"
+@using Humanizer
+@inject IHttpClientFactory ClientFactory
+@inject NotificationService NotificationService
+@inject NavigationManager NavigationManager
+@inject IStringLocalizer<Edit> Loc
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+@if (canEdit)
+{
+        <RadzenText TextStyle="TextStyle.H5">@Loc["Edit comment"]</RadzenText>
+        <RadzenTemplateForm Data="comment">
+            <RadzenStack>
+                <RadzenFormField Text=@Loc["Comment text"]>
+                    <RadzenHtmlEditor @bind-Value="@(comment.Text)"></RadzenHtmlEditor>
+                </RadzenFormField>
+                <RadzenFormField>
+                    <RadzenButton ButtonType="ButtonType.Submit" Text=@Loc["Save comment"] Click="OnSubmit" />
+                </RadzenFormField>
+            </RadzenStack>
+        </RadzenTemplateForm>
+}
+else
+{
+        <RadzenText TextStyle="TextStyle.H5">@Loc["Cannot edit comment"]</RadzenText>
+        <RadzenAlert AllowClose="false" Title="Comment cannot be edited" AlertStyle="AlertStyle.Danger" Variant="Variant.Flat"
+            Shade="Shade.Lighter">
+        @Loc["Either you are not the author of the comment, or it was written long time (24 hours or more) ago, or somebody has already responded to it."]
+        </RadzenAlert>
+}
+
+@code
+{
+    [Parameter]
+    public Guid Id { get; set; }
+
+    CommentInputModel? comment;
+
+    bool canEdit;
+
+    override protected async Task OnInitializedAsync()
+    {
+        using var client = ClientFactory.CreateClient();
+        var commentOutputModel = await client.GetFromJsonAsyncExtended<CommentOutputModel>($"/api/comments/{Id}");
+        if (commentOutputModel is not null)
+        {
+            comment = new CommentInputModel()
+            {
+                Id = commentOutputModel.Id,
+                AuthorId = commentOutputModel.AuthorId,
+                EntityId = commentOutputModel.EntityId,
+                EntityType = commentOutputModel.EntityType,
+                IsRecorded = commentOutputModel.IsRecorded,
+                PublicationDate = commentOutputModel.PublicationDate,
+                Text = commentOutputModel.Text,
+                Votes = commentOutputModel.Votes
+            };
+        }
+        var user = await client.GetFromJsonAsyncExtended<UserOutputModel>($"/api/users/current"); ;
+        if (comment is null || user?.Id != comment.AuthorId || (DateTime.UtcNow - comment.PublicationDate) > 24.Hours())
+        {
+            canEdit = false;
+        }
+        else
+        {
+            canEdit = (await client.GetFromJsonAsyncExtended<CommentOutputModel>($"/api/comments/last?entityid={comment.EntityId}"))?.Id == comment.Id;
+        }
+    }
+
+    async void OnSubmit()
+    {
+        using var client = ClientFactory.CreateClient();
+        var response = await client.PutAsJsonAsyncExtended<CommentInputModel>($"/api/comments/{comment.Id}", comment);
+        if (response.IsSuccessStatusCode)
+        {
+            string? redirectLink = comment?.EntityType switch
+            {
+                "DesignCategory" => $"/categories/{comment.EntityId}",
+                "Design" => $"/series/{comment.EntityId}",
+                "Photo" => $"/photos/{comment.EntityId}",
+                "Building" => $"/buildings/{comment.EntityId}",
+                _ => null
+            };
+            if (redirectLink is not null)
+            {
+                NavigationManager.NavigateTo(redirectLink, true);
+            }
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"{response}"
+                });
+        }
+    }
+}

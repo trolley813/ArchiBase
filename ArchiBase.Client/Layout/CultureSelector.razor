@@ -1,0 +1,59 @@
+@using System.Globalization
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@inject LocalizationLocalStorageManager LocalizationLocalStorageManager
+@inject ILocalizationService LocalizationService
+
+<RadzenRow AlignItems="AlignItems.Center" Gap="10">
+    <RadzenText>Select language:</RadzenText>
+    <RadzenDropDown Value="selectedCulture" Change="args => ApplySelectedCultureAsync(args as CultureInfo)"
+        Data="supportedCultures" TValue="CultureInfo">
+        <Template Context="culture">
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="10">
+                <img src=@(IconName(culture)) width="16px" />
+                <RadzenText>@culture.DisplayName</RadzenText>
+            </RadzenStack>
+        </Template>
+    </RadzenDropDown>
+</RadzenRow>
+
+@code
+{
+    private CultureInfo[] supportedCultures = new[]
+    {
+new CultureInfo("en-US"),
+new CultureInfo("ru-RU"),
+new CultureInfo("et-EE"),
+new CultureInfo("pl-PL"),
+new CultureInfo("be-BY"),
+new CultureInfo("de-DE"),
+};
+
+    CultureInfo? selectedCulture;
+
+    protected override void OnInitialized()
+    {
+        selectedCulture = CultureInfo.CurrentCulture;
+    }
+
+    private async Task ApplySelectedCultureAsync(CultureInfo cultureInfo)
+    {
+        selectedCulture = cultureInfo;
+        if (CultureInfo.CurrentCulture != selectedCulture)
+        {
+            CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
+            CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+            await LocalizationLocalStorageManager.SetBlazorCultureAsync(cultureInfo.Name);
+            LocalizationService.InvokeLanguageChanged(cultureInfo);
+        }
+    }
+
+    private string IconName(CultureInfo? culture)
+    {
+        if (culture is null) return string.Empty;
+        var wwwroot = ""; // TODO
+        string path = $"flags/language/{culture.ToString().ToLowerInvariant()}.svg";
+        if (System.IO.File.Exists(Path.Combine(wwwroot, path))) return path;
+        return $"flags/language/{culture.TwoLetterISOLanguageName}.svg";
+    }
+}

@@ -1,0 +1,112 @@
+@page "/register"
+@inject IHttpClientFactory ClientFactory
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+@inject IStringLocalizer<Register> Loc
+@inject IConfiguration Configuration
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<ArchibasePageTitle Title=@Loc["Register"] />
+
+@if (!Configuration.GetValue<bool>("DisableRegistration", false))
+{
+    <RadzenCard>
+    <RadzenText TextStyle="TextStyle.H4">Register</RadzenText>
+    <RadzenTemplateForm TItem="UserRegisterInputModel" Data="@model" Submit=@OnSubmit InvalidSubmit=@OnInvalidSubmit>
+        <RadzenStack>
+            <RadzenFormField Text="User name">
+                <RadzenTextBox @bind-Value="@model.UserName" Name="UserName" />
+                <RadzenRequiredValidator Component="UserName" Text="User name is required" Style="position: absolute" />
+            </RadzenFormField>
+            <RadzenFormField Text="E-mail address">
+                <RadzenTextBox @bind-Value="@model.Email" Name="Email" />
+                <RadzenRequiredValidator Component="Email" Text="E-mail is required" Style="position: absolute" />
+            </RadzenFormField>
+            <RadzenFormField Text="Password">
+                <ChildContent>
+                    <RadzenTextBox Name="Password" @bind-Value="@model.Password" Visible="@showPassword" />
+                    <RadzenPassword Name="Password" @bind-Value="@model.Password" Visible="@(!showPassword)" />
+                    <RadzenRequiredValidator Component="Password" Text="Password is required"
+                        Style="position: absolute" />
+                </ChildContent>
+                <End>
+                    <RadzenButton Icon="@(showPassword ? "visibility" : "visibility_off")"
+                        Click="args => showPassword = !showPassword" Variant="Variant.Text" Size="ButtonSize.Small" />
+                </End>
+            </RadzenFormField>
+            <RadzenFormField Text="Location (optional)">
+                <RadzenDropDown Data="locations" TextProperty="Name" ValueProperty="Id" @bind-Value="@model.LocationId"
+                    AllowClear="true" AllowFiltering="true"
+                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+
+                </RadzenDropDown>
+            </RadzenFormField>
+            <RadzenFormField Text="Date of birth (optional)">
+                <RadzenDatePicker @bind-Value="@model.DateOfBirth" DateFormat="dd.MM.yyyy" YearRange="1900:2024"
+                    ShowCalendarWeek AllowClear="true" />
+            </RadzenFormField>
+            <RadzenFormField Text="Bio (optional)">
+                <RadzenHtmlEditor Style="height: 300px" @bind-Value="@model.Bio" />
+            </RadzenFormField>
+            <RadzenButton ButtonType="ButtonType.Submit" Text="Register"></RadzenButton>
+        </RadzenStack>
+
+    </RadzenTemplateForm>
+</RadzenCard>
+}
+else
+{
+    <RadzenAlert AllowClose="false" Title=@Loc["Registration is temporarily disabled"] AlertStyle="AlertStyle.Danger"
+    Variant="Variant.Flat" Shade="Shade.Lighter">
+    @Loc["If you have had an account, please use the \"Forgot password\" form"]
+    <RadzenLink Text=@Loc["Restore access"] Path="forgotpassword" />
+</RadzenAlert>
+}
+
+@code
+{
+
+    UserRegisterInputModel model = new();
+
+    List<LocationBasicOutputModel> locations;
+
+    bool showPassword = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        using var client = ClientFactory.CreateClient();
+        locations = await client.GetFromJsonAsyncExtended<List<LocationBasicOutputModel>>("api/locations/basic") ?? [];
+    }
+
+    async Task OnSubmit(UserRegisterInputModel data)
+    {
+        using var client = ClientFactory.CreateClient();
+
+        var response = await client.PostAsJsonAsyncExtended("api/account/register", model);
+
+        if (response.IsSuccessStatusCode)
+        {
+            NavigationManager.NavigateTo("/account/login");
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Registration failed",
+                    Detail = $"Error: {await response.Content.ReadAsStringAsync()}"
+                });
+        }
+    }
+
+    void OnInvalidSubmit(FormInvalidSubmitEventArgs args)
+    {
+        NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Registration failed",
+                Detail = $"Invalid input: {args}"
+            });
+    }
+}

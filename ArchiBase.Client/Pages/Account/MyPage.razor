@@ -1,0 +1,16 @@
+@page "/my-page"
+@inject IHttpClientFactory ClientFactory
+@inject NavigationManager NavigationManager
+
+@code
+{
+    override protected async Task OnInitializedAsync()
+    {
+        using var client = ClientFactory.CreateClient();
+        var user = await client.GetFromJsonAsyncExtended<UserOutputModel>("/api/users/current");
+        if (user is not null)
+        {
+            NavigationManager.NavigateTo($"users/{user.Id}");
+        }
+    }
+}

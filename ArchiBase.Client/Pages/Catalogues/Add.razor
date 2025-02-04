@@ -1,0 +1,71 @@
+@page "/catalogues/add"
+@using ArchiBase.Models
+@inject IHttpClientFactory ClientFactory
+@inject NotificationService NotificationService
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<CascadingAuthenticationState>
+    <AuthorizeView>
+        <Authorized Context="ctx">
+            <RadzenText TextStyle="TextStyle.H3">Create new</RadzenText>
+            <RadzenTemplateForm Data="@catalogue" TItem="DesignCatalogueInputModel" Submit="CreateNew">
+                <RadzenStack Orientation="Orientation.Vertical">
+
+                    <RadzenFormField Text="Name">
+                        <RadzenTextBox @bind-Value="@catalogue.Name" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Description">
+                        <RadzenHtmlEditor @bind-Value="@catalogue.Description" style="height: 300px;" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Abbreviated Format">
+                        <RadzenTextBox Name="Abbr" @bind-Value="@catalogue.AbbreviatedFormat" />
+                        <RadzenRegexValidator Component="Abbr" Text="Format must include {Code} placeholder"
+                            Pattern=".*?\{Code\}.*">
+                        </RadzenRegexValidator>
+                    </RadzenFormField>
+                    <RadzenFormField>
+                        <RadzenButton ButtonType="ButtonType.Submit" Text="Submit" Icon="add_circle_outline" />
+                    </RadzenFormField>
+                </RadzenStack>
+            </RadzenTemplateForm>
+        </Authorized>
+        <NotAuthorized>
+            <RadzenAlert AllowClose="false" Title="Unauthorized" AlertStyle="AlertStyle.Danger" Variant="Variant.Flat"
+                Shade="Shade.Lighter">
+                To create or edit items, you must be authorized as admin/editor.
+                <RadzenLink Path="login" Text="Log in" />
+            </RadzenAlert>
+        </NotAuthorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>
+@code
+{
+    string name = "", description = "", abbreviatedFormat = "";
+
+    DesignCatalogueInputModel catalogue = new();
+
+    async void CreateNew()
+    {
+        using var client = ClientFactory.CreateClient();
+        var response = await client.PostAsJsonAsync($"api/catalogues/create", catalogue);
+        if (response.IsSuccessStatusCode)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Catalogue added",
+                    Detail = $"ID: {catalogue.Id}"
+                });
+            catalogue = new();
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"{response}"
+                });
+        }
+    }
+}

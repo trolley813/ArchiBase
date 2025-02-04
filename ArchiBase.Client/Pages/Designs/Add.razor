@@ -1,0 +1,158 @@
+@page "/series/add"
+@inject IHttpClientFactory ClientFactory
+@inject IStringLocalizer<Add> Loc
+@inject NotificationService NotificationService
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<RadzenText TextStyle="TextStyle.H3">@Loc["Add design"]</RadzenText>
+<RadzenStack Orientation="Orientation.Vertical">
+    <RadzenFormField Text=@Loc["Name"]>
+        <RadzenTextBox @bind-Value="@name" />
+    </RadzenFormField>
+    <RadzenFormField Text=@Loc["Description"]>
+        <RadzenHtmlEditor Style="height: 300px" @bind-Value="@description" />
+    </RadzenFormField>
+    <RadzenText TextStyle="TextStyle.H6">@Loc["Technical data"]</RadzenText>
+    <RadzenFormField Text=@Loc["Building area"]>
+        <RadzenNumeric @bind-Value="buildingArea" Format="0 m²" />
+    </RadzenFormField>
+    <RadzenFormField Text=@Loc["Total area"]>
+        <RadzenNumeric @bind-Value="totalArea" Format="0 m²" />
+    </RadzenFormField>
+    <RadzenFormField Text=@Loc["Cubage"]>
+        <RadzenNumeric @bind-Value="cubage" Format="0 m³" />
+    </RadzenFormField>
+    <RadzenRow>
+        <RadzenText>Catalogue Entries</RadzenText>
+        <RadzenFormField>
+            <RadzenButton Icon="add" Click="AddEntry"></RadzenButton>
+        </RadzenFormField>
+    </RadzenRow>
+    @for (int index = 0; index < catalogueEntryIds.Count; index++)
+    {
+        var i = index;
+        <RadzenRow Gap="10">
+            <RadzenColumn Size="3">
+                <RadzenFormField Text=@Loc["Catalogue"]>
+                    <RadzenDropDown Data="@designCatalogues" @bind-Value="catalogueEntryIds[i]" TextProperty="Name"
+                        ValueProperty="Id" Style="width: 350px;">
+                    </RadzenDropDown>
+                </RadzenFormField>
+            </RadzenColumn>
+            <RadzenColumn Size="2">
+                <RadzenFormField Text=@Loc["Code"]>
+                    <RadzenTextBox @bind-Value="@catalogueEntryCodes[i]" />
+                </RadzenFormField>
+            </RadzenColumn>
+            <RadzenColumn Size="6">
+                <RadzenFormField Text=@Loc["Description"]>
+                    <RadzenTextBox @bind-Value="@catalogueDescriptions[i]" Style="width: 550px;" />
+                </RadzenFormField>
+            </RadzenColumn>
+            <RadzenColumn Size="1">
+                <RadzenFormField>
+                    <RadzenButton Icon="delete" Click="args => RemoveEntry(i)"></RadzenButton>
+                </RadzenFormField>
+            </RadzenColumn>
+        </RadzenRow>
+    }
+
+    <RadzenFormField Text=@Loc["Select categories"]>
+        <RadzenDropDown Data="categories" @bind-Value="selectedCategories" Chips=true Multiple=true AllowClear=true
+            AllowFiltering=true @bind-SearchText="categorySearchText" TextProperty="Name" />
+    </RadzenFormField>
+
+    <RadzenFormField>
+        <RadzenButton Text=@Loc["Add"] Icon="add_circle_outline" Click="@CreateNew" />
+    </RadzenFormField>
+
+</RadzenStack>
+
+@code
+{
+    string name = "";
+    string description = "";
+    IEnumerable<DesignCatalogueOutputModel> designCatalogues = [];
+    IEnumerable<DesignCategoryOutputModel> categories = [];
+    List<DesignCategoryOutputModel> selectedCategories = [];
+
+    string categorySearchText = "";
+
+    List<Guid> catalogueEntryIds = [];
+    List<String> catalogueEntryCodes = [];
+    List<String> catalogueDescriptions = [];
+
+    decimal? totalArea, buildingArea, cubage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var client = ClientFactory.CreateClient();
+        designCatalogues = await client.GetFromJsonAsyncExtended<List<DesignCatalogueOutputModel>>("/api/catalogues") ?? [];
+        categories = await client.GetFromJsonAsyncExtended<List<DesignCategoryOutputModel>>("/api/categories") ?? [];
+    }
+
+    public void AddEntry()
+    {
+        catalogueEntryIds.Add(Guid.Empty);
+        catalogueEntryCodes.Add("");
+        catalogueDescriptions.Add("");
+    }
+    public void RemoveEntry(int index)
+    {
+        catalogueEntryIds.RemoveAt(index);
+        catalogueEntryCodes.RemoveAt(index);
+        catalogueDescriptions.RemoveAt(index);
+    }
+
+    public async void CreateNew()
+    {
+        List<DesignCatalogueEntryInputModel> catalogueEntries =
+        catalogueEntryIds.Zip(catalogueEntryCodes).Zip(catalogueDescriptions,
+        (pair, d) => (pair.First, pair.Second, Description: d))
+        .Select(entry => new DesignCatalogueEntryInputModel
+            {
+                Id = Guid.NewGuid(),
+                CatalogueId = entry.First,
+                Code = entry.Second,
+                Description = entry.Description
+            }).ToList();
+        if (selectedCategories.Count == 0)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error",
+                    Detail = $"You must add at least one category"
+                });
+            return;
+        }
+        var design = new DesignInputModel
+            {
+                Id = Guid.NewGuid(),
+                Name = name,
+                Description = description,
+                CatalogueEntries = catalogueEntries,
+                CategoryIds = selectedCategories.Select(cat => cat.Id).ToList()
+            };
+        using var client = ClientFactory.CreateClient();
+        var response = await client.PostAsJsonAsyncExtended<DesignInputModel>("/api/designs/create", design);
+        if (response.IsSuccessStatusCode)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Design added",
+                    Detail = $"ID: {design.Id}"
+                });
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"{response}"
+                });
+        }
+    }
+}

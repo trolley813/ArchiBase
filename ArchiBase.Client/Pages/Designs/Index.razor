@@ -1,0 +1,38 @@
+@page "/series"
+@using Microsoft.EntityFrameworkCore
+
+@inject IHttpClientFactory ClientFactory
+@inject IStringLocalizer<Index> Loc
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<RadzenText TextStyle="TextStyle.H3">@Loc["Designs"]</RadzenText>
+
+<RadzenLink Text=@Loc["Add design"] Icon="add_circle_outline" Path="series/add" />
+
+<RadzenText TextStyle="TextStyle.H5">@Loc["Search"]</RadzenText>
+
+
+<RadzenTextBox Placeholder=@Loc["Enter name or catalogue ID"] @bind-Value="searchTerms" />
+<RadzenButton Icon="search" Click="OnSearch" />
+
+<RadzenDataList Data="searchResults">
+    <Template Context="design">
+        <RadzenLink Path="@($"series/{design.Id}")"
+            Text="@($"{design.Name} ({String.Join(" · ", design.CatalogueEntries.OrderBy(e => (e.Catalogue.Id, e.Code)).Select(e => e.Formatted))})")" />
+    </Template>
+</RadzenDataList>
+
+@code
+{
+    IEnumerable<DesignOutputModel> searchResults = [];
+
+    string searchTerms = "";
+
+    public async void OnSearch()
+    {
+        using var client = ClientFactory.CreateClient();
+        searchResults = await
+        client.GetFromJsonAsyncExtended<List<DesignOutputModel>>($"/api/designs/search?searchterms={searchTerms}") ??
+            [];
+    }
+}

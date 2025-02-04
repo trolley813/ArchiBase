@@ -1,0 +1,98 @@
+@page "/settings"
+@using SmartFormat
+@inject IHttpClientFactory ClientFactory
+@inject NotificationService NotificationService
+@inject NavigationManager NavigationManager
+@inject IStringLocalizer<Settings> Loc
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<ArchibasePageTitle Title=@Loc["Settings"] />
+<RadzenText TextStyle="TextStyle.H4">@Loc["Settings"]</RadzenText>
+@if (user is not null)
+{
+    <RadzenTabs>
+    <Tabs>
+        <RadzenTabsItem Text=@Loc["Personal info"]>
+            <RadzenTemplateForm Data="user">
+                <RadzenStack>
+                    <RadzenFormField Text=@Loc["Date of birth (optional)"]>
+                        <RadzenDatePicker @bind-Value="@user.DateOfBirth" DateFormat="dd.MM.yyyy" YearRange="1900:2024"
+                            ShowCalendarWeek AllowClear="true" />
+                    </RadzenFormField>
+                    <RadzenFormField Text=@Loc["Bio (optional)"]>
+                        <RadzenHtmlEditor Style="height: 300px" @bind-Value="@user.Bio" />
+                    </RadzenFormField>
+                    <RadzenFormField>
+                        <RadzenButton ButtonType="ButtonType.Submit" Text=@Loc["Save"] Icon="save"
+                            Click="OnPersonalInfoSubmit" />
+                    </RadzenFormField>
+                </RadzenStack>
+            </RadzenTemplateForm>
+        </RadzenTabsItem>
+        <RadzenTabsItem Text=@Loc["Photos"]>
+            <RadzenStack>
+                <RadzenText>
+                    @((MarkupString)Smart.Format(Loc["You have {Count} hidden photos."], new
+                        {
+                            Count = $"<b>{hiddenPhotos.Count}</b>",
+                        }))
+                    </RadzenText>
+                    <RadzenButton ButtonType="ButtonType.Submit" Text=@Loc["Show all"] Icon="visibility"
+                        Disabled="hiddenPhotos.Count == 0" Click="ShowHiddenPhotos" />
+                </RadzenStack>
+            </RadzenTabsItem>
+            <RadzenTabsItem Text=@Loc["Security"]>
+                <RadzenButton Text=@Loc["Change password"] Icon="key_vertical" Click="RedirectToChangePassword" />
+            </RadzenTabsItem>
+        </Tabs>
+    </RadzenTabs>
+}
+
+@code
+{
+    UserOutputModel? user;
+    List<PhotoOutputModel> hiddenPhotos;
+
+    protected override async Task OnInitializedAsync()
+    {
+        //user = await UserManager.FindByIdAsync(UserResolverService.GetUser().ToString());
+        if (user is not null)
+        {
+            //hiddenPhotos = ModelContext.Photos.Where(p => p.AuthorId == user.Id && p.IsHidden).ToList();
+        }
+    }
+
+    void ShowHiddenPhotos()
+    {
+        hiddenPhotos.ForEach(p => p.IsHidden = false);
+        //ModelContext.SaveChanges();
+    }
+
+    void OnPersonalInfoSubmit()
+    {
+        try
+        {
+            //UsersContext.SaveChanges();
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Personal info saved",
+                    Detail = $"ID: {user?.Id}"
+                });
+        }
+        catch (Exception e)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"{e.Message}"
+                });
+        }
+    }
+
+    void RedirectToChangePassword()
+    {
+        NavigationManager.NavigateTo("/changepassword", true);
+    }
+}

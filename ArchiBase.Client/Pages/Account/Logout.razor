@@ -1,0 +1,42 @@
+@page "/account/logout"
+@inject IHttpClientFactory ClientFactory
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+@inject ILogger<Logout> Log
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<RadzenText>Logging out...</RadzenText>
+
+@code
+{
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string ReturnUrl { get; set; }
+    override protected async Task OnInitializedAsync()
+    {
+        using var client = ClientFactory.CreateClient();
+        var response = await client.PostAsJsonAsync("/api/account/logout", new { });
+        if (response.IsSuccessStatusCode)
+        {
+
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "You have successfully logged out. ",
+                    Detail = $"In 5 seconds you will be redirected back..."
+                });
+            await Task.Delay(5000);
+            NavigationManager.NavigateTo(ReturnUrl, true);
+
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Logout failed",
+                    Detail = $"{response}"
+                });
+        }
+    }
+}

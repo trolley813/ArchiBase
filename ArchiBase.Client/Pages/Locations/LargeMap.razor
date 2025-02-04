@@ -1,0 +1,104 @@
+@page "/locations/{id:guid}/map"
+@using Microsoft.EntityFrameworkCore
+@inject IHttpClientFactory ClientFactory
+@inject IStringLocalizer<LargeMap> Loc
+@inject IJSRuntime JSRuntime
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+@if (location != null)
+{
+    <ArchibasePageTitle Title=@($"{Loc["Large map for location"]}: {location.Name}") />
+    <RadzenText TextStyle="TextStyle.H4">
+        @(Loc["Large map for location"]):
+        <RadzenLink Path=@($"/locations/{location.Id}")>@(location.Name)</RadzenLink>
+    </RadzenText>
+    @if (!loaded)
+    {
+        <RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.Center" Wrap="FlexWrap.Wrap">
+    <RadzenText>@Loc["Loading data..."]</RadzenText>
+    <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Primary" Value="100" ShowValue="false"
+        Mode="ProgressBarMode.Indeterminate" />
+</RadzenStack>
+    }
+
+    <LeafletMap @ref="map" Style="width: 90%; height: 90%" OnMarkerClick="args => OnMarkerClick(args)"
+        Center="(location.Latitude, location.Longitude)" BuildingMarkers="markers">
+    </LeafletMap>
+
+}
+
+@code
+{
+    bool loaded = false;
+    class BuildingInfo
+    {
+        public Guid BuildingId { get; set; }
+        public BuildingEventType? CurrentStatus { get; set; }
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+        public string Label { get; set; }
+        public bool HasPhotos { get; set; }
+    }
+
+    [Parameter]
+    public Guid Id { get; set; }
+
+    LeafletMap map;
+
+    LocationOutputModel? location;
+
+    List<BuildingMarker> markers = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var client = ClientFactory.CreateClient();
+        location = await client.GetFromJsonAsyncExtended<LocationOutputModel>($"/api/locations/{Id}");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            using var client = ClientFactory.CreateClient();
+            loaded = false;
+            markers = await client.GetFromJsonAsyncExtended<List<BuildingMarker>>($"/api/locations/{Id}/buildingmarkers") ?? [];
+
+            var idsWithPhotos = await client.GetFromJsonAsyncExtended<HashSet<Guid>>($"/api/locations/{Id}/buildingswithphotos");
+            markers.ForEach(m => m.HasPhotos = idsWithPhotos.Contains(m.BuildingId));
+
+            double avgLat = 0.0, avgLon = 0.0;
+            foreach (var b in markers)
+            {
+                avgLat += b.Latitude;
+                avgLon += b.Longitude;
+            }
+            if (markers.Count != 0)
+            {
+                avgLat /= markers.Count;
+                avgLon /= markers.Count;
+                map.Center = (avgLat, avgLon);
+            }
+            else
+            {
+                map.Center = (location.Latitude, location.Longitude);
+            }
+            map.Zoom = 15;
+            loaded = true;
+            StateHasChanged();
+        }
+
+        base.OnAfterRender(firstRender);
+    }
+
+    async Task OnMarkerClick(BuildingMarker marker)
+    {
+        var lat = marker.Latitude;
+        var lon = marker.Longitude;
+        Guid? buildingId = markers
+        .FirstOrDefault(b => b.Latitude == lat && b.Longitude == lon)?.BuildingId;
+        if (buildingId is not null)
+        {
+            await JSRuntime.InvokeVoidAsync("open", $"/buildings/{buildingId}", "_blank");
+        }
+    }
+}

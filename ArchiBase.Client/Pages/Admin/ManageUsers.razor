@@ -1,0 +1,185 @@
+@page "/admin/users"
+
+@inject IHttpClientFactory ClientFactory
+@inject IStringLocalizer<ManageUsers> Loc
+    
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<ArchibasePageTitle Title=@Loc["Manage users"] />
+
+<AdminOnly AlertText="To access admin page, you must be logged in as admin.">
+    @if (dataLoaded)
+    {
+            <RadzenText TextStyle="TextStyle.H3">Manage users</RadzenText>
+            <RadzenDataGrid Data="users" AllowPaging=true AllowSorting=true AllowFiltering=true PageSize="50" ShowPagingSummary=true>
+                <Columns>
+                    <RadzenDataGridColumn Title="Username" Property="UserName" Sortable=true></RadzenDataGridColumn>
+                    <RadzenDataGridColumn Title="Date of birth" Property="DateOfBirth"
+                        Sortable=true FormatString="{0:dd.MM.yyyy}" />
+                    <RadzenDataGridColumn Title="Admin?" Width="10%">
+                        <Template Context="user">
+                            <RadzenCheckBox TValue="bool" Value="@(userRoles[user].Admin)"
+                                Change="args => SetAdmin(user, args)" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Title="Editor?" Width="10%">
+                        <Template Context="user">
+                            <RadzenCheckBox TValue="bool" Value="@(userRoles[user].Editor)"
+                                Change="args => SetEditor(user, args)" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Title="Photo Mod?" Width="10%">
+                        <Template Context="user">
+                            <RadzenCheckBox TValue="bool" Value="@(userRoles[user].PhotoModerator)"
+                                Change="args => SetPhotoModerator(user, args)" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Title="Local Editor?" Width="10%">
+                        <Template Context="user">
+                            <RadzenCheckBox TValue="bool" Value="@(userRoles[user].LocalEditor)"
+                                Change="args => SetLocalEditor(user, args)" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Title="Enabled?">
+                        <Template Context="user">
+                        @if (user.IsEnabled)
+                        {
+                                    <RadzenText class="rz-color-success-dark">User is enabled.
+                                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Text="Disable"
+                                            Click="args => user.IsEnabled = false" />
+                                    </RadzenText>
+
+                        }
+                        else
+                        {
+                                    <RadzenText class="rz-color-danger-dark">User is disabled.
+                                        <RadzenButton ButtonStyle="ButtonStyle.Success" Text="Enable"
+                                            Click="args => user.IsEnabled = true" />
+                                    </RadzenText>
+
+                        }
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Title="Locations to edit">
+                        <Template Context="user">
+                        @if (user.Locations.Count > 0)
+                        {
+                                    <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
+                                @foreach (var locId in user.Locations)
+                                {
+                                            <RadzenLink Path=@($"/locations/{locId}") 
+                                            Text=@(locations.FirstOrDefault(loc => loc.Id == locId)?.Name) />
+                                }
+                                    </RadzenStack>
+                        }
+                        else
+                        {
+                                    <RadzenText>No locations.</RadzenText>
+                        }
+                            <RadzenLink Path=@($"/admin/user/{user.Id}/access") Text="Manage" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
+    }
+    else
+    {
+            <RadzenText TextStyle="TextStyle.H4">Loading data...</RadzenText>
+    }
+</AdminOnly>
+
+@code
+{
+    List<UserOutputModel> users = [];
+
+    class Roles
+    {
+        public bool Admin { get; set; }
+        public bool Editor { get; set; }
+        public bool PhotoModerator { get; set; }
+        public bool LocalEditor { get; set; }
+    }
+    Dictionary<UserOutputModel, Roles> userRoles = [];
+
+    IEnumerable<LocationOutputModel> locations = [];
+
+    bool dataLoaded = false;
+    protected override async Task OnInitializedAsync()
+    {
+        using var client = ClientFactory.CreateClient();
+        users = await client.GetFromJsonAsyncExtended<List<UserOutputModel>>("/api/users") ?? [];
+        var admins = await client.GetFromJsonAsyncExtended<List<UserOutputModel>>("/api/users/inrole?rolename=Admin") ?? [];
+        var editors = await client.GetFromJsonAsyncExtended<List<UserOutputModel>>("/api/users/inrole?rolename=Editor") ?? [];
+        var photoMods = await client.GetFromJsonAsyncExtended<List<UserOutputModel>>("/api/users/inrole?rolename=Photo Moderator") ?? [];
+        var localEditors = await client.GetFromJsonAsyncExtended<List<UserOutputModel>>("/api/users/inrole?rolename=Local Editor") ?? [];
+        foreach (var user in users)
+        {
+            userRoles[user] = new()
+                {
+                    Admin = admins.Contains(user),
+                    Editor = editors.Contains(user),
+                    PhotoModerator = photoMods.Contains(user),
+                    LocalEditor = localEditors.Contains(user),
+                };
+        }
+        locations = await client.GetFromJsonAsyncExtended<List<LocationOutputModel>>("/api/locations") ?? [];
+        dataLoaded = true;
+        await base.OnInitializedAsync();
+    }
+
+    public async Task SetAdmin(UserOutputModel user, bool value)
+    {
+        using var client = ClientFactory.CreateClient();
+        if (value)
+        {
+            var response = await client.PostAsync($"api/users/{user.Id}/addrole?rolename=Admin", null);
+        }
+        else
+        {
+            var response = await client.PostAsync($"api/users/{user.Id}/removerole?rolename=Admin", null);
+        }
+        userRoles[user].Admin = value;
+    }
+
+    public async Task SetEditor(UserOutputModel user, bool value)
+    {
+        using var client = ClientFactory.CreateClient();
+        if (value)
+        {
+            var response = await client.PostAsync($"api/users/{user.Id}/addrole?rolename=Editor", null);
+        }
+        else
+        {
+            var response = await client.PostAsync($"api/users/{user.Id}/removerole?rolename=Editor", null);
+        }
+        userRoles[user].Editor = value;
+    }
+
+    public async Task SetPhotoModerator(UserOutputModel user, bool value)
+    {
+        using var client = ClientFactory.CreateClient();
+        if (value)
+        {
+            var response = await client.PostAsync($"api/users/{user.Id}/addrole?rolename=Photo Moderator", null);
+        }
+        else
+        {
+            var response = await client.PostAsync($"api/users/{user.Id}/removerole?rolename=Photo Moderator", null);
+        }
+        userRoles[user].PhotoModerator = value;
+    }
+
+    public async Task SetLocalEditor(UserOutputModel user, bool value)
+    {
+        using var client = ClientFactory.CreateClient();
+        if (value)
+        {
+            var response = await client.PostAsync($"api/users/{user.Id}/addrole?rolename=Local Editor", null);
+        }
+        else
+        {
+            var response = await client.PostAsync($"api/users/{user.Id}/removerole?rolename=Local Editor", null);
+        }
+        userRoles[user].LocalEditor = value;
+    }
+
+}

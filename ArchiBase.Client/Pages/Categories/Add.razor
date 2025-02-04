@@ -1,0 +1,78 @@
+@page "/categories/add"
+@using ArchiBase.Components.Utils
+@inject IHttpClientFactory ClientFactory
+@inject NotificationService NotificationService
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<EditorOnly>
+    <RadzenText TextStyle="TextStyle.H3">Add category</RadzenText>
+    <RadzenStack Orientation="Orientation.Vertical">
+        <RadzenFormField Text="Name">
+            <RadzenTextBox @bind-Value="@category.Name" />
+        </RadzenFormField>
+        <RadzenFormField Text="Parent">
+            <RadzenDropDown @bind-Value="@parentCategory" @bind-SearchText="searchText" Data="categories"
+                TextProperty="Name" AllowFiltering="true" AllowClear="true">
+            </RadzenDropDown>
+        </RadzenFormField>
+        <RadzenFormField Text="Description">
+            <RadzenHtmlEditor Style="height: 300px" @bind-Value="@category.Description" />
+        </RadzenFormField>
+        <RadzenFormField>
+            <RadzenButton Text="Submit" Icon="add_circle_outline" Click="@AddNew" />
+        </RadzenFormField>
+    </RadzenStack>
+</EditorOnly>
+
+@code
+{
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public Guid? ParentId { get; set; }
+
+    DesignCategoryInputModel category;
+
+    string searchText;
+
+    DesignCategoryOutputModel? parentCategory;
+
+    List<DesignCategoryOutputModel> categories;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var client = ClientFactory.CreateClient();
+        categories = await client.GetFromJsonAsyncExtended<List<DesignCategoryOutputModel>>("/api/categories") ?? [];
+        if (ParentId is Guid parent)
+        {
+            parentCategory = categories.FirstOrDefault(cat => cat.Id == parent);
+        }
+    }
+
+    public async Task AddNew()
+    {
+        using var client = ClientFactory.CreateClient();
+        category.Id = Guid.NewGuid();
+        category.ParentId = ParentId;
+        var response = await
+        client.PostAsJsonAsyncExtended<DesignCategoryInputModel>($"/api/categories/create?parentid={ParentId}", category);
+        if (response.IsSuccessStatusCode)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Category added",
+                    Detail = $"ID: {category.Id}"
+                });
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"{response}"
+                });
+        }
+    }
+}

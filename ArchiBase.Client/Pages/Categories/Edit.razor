@@ -1,0 +1,83 @@
+@page "/categories/{id:guid}/edit"
+@using ArchiBase.Components.Utils
+@inject IHttpClientFactory ClientFactory
+@inject NotificationService NotificationService
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<EditorOnly>
+    <RadzenText TextStyle="TextStyle.H3">Add category</RadzenText>
+    <RadzenStack Orientation="Orientation.Vertical">
+        <RadzenFormField Text="Name">
+            <RadzenTextBox @bind-Value="@category.Name" />
+        </RadzenFormField>
+        <RadzenFormField Text="Parent">
+            <RadzenDropDown @bind-Value="@category.ParentId" @bind-SearchText="searchText" Data="categories"
+                TextProperty="Name" AllowFiltering="true" AllowClear="true" ValueProperty="Id">
+            </RadzenDropDown>
+        </RadzenFormField>
+        <RadzenFormField Text="Description">
+            <RadzenHtmlEditor Style="height: 300px" @bind-Value="@category.Description" />
+        </RadzenFormField>
+        <RadzenFormField>
+            <RadzenButton Text="Submit" Icon="save" Click="@Save" />
+        </RadzenFormField>
+    </RadzenStack>
+</EditorOnly>
+
+@code
+{
+
+    [Parameter]
+    public Guid Id { get; set; }
+
+    DesignCategoryInputModel? category;
+    string searchText;
+
+    List<DesignCategoryOutputModel> categories;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var client = ClientFactory.CreateClient();
+        categories = await client.GetFromJsonAsyncExtended<List<DesignCategoryOutputModel>>("/api/categories");
+        var categoryOutputModel = categories.FirstOrDefault(c => c.Id == Id);
+        if (categoryOutputModel is not null)
+        {
+            category = new DesignCategoryInputModel()
+                {
+                    Id = categoryOutputModel.Id,
+                    Description = categoryOutputModel.Description,
+                    Name = categoryOutputModel.Name,
+                    ParentId = categoryOutputModel.ParentId
+                };
+        }
+    }
+
+    public async Task Save()
+    {
+        using var client = ClientFactory.CreateClient();
+        if (category is not null)
+        {
+            var response = await
+            client.PutAsJsonAsyncExtended<DesignCategoryInputModel>($"/api/categories/{category.Id}?parentid={category.ParentId}",
+            category);
+            if (response.IsSuccessStatusCode)
+            {
+                NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Success,
+                        Summary = "Category saved",
+                        Detail = $"ID: {category.Id}"
+                    });
+            }
+            else
+            {
+                NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Error,
+                        Summary = "Error occured",
+                        Detail = $"{response}"
+                    });
+            }
+        }
+    }
+}

@@ -1,0 +1,66 @@
+@page "/catalogues/{id:guid}/delete"
+@using ArchiBase.Components.Utils
+@inject IHttpClientFactory ClientFactory
+@inject NotificationService NotificationService
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+@if (catalogue is not null)
+{
+
+    <AdminOnly AlertText="To delete items, you must be authorized as admin." ShowLoginLink=true>
+    <RadzenText>Are you sure to delete this catalogue?</RadzenText>
+    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Text="Delete" Click="DeleteCatalogue" />
+</AdminOnly>
+
+}
+
+@code
+{
+    [Parameter]
+    public Guid Id { get; set; }
+
+    DesignCatalogueOutputModel? catalogue;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        using var client = ClientFactory.CreateClient();
+        catalogue = await client.GetFromJsonAsyncExtended<DesignCatalogueOutputModel>($"/api/catalogues/{Id}");
+    }
+
+    async void DeleteCatalogue()
+    {
+        if (catalogue is null) return;
+
+        if (catalogue.Entries.Count != 0)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Cannot delete catalogue",
+                    Detail = $"This catalogue has {catalogue.Entries.Count} dependent entries"
+                });
+            return;
+        }
+        using var client = ClientFactory.CreateClient();
+        var response = await client.DeleteAsync($"api/catalogues/{catalogue.Id}");
+        if (response.IsSuccessStatusCode)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Catalogue deleted",
+                    Detail = $"ID: {catalogue.Id}"
+                });
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"{response}"
+                });
+        }
+
+    }
+}

@@ -1,0 +1,35 @@
+@page "/catalogues"
+@inject IHttpClientFactory ClientFactory
+@inject IStringLocalizer<Index> Loc
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<RadzenText TextStyle="TextStyle.H2">@Loc["Catalogues"] (@(catalogues.Count))</RadzenText>
+
+<CascadingAuthenticationState>
+    <AuthorizeView>
+        <RadzenLink Icon="add_circle_outline" Path="catalogues/add" Text=@Loc["Add"] />
+    </AuthorizeView>
+</CascadingAuthenticationState>
+
+
+<RadzenDataList Data="@catalogues" AllowPaging=true PageSize=20 WrapItems=true>
+    <Template Context="catalogue">
+        <RadzenText TextStyle="TextStyle.H6" Style="width: max(33%, 300px); max-width: 100%;">
+            <RadzenLink Text="@(catalogue.Name != "" ? catalogue.Name : "(empty name)")"
+                Path="@($"catalogues/{catalogue.Id}")" />
+        </RadzenText>
+    </Template>
+</RadzenDataList>
+
+@code
+{
+    List<DesignCatalogueOutputModel> catalogues = [];
+
+    override protected async Task OnInitializedAsync()
+    {
+        using var client = ClientFactory.CreateClient();
+        catalogues = (await client.GetFromJsonAsyncExtended<List<DesignCatalogueOutputModel>>("/api/catalogues") ?? [])
+        .OrderBy(c => c.Name, StringComparison.OrdinalIgnoreCase.WithNaturalSort())
+        .ToList();
+    }
+}

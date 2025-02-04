@@ -1,0 +1,82 @@
+@page "/catalogues/{id:guid}"
+@using Microsoft.EntityFrameworkCore
+@inject IHttpClientFactory ClientFactory
+@inject IStringLocalizer<Details> Loc
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+@if (catalogue != null)
+{
+    <ArchibasePageTitle Title=@($"{Loc["Catalogue"]} {catalogue.Name}") />
+    <RadzenText TextStyle="TextStyle.H3">@Loc["Catalogue"] @(catalogue.Name)</RadzenText>
+
+    <RadzenText TextStyle="TextStyle.Body1">@((MarkupString)catalogue.Description)</RadzenText>
+
+    <CascadingAuthenticationState>
+        <AuthorizeView>
+            <RadzenLink Path="@($"catalogues/{Id}/edit")" Text=@Loc["Edit"] Icon="edit" />
+            <RadzenLink Path="@($"catalogues/{Id}/delete")" Text=@Loc["Delete"] Icon="delete" />
+        </AuthorizeView>
+    </CascadingAuthenticationState>
+
+    <RadzenDataGrid AllowFiltering="true" Density="Density.Compact" AllowPaging=true PageSize="10" Responsive=true
+        Data="@(catalogue.Entries.OrderBy(d=> d.Code, StringComparison.OrdinalIgnoreCase.WithNaturalSort()))">
+        <Columns>
+            <RadzenDataGridColumn Property="Code" Title=@Loc["Code"] Width="10%"></RadzenDataGridColumn>
+            <RadzenDataGridColumn Title=@Loc["Design"] Width="60%">
+                <Template Context="entry">
+                    <RadzenText style="white-space:pre-wrap">
+                        @if (entry.Design is not null)
+                        {
+                            <RadzenLink Text="@(entry?.Description ?? "(no description)")"
+                                Path="@($"/series/{entry.Design.Id}")" />
+                        }
+                        else
+                        {
+                            @(entry?.Description ?? "(no description)")
+                        }
+                    </RadzenText>
+                </Template>
+                <FooterTemplate>
+                    <RadzenText>
+                        @Loc["Total entries in the catalogue"]: <b>@(catalogue.Entries.Count)</b>
+                    </RadzenText>
+                </FooterTemplate>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title=@Loc["Codes in other catalogues"] Width="30%">
+                <Template Context="entry">
+                    <RadzenText>
+                        @(String.Join(", ", otherEntries.GetValueOrDefault(entry.Id, []).Select(e => e.Formatted)))
+                    </RadzenText>
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+}
+else
+{
+    <RadzenAlert AllowClose="false" Title="Error" AlertStyle="AlertStyle.Danger" Variant="Variant.Flat"
+    Shade="Shade.Lighter">Catalogue with id @(Id) not found</RadzenAlert>
+}
+
+@code
+{
+    [Parameter]
+    public Guid Id { get; set; }
+
+    DesignCatalogueOutputModel? catalogue = null;
+
+    Dictionary<Guid, List<DesignCatalogueEntryOutputModel>> otherEntries;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var client = ClientFactory.CreateClient();
+        catalogue = await client.GetFromJsonAsyncExtended<DesignCatalogueOutputModel>($"/api/catalogues/{Id}");
+        otherEntries = await client.GetFromJsonAsyncExtended<Dictionary<Guid,
+        List<DesignCatalogueEntryOutputModel>>>($"/api/catalogues/{Id}/allotherentries");
+    }
+
+    void Delete()
+    {
+
+    }
+}

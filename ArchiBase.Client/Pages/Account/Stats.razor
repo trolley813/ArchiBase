@@ -1,0 +1,59 @@
+@page "/my-stats"
+
+
+@inject IStringLocalizer<Stats> Loc
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<ArchibasePageTitle Title=@Loc["My stats and limits"] />
+@if (user is not null)
+{
+    <RadzenText TextStyle="TextStyle.H4">@Loc["My stats and limits"]</RadzenText>
+    <RadzenRow>
+        <RadzenColumn>
+            <RadzenArcGauge>
+                <RadzenArcGaugeScale Step="20" Min="0" Max="100" MinorStep="2" TickPosition="GaugeTickPosition.Outside">
+                    <RadzenArcGaugeScaleValue Value=@limit>
+                        <Template Context="pointer">
+                            <RadzenText TextStyle="TextStyle.Caption">@Loc["Upload limit"]</RadzenText>
+                            <RadzenText TextStyle="TextStyle.H2" Style="text-align:center">
+                                @pointer.Value
+                            </RadzenText>
+                        </Template>
+                    </RadzenArcGaugeScaleValue>
+                </RadzenArcGaugeScale>
+            </RadzenArcGauge>
+        </RadzenColumn>
+        <RadzenColumn>
+            <RadzenArcGauge>
+                <RadzenArcGaugeScale Step="20" Min="0" Max="100" MinorStep="2" TickPosition="GaugeTickPosition.Outside">
+                    <RadzenArcGaugeScaleValue Value=@directLimit>
+                        <Template Context="pointer">
+                            <RadzenText TextStyle="TextStyle.Caption">@Loc["Direct upload limit"]</RadzenText>
+                            <RadzenText TextStyle="TextStyle.H2" Style="text-align:center">
+                                @pointer.Value
+                            </RadzenText>
+                        </Template>
+                    </RadzenArcGaugeScaleValue>
+                </RadzenArcGaugeScale>
+            </RadzenArcGauge>
+        </RadzenColumn>
+    </RadzenRow>
+}
+else
+{
+    <RadzenText>@Loc["Loading..."]</RadzenText>
+}
+
+@code
+{
+    UserOutputModel? user;
+
+    int limit = 0, directLimit = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        //user = await UserManager.FindByIdAsync(UserResolverService.GetUser().ToString());
+        //limit = UploadLimitService.GetUploadLimit(user.Id);
+        //directLimit = UploadLimitService.GetDirectUploadLimit(user.Id);
+    }
+}

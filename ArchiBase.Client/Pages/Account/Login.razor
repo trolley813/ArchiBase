@@ -1,0 +1,74 @@
+@page "/account/login"
+@inject IHttpClientFactory ClientFactory
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+@inject ILogger<Login> Log
+@inject IStringLocalizer<Login> Loc
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<ArchibasePageTitle Title=@Loc["Login"] />
+
+<RadzenCard>
+    <RadzenTemplateForm Data=@model>
+        <RadzenLogin AllowRegister="true" AllowResetPassword="true" Username=@model.Username Password=@model.Password
+            RememberMe=@model.RememberMe Login="args => OnLogin(args)" Register="args => OnRegister()"
+            AllowRememberMe=true ResetPassword="args => OnForgotPassword(args)" />
+    </RadzenTemplateForm>
+</RadzenCard>
+
+@code
+{
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public bool LoginFailed { get; set; }
+    LoginModel model = new();
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (LoginFailed)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Login failed",
+                    Detail = "Wrong username and/or password, or your user account is disabled."
+                });
+        }
+    }
+    public async void OnLogin(LoginArgs args)
+    {
+        using var client = ClientFactory.CreateClient();
+        model.Username = args.Username;
+        model.Password = args.Password;
+        model.RememberMe = args.RememberMe;
+        var response = await client.PostAsJsonAsync($"/api/account/login?usecookies=true&usesessioncookies={!args.RememberMe}",
+        new UserLoginInputModel
+            {
+                UserName = args.Username,
+                Password = args.Password
+            });
+        if (response.IsSuccessStatusCode)
+        {
+            NavigationManager.NavigateTo(ReturnUrl ?? "/", true); // TODO: redirect to previous page
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/account/login?loginfailed=true", true);
+        }
+    }
+
+    public void OnRegister()
+    {
+        Log.LogInformation("Redirecting to registration");
+        NavigationManager.NavigateTo("/register");
+    }
+
+    public void OnForgotPassword(string value)
+    {
+        NavigationManager.NavigateTo("/forgotpassword");
+    }
+}

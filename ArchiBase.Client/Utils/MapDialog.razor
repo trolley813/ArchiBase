@@ -1,0 +1,28 @@
+@using ArchiBase.Shared.Output
+@inject DialogService DialogService
+
+<RadzenStack>
+    <LeafletMap @ref="map" Style="height:480px; width:640px" OnMapClick="OnMapClick"
+        Zoom="Model.Latitude is null ? 10 : 16"
+        Center="(Model.Latitude ?? Location.Latitude, Model.Longitude ?? Location.Longitude)">
+
+    </LeafletMap>
+    <RadzenButton Click="@((args) => DialogService.Close(true))" Variant="Variant.Flat" Text="Close" />
+</RadzenStack>
+
+@code
+{
+    [Parameter]
+    public BuildingCreateInputModel Model { get; set; }
+    [Parameter]
+    public LocationOutputModel Location { get; set; }
+
+    LeafletMap map;
+
+    void OnMapClick((double, double) coordinate)
+    {
+        Model.Latitude = coordinate.Item1;
+        Model.Longitude = coordinate.Item2;
+        map.PrincipalMarker = new PrincipalMarker { Latitude = Model.Latitude ?? 0.0, Longitude = Model.Longitude ?? 0.0 };
+    }
+}

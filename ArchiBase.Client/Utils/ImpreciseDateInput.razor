@@ -1,0 +1,67 @@
+@inject IStringLocalizer<ImpreciseDateInput> Loc
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<RadzenFormField Name="@FieldName">
+    <RadzenDatePicker Ref="@picker" @bind-Value=@(Value.Date) DateFormat=@dateFormat YearRange="1:2100"
+        ShowCalendarWeek />
+</RadzenFormField>
+<RadzenFormField Name="Precision">
+    <RadzenDropDown @bind-Value=@(Value.Precision) Data="precisionDescriptions" ValueProperty="Key" TextProperty="Value"
+        Change="args => OnChange()" />
+</RadzenFormField>
+
+@code
+{
+    [Parameter]
+    public DatePrecision? InitialPrecision { get; set; }
+    Dictionary<DatePrecision, String> precisionDescriptions = [];
+
+    protected override void OnInitialized()
+    {
+        if (Value is null) Value = new();
+        if (InitialPrecision is not null)
+        {
+            Value.Precision = InitialPrecision.Value;
+        }
+        precisionDescriptions = new()
+            {
+                [DatePrecision.None] = Loc["Do not show date"],
+                [DatePrecision.Full] = Loc["Show full date (day, month and year)"],
+                [DatePrecision.YearAndMonthOnly] = Loc["Show year and month only"],
+                [DatePrecision.YearOnly] = Loc["Show year only"],
+                [DatePrecision.Circa] = Loc["Show \"circa\" + year"],
+                [DatePrecision.Decade] = Loc["Show decade (early/mid/late)"],
+                [DatePrecision.DecadeOnly] = Loc["Show decade only"],
+                [DatePrecision.Century] = Loc["Show century (early/mid/late)"],
+                [DatePrecision.CenturyOnly] = Loc["Show century only"],
+                [DatePrecision.YearOrEarlier] = Loc["Show year and \"or earlier\""],
+                [DatePrecision.YearOrLater] = Loc["Show year and \"or later\""],
+            };
+        OnChange();
+    }
+
+    [Parameter]
+    public string FieldName { get; set; } = "Date";
+
+    [Parameter]
+    public ImpreciseDate? Value { get; set; } = new();
+
+    [Parameter]
+    public EventCallback<ImpreciseDate> ValueChanged { get; set; }
+
+    RadzenDatePicker<DateTime> picker = default!;
+
+    string dateFormat = "dd.MM.yyyy";
+
+    public void OnChange()
+    {
+        dateFormat = Value.Precision switch
+        {
+            DatePrecision.Full => "dd.MM.yyyy",
+            DatePrecision.YearAndMonthOnly => "MM.yyyy",
+            _ => "yyyy"
+        };
+        this.StateHasChanged();
+    }
+
+}

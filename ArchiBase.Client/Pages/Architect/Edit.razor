@@ -1,0 +1,98 @@
+@page "/architects/{id:guid}/edit"
+@using ArchiBase.Components.Utils
+@inject NotificationService NotificationService
+@inject IHttpClientFactory ClientFactory
+@inject IStringLocalizer<Add> Loc
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<EditorOnly AllowLocal=true>
+    @if (architect is not null)
+    {
+        <RadzenText TextStyle="TextStyle.H3">@Loc["Add architect"]</RadzenText>
+        <RadzenStack Orientation="Orientation.Vertical">
+            <RadzenFormField Text=@Loc["Abbreviated name (Lastname F. M.)"]>
+                <RadzenTextBox @bind-Value="@architect.AbbreviatedName" />
+            </RadzenFormField>
+            <RadzenFormField Text=@Loc["Full name (Firstname Middlename Lastname)"]>
+                <RadzenTextBox @bind-Value="@architect.FullName" />
+            </RadzenFormField>
+            <RadzenFormField Text=@Loc["Date of birth (optional)"]>
+                <Start>
+                    <RadzenLabel For="SetDateOfBirth" Text=@Loc["Enable"] />
+                    <RadzenCheckBox Name="SetDateOfBirth" @bind-Value="@dateOfBirthSet" />
+                </Start>
+                <ChildContent>
+                    <ImpreciseDateInput @bind-Value="@architect.DateOfBirth" />
+                </ChildContent>
+            </RadzenFormField>
+            <RadzenFormField Text=@Loc["Date of death (optional)"]>
+                <Start>
+                    <RadzenLabel For="SetDateOfDeath" Text=@Loc["Enable"] />
+                    <RadzenCheckBox Name="SetDateOfDeath" @bind-Value="@dateOfDeathSet" />
+                </Start>
+                <ChildContent>
+                    <ImpreciseDateInput @bind-Value="@architect.DateOfDeath" />
+                </ChildContent>
+            </RadzenFormField>
+            <RadzenFormField>
+                <RadzenButton Text="Submit" Icon="save" Click="@Save" />
+            </RadzenFormField>
+        </RadzenStack>
+    }
+    else
+    {
+
+    }
+    </EditorOnly>
+
+    @code
+    {
+    [Parameter]
+    public Guid Id { get; set; }
+
+    ArchitectInputModel? architect;
+
+    bool dateOfBirthSet, dateOfDeathSet;
+
+
+    override protected async Task OnInitializedAsync()
+    {
+        using var client = ClientFactory.CreateClient();
+        var architectOutputModel = await client.GetFromJsonAsyncExtended<ArchitectOutputModel>($"/api/architects/{Id}");
+        architect = new ArchitectInputModel
+            {
+                Id = architectOutputModel.Id,
+                AbbreviatedName = architectOutputModel.AbbreviatedName,
+                DateOfBirth = architectOutputModel.DateOfBirth,
+                DateOfDeath = architectOutputModel.DateOfDeath,
+                FullName = architectOutputModel.FullName
+            };
+        dateOfBirthSet = architect.DateOfBirth is not null;
+        dateOfDeathSet = architect.DateOfDeath is not null;
+    }
+
+    public async Task Save()
+    {
+        if (architect is null) return;
+        using var client = ClientFactory.CreateClient();
+        var response = await client.PutAsJsonAsyncExtended<ArchitectInputModel>($"/api/architects/{architect.Id}", architect);
+        if (response.IsSuccessStatusCode)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Architect saved",
+                    Detail = $"ID: {architect.Id}"
+                });
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"{response}"
+                });
+        }
+    }
+}

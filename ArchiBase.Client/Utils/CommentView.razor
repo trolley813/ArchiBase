@@ -1,0 +1,477 @@
+@using ArchiBase.Shared.Output
+@using Microsoft.EntityFrameworkCore
+@using Humanizer
+@using System.Globalization
+
+@inject IHttpClientFactory ClientFactory
+@inject IStringLocalizer<CommentView> Loc
+@inject NotificationService NotificationService
+@inject TooltipService TooltipService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<LoadingScreen Loaded="loaded">
+    <RadzenText TextStyle="TextStyle.H5">@Loc["Comments"] (@(comments.Count))</RadzenText>
+
+    @if (ShowMode == CommentShowMode.New)
+    {
+            <RadzenText TextStyle="TextStyle.Body1">@Loc["New comments written after:"]</RadzenText>
+            <RadzenText>
+                <b>
+                    <LocalTime DateTime=lastReadTime />
+                </b>
+            </RadzenText>
+            <RadzenButton Text=@Loc["Mark all as read"] Icon="done_all" Click="args => OnMark()" />
+    }
+    @if (ShowMode == CommentShowMode.Responses)
+    {
+            <RadzenText TextStyle="TextStyle.Body1">@Loc["New responses written after:"]</RadzenText>
+            <RadzenText>
+                <b>
+                    <LocalTime DateTime=lastReadTime />
+                </b>
+            </RadzenText>
+            <RadzenText>@Loc["To mark responses as read, use the new comments page."]</RadzenText>
+    }
+
+    @if (ShowMode != CommentShowMode.ByEntity)
+    {
+        <RadzenStack>
+            @if (ShowMode == CommentShowMode.All)
+            {
+                <RadzenLabel Component="search-from-date" Text=@Loc["Date from"] />
+                <RadzenDatePicker @bind-Value="searchFrom" ShowTime="true" Name="search-from-date" />
+                <RadzenLabel Component="search-to-date" Text=@Loc["Date to"] />
+                <RadzenDatePicker @bind-Value="searchTo" ShowTime="true" Name="search-to-date" />
+                <RadzenLabel Component="search-text" Text=@Loc["Contains text"] />
+                <RadzenTextBox @bind-Value="searchText" Name="search-text" />
+                <RadzenButton Text=@Loc["Search"] Click="async args => await LoadComments(0, pageSize)" />
+            }
+            <RadzenPager @ref="pager" ShowPagingSummary="true" PagingSummaryFormat=@Loc["Page {0} of {1} (total comments: {2})"] HorizontalAlign="HorizontalAlign.Right" Count="comments.Count" PageSize="@pageSize" PageChanged="@PageChanged" AlwaysVisible=true />
+        </RadzenStack>
+    }
+    @{
+        var lastCommentId = comments.Comments.LastOrDefault()?.Id;
+    }
+    <RadzenDataList Data="comments.Comments" @ref="commentsList" Style="max-width: 100%">
+        <Template Context="comment">
+            <RadzenCard>
+                <RadzenRow>
+                    @if (ShowMode != CommentShowMode.ByEntity)
+                    {
+                            <RadzenImage Style="height: 200px; max-width: 100%; display: flex;" Path=@(commentPhotos.GetValueOrDefault(comment.EntityId, "/images/arch.png"))
+                                    AlternateText="Photo not available" onerror="this.src='/images/unavailable.png'" >
+                            </RadzenImage>
+                    }
+                    <RadzenColumn>
+                        <RadzenStack Orientation="Orientation.Vertical" Gap="3">
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap="8" Wrap="FlexWrap.Wrap">
+                                <RadzenLink Path=@($"/users/{comment.AuthorId}") >
+                                    @(commentAuthors.GetValueOrDefault(comment.AuthorId, Loc["(unknown author)"]))
+                                </RadzenLink>
+                                @if (commentAuthorLocations[comment.AuthorId] is LocationOutputModel myLocation)
+                                {
+                                    <RadzenStack Orientation="Orientation.Horizontal" Gap="3">
+                                        @foreach (var flag in commentAuthorFlags[comment.AuthorId])
+                                        {
+                                            <img src=@($"flags/{flag ?? "xx"}.svg") width="16px" />
+                                        }
+                                        <RadzenLink Text="@(myLocation.Name)" Path=@($"locations/{myLocation.Id}") />
+                                    </RadzenStack>
+                                }
+                                @foreach (var role in commentAuthorRoles.GetValueOrDefault(comment.AuthorId, []))
+                                {
+                                        <RadzenBadge Variant="Variant.Outlined"  Text="@Loc[role]" IsPill=true BadgeStyle=@(role.ToBadgeStyle()) />
+                                }
+                            </RadzenStack>
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap="8" Wrap="FlexWrap.Wrap">
+                                @if (ShowMode == CommentShowMode.ByEntity)
+                                {
+
+                                        <RadzenButton ButtonStyle="ButtonStyle.Success" Variant="Variant.Text" Size="ButtonSize.Small" Click="args => AddQuote(comment)">@Loc["Cite"]</RadzenButton>
+                                    if (comment.Id == lastCommentId && comment.AuthorId == user?.Id && (DateTime.UtcNow - comment.PublicationDate) <= 24.Hours())
+                                    {
+                                                <RadzenLink Path=@($"/comments/{comment.Id}/edit")>
+                                                    <RadzenButton ButtonStyle="ButtonStyle.Info" Variant="Variant.Text" Size="ButtonSize.Small">@Loc["Edit"]</RadzenButton>
+                                                </RadzenLink>
+                                                <RadzenButton ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text" Size="ButtonSize.Small" Click="args => DeleteComment(comment)">@Loc["Delete"]</RadzenButton>
+
+                                    }
+                                }
+                            </RadzenStack>
+                            @if (ShowMode != CommentShowMode.ByEntity)
+                            {
+                                @if (comment.EntityType == "Building")
+                                {
+                                            <RadzenLink Path=@($"/buildings/{comment.EntityId}")>
+                                        @Loc["Building"]: @(buildingAddresses.GetValueOrDefault(comment.EntityId))
+                                            </RadzenLink>
+                                }
+                                @if (comment.EntityType == "Design")
+                                {
+                                            <RadzenLink Path=@($"/series/{comment.EntityId}")>
+                                        @Loc["Design"]: @(designNames.GetValueOrDefault(comment.EntityId))
+                                            </RadzenLink>
+                                }
+                                @if (comment.EntityType == "DesignCategory")
+                                {
+                                            <RadzenLink Path=@($"/categories/{comment.EntityId}")>
+                                        @Loc["Category"]: @(designNames.GetValueOrDefault(comment.EntityId))
+                                            </RadzenLink>
+                                }
+                                @if (comment.EntityType == "Photo")
+                                {
+                                            <RadzenLink Path=@($"/photos/{comment.EntityId}")>
+                                        @Loc["Photo"]: @(photoDescriptions.GetValueOrDefault(comment.EntityId))
+                                            </RadzenLink>
+                                }
+                            }
+                        </RadzenStack>
+                        <RadzenText TextStyle="TextStyle.Subtitle2">
+                            <LocalTime DateTime="comment.PublicationDate" />
+                        </RadzenText>
+                        <RadzenText>@((MarkupString)comment.Text)</RadzenText>
+                        <RadzenStack Orientation="Orientation.Horizontal">
+                            <RadzenButton Icon="keyboard_arrow_up" Size="ButtonSize.ExtraSmall" Disabled="!CanUpvote(comment)" 
+                                Click="args => Upvote(comment)" />
+                            <RadzenText TextStyle="TextStyle.Body2" MouseEnter="args => ShowVotesTooltip(args, comment)">
+                                @(comment.VotesCount)</RadzenText>
+                            <RadzenButton Icon="keyboard_arrow_down" Size="ButtonSize.ExtraSmall" Disabled="!CanDownvote(comment)"
+                                Click="args => Downvote(comment)" />
+                        </RadzenStack>
+                        @if (ShowMode == CommentShowMode.New)
+                        {
+                                <RadzenButton Text=@Loc["Mark up to this comment as read"] Icon="check" Size="ButtonSize.Small"
+                                    Click="args => OnMark(comment.PublicationDate)" />
+                        }
+                        @if (comment.IsRecorded)
+                        {
+                                <RadzenText class="rz-color-success" TextStyle="TextStyle.Subtitle2">
+                                    <RadzenIcon Icon="check" />
+                                @Loc["Thank you! Comment was recorded."]
+                                </RadzenText>
+                        }
+                        <CascadingAuthenticationState>
+                            <AuthorizeView Roles="Admin, Editor, Local Editor">
+                                <RadzenToggleButton @bind-Value="comment.IsRecorded" 
+                                    Text=@(comment.IsRecorded ? Loc["Unmark as recorded"] : Loc["Mark as recorded"])
+                                    ButtonStyle="ButtonStyle.Success" ToggleButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small"
+                                    Click="args => OnRecord(comment)" ToggleShade="Shade.Darker" Shade="Shade.Lighter" Icon="toggle_off"
+                                    ToggleIcon="toggle_on" />
+                            </AuthorizeView>
+                        </CascadingAuthenticationState>
+                    </RadzenColumn>
+                </RadzenRow>
+            </RadzenCard>
+        </Template>
+    </RadzenDataList>
+
+    @if (ShowMode == CommentShowMode.ByEntity)
+    { 
+            <CascadingAuthenticationState>
+            <AuthorizeView Context="actx">
+                <RadzenTemplateForm Data="model" TItem="CommentModel" Style="max-width: 100%; padding: 16px;" Submit="args => AddComment(args)">
+                    <RadzenStack Orientation="Orientation.Vertical">
+                        <RadzenFormField>
+                            <RadzenHtmlEditor Name="comment-editor" @ref="commentEditor" @bind-Value="model.Text" Style="height: 300px" />
+                        </RadzenFormField>
+                        <RadzenRequiredValidator Component="comment-editor" Text=@Loc["Comment text is required"]></RadzenRequiredValidator>
+                        <RadzenFormField>
+                            <RadzenButton ButtonType="ButtonType.Submit" Icon="add" Text=@Loc["Add comment"] Disabled="!loaded" />
+                        </RadzenFormField>
+                    </RadzenStack>
+                </RadzenTemplateForm>
+            </AuthorizeView>
+        </CascadingAuthenticationState>
+    } 
+</LoadingScreen>
+
+@code
+{
+    bool loaded = false;
+    public enum CommentShowMode
+    {
+        ByEntity,
+        All,
+        New,
+        Responses
+    }
+
+    class CommentModel
+    {
+        public string Text { get; set; }
+    }
+
+    [Parameter]
+    public Guid EntityId { get; set; }
+
+    [Parameter]
+    public string EntityType { get; set; }
+
+    [Parameter]
+    public CommentShowMode ShowMode { get; set; } = CommentShowMode.ByEntity;
+
+    CommentPage comments = new();
+
+    Dictionary<Guid, string> commentPhotos = [];
+
+    Dictionary<Guid, string> commentAuthors = [];
+    Dictionary<Guid, List<string>> commentAuthorRoles = [];
+    Dictionary<Guid, LocationOutputModel?> commentAuthorLocations = [];
+    Dictionary<Guid, List<string>> commentAuthorFlags = [];
+
+    Dictionary<Guid, string> buildingAddresses = [];
+    Dictionary<Guid, string> designNames = [];
+    Dictionary<Guid, string> designCategoryNames = [];
+    Dictionary<Guid, string> photoDescriptions = [];
+
+    RadzenDataList<CommentOutputModel> commentsList;
+
+    DateTime? searchFrom;
+    DateTime? searchTo;
+
+    string? searchText;
+
+
+    RadzenHtmlEditor? commentEditor;
+
+    RadzenPager? pager;
+
+    CommentModel model = new();
+
+    DateTime? lastReadTime;
+
+    int pageSize = 20;
+
+    UserOutputModel? user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        loaded = false;
+        await Task.Yield();
+        using var client = ClientFactory.CreateClient();
+        user = await client.GetFromJsonAsyncExtended<UserOutputModel>("/api/users/current");
+        if (ShowMode == CommentShowMode.New || ShowMode == CommentShowMode.Responses)
+        {
+            lastReadTime = user?.LastReadCommentTime ?? DateTime.MinValue;
+        }
+        await LoadComments(0, pageSize);
+        loaded = true;
+        this.StateHasChanged();
+    }
+
+    async Task LoadComments(int skip, int take)
+    {
+        using var client = ClientFactory.CreateClient();
+        comments = ShowMode switch
+        {
+            CommentShowMode.ByEntity => await client.GetFromJsonAsyncExtended<CommentPage>($"/api/comments?entityid={EntityId}"),
+            CommentShowMode.All => await client.GetFromJsonAsyncExtended<CommentPage>(
+                $"/api/comments?offset={skip}&limit={take}&newestfirst=true" +
+                $"&datefrom={searchFrom?.ToString("o", CultureInfo.InvariantCulture)}" +
+                $"&dateto={searchTo?.ToString("o", CultureInfo.InvariantCulture)}&contains={searchText}"),
+            CommentShowMode.New => await client.GetFromJsonAsyncExtended<CommentPage>($"/api/comments/new?offset={skip}&limit={take}"),
+            CommentShowMode.Responses => await client.GetFromJsonAsyncExtended<CommentPage>($"/api/comments/responses?offset={skip}&limit={take}"),
+            _ => new()
+        } ?? new();
+        var authorIds = comments.Comments.Select(c => c.AuthorId).Distinct().ToList() ?? [];
+        var entityIds = comments.Comments.Select(c => c.EntityId).Distinct().ToList() ?? [];
+        var buildingsWithCommentedPhotos = await
+                (await client.PostAsJsonAsyncExtended<List<Guid>>($"/api/buildings/forphotos", entityIds))
+                .Content.ReadFromJsonAsync<List<Guid>>(HttpClientExtensions.SerializerOptionsOutput) ?? [];
+        commentAuthors = await
+            (await client.PostAsJsonAsyncExtended<List<Guid>>($"/api/users/names", authorIds))
+            .Content.ReadFromJsonAsync<Dictionary<Guid, string>>(HttpClientExtensions.SerializerOptionsOutput) ?? [];
+        commentAuthorRoles = commentAuthors.ToDictionary(kv => kv.Key, kv => new List<string>());
+        foreach (var rolename in new string[] { "Admin", "Editor", "Local Editor", "Photo Moderator" })
+        {
+            foreach (var user in await client.GetFromJsonAsyncExtended<List<UserOutputModel>>($"/api/users/inrole?rolename={rolename}") ?? [])
+            {
+                if (commentAuthors.ContainsKey(user.Id)) commentAuthorRoles[user.Id].Add(rolename);
+            }
+        }
+        foreach (var authorId in commentAuthors.Keys)
+        {
+            commentAuthorLocations[authorId] = await client.GetFromJsonAsyncExtended<LocationOutputModel?>($"/api/users/{authorId}/mylocation");
+            if (commentAuthorLocations[authorId] is LocationOutputModel loc)
+            {
+                commentAuthorFlags[authorId] = await client.GetFromJsonAsyncExtended<List<string>>($"/api/locations/{loc.Id}/flags") ?? [];
+            }
+            else
+            {
+                commentAuthorFlags[authorId] = [];
+            }
+        }
+        if (ShowMode != CommentShowMode.ByEntity)
+        {
+            designNames = await
+                (await client.PostAsJsonAsyncExtended<List<Guid>>($"/api/designs/names", entityIds))
+                .Content.ReadFromJsonAsync<Dictionary<Guid, string>>(HttpClientExtensions.SerializerOptionsOutput) ?? [];
+            designCategoryNames = await
+            (await client.PostAsJsonAsyncExtended<List<Guid>>($"/api/categories/names", entityIds))
+            .Content.ReadFromJsonAsync<Dictionary<Guid, string>>(HttpClientExtensions.SerializerOptionsOutput) ?? [];
+            buildingAddresses = await
+                (await client.PostAsJsonAsyncExtended<List<Guid>>($"/api/buildings/addresses", entityIds.Union(buildingsWithCommentedPhotos).ToList()))
+            .Content.ReadFromJsonAsync<Dictionary<Guid, string>>(HttpClientExtensions.SerializerOptionsOutput) ?? [];
+            var photoBinds = await
+                (await client.PostAsJsonAsyncExtended<List<Guid>>($"/api/photos/binds", entityIds))
+            .Content.ReadFromJsonAsync<Dictionary<Guid, List<Guid>>>(HttpClientExtensions.SerializerOptionsOutput) ?? [];
+            photoDescriptions = photoBinds
+                .ToDictionary(p => p.Key, p => String.Join("; ", p.Value.Select(bid => buildingAddresses.GetValueOrDefault(bid, "Address"))));
+            commentPhotos = await
+                (await client.PostAsJsonAsyncExtended<List<Guid>>($"/api/photos/thumbnails", entityIds))
+                .Content.ReadFromJsonAsync<Dictionary<Guid, string>>(HttpClientExtensions.SerializerOptionsOutput) ?? [];
+
+        }
+    }
+
+    async Task AddComment(CommentModel commentModel)
+    {
+        if (user is not null && commentModel.Text is not null && commentModel.Text != "")
+        {
+            using var client = ClientFactory.CreateClient();
+            var comment = new CommentInputModel()
+                {
+                    AuthorId = user.Id,
+                    EntityId = EntityId,
+                    EntityType = EntityType,
+                    PublicationDate = DateTime.UtcNow,
+                    Text = commentModel.Text
+                };
+            var response = await client.PostAsJsonAsyncExtended<CommentInputModel>("/api/comments/add", comment);
+            if (response.IsSuccessStatusCode)
+            {
+                NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Success,
+                        Summary = "Comment added",
+                        Detail = $"Your comment was saved!"
+                    });
+                await LoadComments(0, pageSize);
+                this.StateHasChanged();
+            }
+            else
+            {
+                NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Error,
+                        Summary = "Error occured",
+                        Detail = $"{response}"
+                    });
+            }
+        }
+
+    }
+
+    bool CanUpvote(CommentOutputModel comment)
+    {
+        if (comment.AuthorId == user?.Id || (DateTime.UtcNow - comment.PublicationDate).TotalDays > 30) return false;
+        if (comment.Votes?.Values?.Any(v => v.Author == user?.Id && v.VoteValue > 0) ?? false) return false;
+        return true;
+    }
+
+    bool CanDownvote(CommentOutputModel comment)
+    {
+        if (comment.AuthorId == user?.Id || (DateTime.UtcNow - comment.PublicationDate).TotalDays > 30) return false;
+        if (comment.Votes?.Values?.Any(v => v.Author == user?.Id && v.VoteValue < 0) ?? false) return false;
+        return true;
+    }
+
+    async void Upvote(CommentOutputModel comment)
+    {
+        if (user is not null)
+        {
+            using var client = ClientFactory.CreateClient();
+            await client.PostAsync($"api/comments/{comment.Id}/vote?upvote=true", null);
+        }
+    }
+
+    async void Downvote(CommentOutputModel comment)
+    {
+        if (user is not null)
+        {
+            using var client = ClientFactory.CreateClient();
+            await client.PostAsync($"api/comments/{comment.Id}/vote?upvote=false", null);
+        }
+    }
+
+    void ShowVotesTooltip(ElementReference elementReference, CommentOutputModel comment)
+    {
+        TooltipService.Open(elementReference, $"+{comment.UpvotesCount}/-{comment.DownvotesCount}");
+    }
+
+    async void OnMark(DateTime? dateTime = null)
+    {
+        if (user is not null)
+        {
+            using var client = ClientFactory.CreateClient();
+            var response = await client.PostAsync($"api/users/readcomments?todate={dateTime}", null);
+            if (response.IsSuccessStatusCode)
+            {
+                NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Success,
+                        Summary = "Comments read",
+                        Detail = $"Comments are marked as read!"
+                    });
+                NavigationManager.Refresh(forceReload: true);
+            }
+            else
+            {
+                NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Error,
+                        Summary = "Error occured",
+                        Detail = $"{response}"
+                    });
+            }
+        }
+    }
+
+    async Task PageChanged(PagerEventArgs args)
+    {
+        await LoadComments(args.Skip, args.Top);
+    }
+
+    async void OnRecord(CommentOutputModel comment)
+    {
+        using var client = ClientFactory.CreateClient();
+        await client.PostAsync($"api/comments/{comment.Id}/record", null);
+        int take = (pager?.PageSize ?? pageSize);
+        int skip = take * (pager?.CurrentPage ?? 0);
+        await LoadComments(skip, take);
+    }
+
+    async Task AddQuote(CommentOutputModel comment)
+    {
+        // window.getSelection().toString()
+        var selectedText = await JSRuntime.InvokeAsync<string>("getSelectionText");
+        if (selectedText == "") selectedText = comment.Text;
+        var html = $"<blockquote><b>{Loc["Quote"]} ({commentAuthors.GetValueOrDefault(comment.AuthorId)}, {comment.PublicationDate.ToString("dd.MM.yyyy")}):</b>"
+            + $"<br><i>{selectedText}</i></blockquote><br>";
+        model.Text += html;
+    }
+
+    async Task DeleteComment(CommentOutputModel comment)
+    {
+        if (comment is not null)
+        {
+            using var client = ClientFactory.CreateClient();
+            var response = await client.DeleteAsync($"api/comments/{comment.Id}");
+            if (response.IsSuccessStatusCode)
+            {
+                await LoadComments(0, pageSize);
+            }
+            else
+            {
+                NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Error,
+                        Summary = "Error occured",
+                        Detail = $"{response}"
+                    });
+            }
+        }
+    }
+}

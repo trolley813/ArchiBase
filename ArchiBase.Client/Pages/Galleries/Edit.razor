@@ -1,0 +1,54 @@
+@page "/galleries/{id:guid}/edit"
+@inject IHttpClientFactory ClientFactory
+@inject NotificationService NotificationService
+
+<EditorOnly>
+</EditorOnly>
+
+@code
+{
+    [Parameter]
+    public Guid Id { get; set; }
+
+    GalleryInputModel? gallery;
+
+    override protected async Task OnInitializedAsync()
+    {
+        using var client = ClientFactory.CreateClient();
+        var galleryOutputModel = await client.GetFromJsonAsyncExtended<GalleryOutputModel>($"/api/galleries/{Id}");
+        if (galleryOutputModel is not null)
+        {
+            gallery = new GalleryInputModel()
+            {
+                Id = galleryOutputModel.Id,
+                EntityId = galleryOutputModel.EntityId,
+                EntityType = galleryOutputModel.EntityType,
+                Name = galleryOutputModel.Name,
+            };
+        }
+    }
+
+    public async void Save()
+    {
+        using var client = ClientFactory.CreateClient();
+        var response = await client.PutAsJsonAsyncExtended<GalleryInputModel>($"/api/galleries/{gallery.Id}", gallery);
+        if (response.IsSuccessStatusCode)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Gallery saved",
+                    Detail = $"ID: {gallery.Id}"
+                });
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"{response}"
+                });
+        }
+    }
+}

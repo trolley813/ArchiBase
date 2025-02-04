@@ -1,0 +1,89 @@
+@page "/galleries/{id:guid}"
+@using Microsoft.EntityFrameworkCore
+@inject IHttpClientFactory ClientFactory
+@inject IStringLocalizer<Details> Loc
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<ArchibasePageTitle Title="@($"{Loc["Gallery"]} {gallery?.Name}")" />
+
+@if (gallery is not null)
+{
+    <RadzenText TextStyle="TextStyle.H3">
+    @switch (gallery.EntityType)
+        {
+            case "Location":
+                <RadzenLink Text=@objectName Path=@($"/locations/{gallery.EntityId}") />
+                break;
+            case "Design":
+                <RadzenLink Text=@objectName Path=@($"/series/{gallery.EntityId}") />
+                break;
+            case "DesignCategory":
+                <RadzenLink Text=@objectName Path=@($"/categories/{gallery.EntityId}") />
+                break;
+        } —
+        @(gallery.Name)
+    </RadzenText>
+
+
+    <RadzenText TextStyle="TextStyle.H6">@Loc["Photos"] (@(photos.Count))</RadzenText>
+    <RadzenDataGrid Data="photos" AllowPaging=true PageSize=10 ShowPagingSummary=true Responsive=true>
+        <Columns>
+            <RadzenDataGridColumn Title=@Loc["Photo"]>
+                <Template Context="photo">
+                    <RadzenLink Path="@($"/photos/{photo.Id}")" Text="Photo" Target="_blank">
+                        <RadzenImage Path=@($"data:image/webp;base64,{photo.ThumbnailData}")
+                            Style="display:block;margin:auto;max-height:200px;max-width:400px;height:auto;width:auto;"
+                            AlternateText="Photo not available" onerror="this.src='/images/unavailable.png'" />
+                    </RadzenLink>
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title=@Loc["Details"]>
+                <Template Context="photo">
+                    <RadzenText TextStyle="TextStyle.Body1">
+                        <b>
+                            <ImpreciseDateDisplay Value="photo.ShootingDate" />
+                        </b>
+                    </RadzenText>
+                    <RadzenText TextStyle="TextStyle.Overline">
+                        @(photo.NonAuthor ? @Loc["Sent by"] : @Loc["Author"]):
+                        @* @((UserManager.Users.FirstOrDefault(u => u.Id == photo.AuthorId)?.UserName) *@
+                    </RadzenText>
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+}
+
+
+
+@code
+{
+    [Parameter]
+    public Guid Id { get; set; }
+
+    GalleryOutputModel? gallery = null;
+
+    string? objectName = null;
+
+    List<PhotoOutputModel>? photos;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var client = ClientFactory.CreateClient();
+        gallery = await client.GetFromJsonAsyncExtended<GalleryOutputModel>($"/api/galleries/{Id}");
+
+        if (gallery is not null)
+        {
+            photos = gallery.Photos.Where(p => !p.IsHidden).OrderByDescending(p => p.ShootingDate.Date).ToList();
+            objectName = gallery.EntityType switch
+            {
+                "Location" => (await client.GetFromJsonAsyncExtended<LocationOutputModel>($"/api/locations/{gallery.EntityId}"))?.Name,
+                "Design" => (await client.GetFromJsonAsyncExtended<LocationOutputModel>($"/api/locations/{gallery.EntityId}"))?.Name,
+                "DesignCategory" => (await
+                client.GetFromJsonAsyncExtended<LocationOutputModel>($"/api/locations/{gallery.EntityId}"))?.Name,
+                _ => ""
+            };
+        }
+
+    }
+}

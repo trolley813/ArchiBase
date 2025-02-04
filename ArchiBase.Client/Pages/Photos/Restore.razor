@@ -1,0 +1,147 @@
+@page "/photos/{id:guid}/restore"
+@* @using IronSoftware.Drawing
+@using Microsoft.EntityFrameworkCore
+@inject IHttpClientFactory ClientFactory
+@inject NotificationService NotificationService
+@inject IStringLocalizer<Restore> Loc
+@inject NavigationManager NavigationManager
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<ArchibasePageTitle Title=@Loc["Photo restore"] />
+
+<RadzenText TextStyle="TextStyle.H4">@Loc["Photo restore"]</RadzenText>
+@if (fileExists)
+{
+    <RadzenAlert AllowClose="false" Title=@Loc["File exists"] AlertStyle="AlertStyle.Danger" Variant="Variant.Flat"
+    Shade="Shade.Lighter">
+    @Loc["File exists on server, so the photo does not need to be restored."]
+    <i>@Loc["Photo may be hidden although. To show it, use personal page if you are the author; otherwise, contact the photo author."]</i>
+    </RadzenAlert>
+}
+else if (!canRestore)
+{
+    <RadzenAlert AllowClose="false" Title=@Loc["Cannot restore photo"] AlertStyle="AlertStyle.Danger" Variant="Variant.Flat"
+    Shade="Shade.Lighter">
+    @Loc["You can restore a photo only if you are either its author or an admin."]
+    </RadzenAlert>
+}
+else
+{
+    <RadzenFieldset Text=@Loc["Upload form"]>
+        <RadzenRow>
+            <RadzenColumn>
+                <RadzenCard>
+                    <RadzenFileInput @bind-Value="model.File" @bind-FileName="model.FileName" TValue="string"
+                        @bind-FileSize="model.FileSize" class="w-100" ChooseText=@Loc["Select image"]
+                        Change="args => OnPhotoChanged(args)" />
+                </RadzenCard>
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow Gap="10">
+            <RadzenButton ButtonType="ButtonType.Submit" Text=@Loc["Upload"] Click="UploadPhoto" />
+        </RadzenRow>
+    </RadzenFieldset>
+}
+
+@code
+{
+    [Parameter]
+    public Guid Id { get; set; }
+
+    class RestoreModel
+    {
+        public string? File { get; set; }
+        public string? FileName { get; set; }
+        public long? FileSize { get; set; }
+    }
+
+    RestoreModel model = new();
+
+    Photo? photo;
+
+    ArchiBaseUser? user;
+
+    bool fileExists = false;
+    bool canRestore = false;
+
+    int sizeLimit = 2097152; // 2 MiB
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = UserManager.Users.FirstOrDefault(u => u.Id == UserResolverService.GetUser());
+        photo = await ModelContext.Photos
+        .Include(p => p.BuildingBinds).ThenInclude(b => b.Building).ThenInclude(b => b.Location)
+        .Include(p => p.BuildingBinds).ThenInclude(b => b.Building).ThenInclude(b => b.Cards).ThenInclude(c =>
+        c.StreetAddresses).ThenInclude(a => a.Street)
+        .Include(p => p.BuildingBinds).ThenInclude(b => b.Building).ThenInclude(b => b.Cards).ThenInclude(c =>
+        c.Parts).ThenInclude(p => p.Design)
+        .Include(p => p.BuildingBinds).ThenInclude(b => b.Building).ThenInclude(b => b.Cards).ThenInclude(c =>
+        c.Categories)
+        .Include(p => p.License)
+        .Include(p => p.Galleries)
+        .AsSplitQuery()
+        .FirstOrDefaultAsync(p => p.Id == Id);
+        if (user is not null) canRestore = (await UserManager.IsInRoleAsync(user, "Admin")) || photo?.AuthorId == user.Id;
+        if (photo is not null)
+        {
+            var wwwroot = WebHostEnvironment.WebRootPath;
+            fileExists = System.IO.File.Exists(wwwroot + photo.PhotoLink);
+        }
+    }
+
+    public void OnPhotoChanged(string photo)
+    {
+        if (photo is null) return;
+        try
+        {
+            var p = photo[(photo.IndexOf(",") + 1)..];
+            byte[] bytes = Convert.FromBase64String(p);
+            if (bytes.Length > sizeLimit) throw new ArgumentOutOfRangeException("File size", $"{bytes.Length} exceeds the limit of {sizeLimit}");
+
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"{ex.Message}"
+                });
+            model.File = null;
+            model.FileName = null;
+            model.FileSize = null;
+        }
+    }
+
+    public async Task UploadPhoto()
+    {
+        if (photo is null || model.File is null) return;
+        try
+        {
+            var p = model.File[(model.File.IndexOf(",") + 1)..];
+            byte[] bytes = Convert.FromBase64String(p);
+            var wwwroot = WebHostEnvironment.WebRootPath;
+            System.IO.Directory.CreateDirectory(wwwroot + photo.PhotoDir);
+            File.WriteAllBytes(wwwroot + photo.PhotoLink, bytes);
+            photo.IsLost = false;
+            ModelContext.SaveChanges();
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Photo uploaded!",
+                    Detail = $"Photo ID: {photo.Id}. You will be redirected to photo page in 5 seconds."
+                });
+            await Task.Delay(5000);
+            NavigationManager.NavigateTo($"/photos/{photo.Id}");
+        }
+        catch (Exception e)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"{e.Message}"
+                });
+        }
+    }
+} *@

@@ -1,0 +1,137 @@
+@page "/locations/{id:guid}/edit"
+
+@inject IHttpClientFactory ClientFactory
+@inject NotificationService NotificationService
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<LoadingScreen Loaded=@loaded>
+    @if (location is not null)
+    {
+        <EditorOnly Location=@(location.Id)>
+            <RadzenText TextStyle="TextStyle.H3">Edit location</RadzenText>
+            <RadzenStack Orientation="Orientation.Vertical">
+                <RadzenFormField Text="Name">
+                    <RadzenTextBox @bind-Value="@location.Name" />
+                </RadzenFormField>
+                <RadzenFormField Text="Flag (ISO 3166-2)">
+                    <RadzenTextBox @bind-Value="@location.Flag" />
+                </RadzenFormField>
+                <RadzenFormField Text="Parent">
+                    <RadzenDropDown @bind-Value="@parent" Data="locations" TextProperty="Name" AllowFiltering=true
+                        AllowClear=true FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+                    </RadzenDropDown>
+                </RadzenFormField>
+                <RadzenFormField Text="Description">
+                    <RadzenHtmlEditor @bind-Value="@location.Description" />
+                </RadzenFormField>
+                <RadzenRow>
+                    <RadzenFormField Text="Latitude">
+                        <RadzenNumeric ShowUpDown="false" @bind-Value="location.Latitude" />
+                    </RadzenFormField>
+                    <RadzenFormField Text="Longitude">
+                        <RadzenNumeric ShowUpDown="false" @bind-Value="location.Longitude" />
+                    </RadzenFormField>
+                </RadzenRow>
+                <RadzenRow>
+                    <RadzenLabel Text="Allow streets" Component="AllowStreets" />
+                    <RadzenCheckBox Name="AllowStreets" @bind-Value="location.AllowStreets" />
+                </RadzenRow>
+                <LeafletMap @ref="map" Style="height:480px; width:640px" OnMapClick="OnMapClick">
+                </LeafletMap>
+                <RadzenFormField>
+                    <RadzenButton Text="Save" Icon="add_circle_outline" Click="@Save" />
+                </RadzenFormField>
+            </RadzenStack>
+        </EditorOnly>
+
+
+    }
+
+</LoadingScreen>
+
+
+@code
+{
+    [Parameter]
+    public Guid Id { get; set; }
+
+    bool loaded = false;
+    LocationInputModel? location;
+
+    LocationOutputModel? parent;
+
+    LeafletMap map = null!;
+
+    List<LocationOutputModel> locations;
+
+    protected override async Task OnInitializedAsync()
+    {
+        loaded = false;
+        await Task.Yield();
+        using var client = ClientFactory.CreateClient();
+        locations = await client.GetFromJsonAsyncExtended<List<LocationOutputModel>>("/api/locations") ?? [];
+        var locationOutputModel = locations.FirstOrDefault(loc => loc.Id == Id);
+        if (locationOutputModel is not null)
+        {
+            location = new LocationInputModel()
+                {
+                    Id = locationOutputModel.Id,
+                    AllowStreets = location.AllowStreets,
+                    Description = location.Description,
+                    Flag = location.Flag,
+                    Latitude = location.Latitude,
+                    Level = location.Level,
+                    Longitude = location.Longitude,
+                    Name = location.Name,
+                    ParentId = location.ParentId,
+                    Path = location.Path
+                };
+            parent = locations.FirstOrDefault(loc => loc.Id == location.ParentId);
+        }
+        loaded = true;
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender && map is not null)
+        {
+            map.Center = (location?.Latitude ?? 0.0, location?.Longitude ?? 0.0);
+        }
+    }
+
+    public async Task Save()
+    {
+        using var client = ClientFactory.CreateClient();
+        if (location is not null)
+        {
+            var response = await
+            client.PutAsJsonAsyncExtended<LocationInputModel>($"/api/categories/{location.Id}?parentid={location.ParentId}",
+            location);
+            if (response.IsSuccessStatusCode)
+            {
+                NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Success,
+                        Summary = "Location saved",
+                        Detail = $"ID: {location.Id}"
+                    });
+            }
+            else
+            {
+                NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Error,
+                        Summary = "Error occured",
+                        Detail = $"{response}"
+                    });
+            }
+        }
+    }
+
+    void OnMapClick((double, double) coordinate)
+    {
+        location!.Latitude = coordinate.Item1;
+        location!.Longitude = coordinate.Item2;
+        map.PrincipalMarker = new PrincipalMarker { Latitude = location.Latitude, Longitude = location.Longitude };
+    }
+}

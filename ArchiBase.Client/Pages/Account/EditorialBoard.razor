@@ -1,0 +1,160 @@
+@page "/editorial"
+@using ArchiBase.Users
+@using Microsoft.EntityFrameworkCore
+@inject IHttpClientFactory ClientFactory
+@inject IStringLocalizer<EditorialBoard> Loc
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<ArchibasePageTitle Title=@Loc["Editorial board"] />
+
+<RadzenText TextStyle="TextStyle.H3">@Loc["Editorial board"]</RadzenText>
+
+<LoadingScreen Loaded=@loaded>
+    <RadzenRow>
+        <RadzenColumn SizeXX="3" SizeMD="6" SizeSM="12">
+            <RadzenText TextStyle="TextStyle.H5">@Loc["Administrators"]</RadzenText>
+            <RadzenDataGrid Data="admins">
+                <Columns>
+                    <RadzenDataGridColumn Title=@Loc["Username"]>
+                        <Template Context="user">
+                            @if (user.IsEnabled)
+                            {
+                                <RadzenLink Text="@(user.UserName)" Path=@($"users/{user.Id}") />
+                            }
+                            else
+                            {
+                                <RadzenLink Text="@(user.UserName)" Path=@($"users/{user.Id}")
+                                    style="text-decoration: line-through" />
+                            }
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Title=@Loc["Edits for last 30 days"]>
+                        <Template Context="user">
+                            <RadzenText>@(editsCount[user])</RadzenText>
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
+        </RadzenColumn>
+        <RadzenColumn SizeXX="3" SizeMD="6" SizeSM="12">
+            <RadzenText TextStyle="TextStyle.H5">@Loc["Database Editors"]</RadzenText>
+            <RadzenDataGrid Data="editors">
+                <Columns>
+                    <RadzenDataGridColumn Title=@Loc["Username"]>
+                        <Template Context="user">
+                            @if (user.IsEnabled)
+                            {
+                                <RadzenLink Text="@(user.UserName)" Path=@($"users/{user.Id}") />
+                            }
+                            else
+                            {
+                                <RadzenLink Text="@(user.UserName)" Path=@($"users/{user.Id}")
+                                    style="text-decoration: line-through" />
+                            }
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Title=@Loc["Edits for last 30 days"]>
+                        <Template Context="user">
+                            <RadzenText>@(editsCount[user])</RadzenText>
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
+        </RadzenColumn>
+        <RadzenColumn SizeXX="3" SizeMD="6" SizeSM="12">
+            <RadzenText TextStyle="TextStyle.H5">@Loc["Photo moderators"]</RadzenText>
+            <RadzenDataGrid Data="moderators">
+                <Columns>
+                    <RadzenDataGridColumn Title=@Loc["Username"]>
+                        <Template Context="user">
+                            @if (user.IsEnabled)
+                            {
+                                <RadzenLink Text="@(user.UserName)" Path=@($"users/{user.Id}") />
+                            }
+                            else
+                            {
+                                <RadzenLink Text="@(user.UserName)" Path=@($"users/{user.Id}")
+                                    style="text-decoration: line-through" />
+                            }
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Title=@Loc["Edits for last 30 days"]>
+                        <Template Context="user">
+                            <RadzenText>@(editsCount[user])</RadzenText>
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
+        </RadzenColumn>
+        <RadzenColumn SizeXX="3" SizeMD="6" SizeSM="12">
+            <RadzenText TextStyle="TextStyle.H5">@Loc["Local editors"]</RadzenText>
+            <RadzenDataGrid Data="localEditors">
+                <Columns>
+                    <RadzenDataGridColumn Title=@Loc["Username"]>
+                        <Template Context="user">
+                            @if (user.IsEnabled)
+                            {
+                                <RadzenLink Text="@(user.UserName)" Path=@($"users/{user.Id}") />
+                                <RadzenStack Orientation="Orientation.Horizontal" Gap="8" Wrap="FlexWrap.Wrap">
+                                    @foreach (var locId in user.Locations)
+                                    {
+                                        <RadzenText TextStyle="TextStyle.Body2">
+                                            <RadzenLink Text=@locationNames[locId] Path=@($"/locations/{locId}") />
+                                        </RadzenText>
+                                    }
+                                </RadzenStack>
+                            }
+                            else
+                            {
+                                <RadzenLink Text="@(user.UserName)" Path=@($"users/{user.Id}") using ArchiBase.Data;
+                                    style="text-decoration: line-through" />
+                            }
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Title=@Loc["Edits for last 30 days"]>
+                        <Template Context="user">
+                            <RadzenText>@(editsCount[user])</RadzenText>
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
+        </RadzenColumn>
+    </RadzenRow>
+</LoadingScreen>
+
+@code
+{
+    List<UserOutputModel> admins, editors, moderators, localEditors;
+    Dictionary<UserOutputModel, int> editsCount = [];
+
+    Dictionary<Guid, string> locationNames;
+
+    bool loaded = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        loaded = false;
+        // TODO
+        using var client = ClientFactory.CreateClient();
+        admins = await client.GetFromJsonAsyncExtended<List<UserOutputModel>>("api/users/inrole?rolename=Admin") ?? [];
+        editors = await client.GetFromJsonAsyncExtended<List<UserOutputModel>>("api/users/inrole?rolename=Editor") ?? [];
+        moderators = await client.GetFromJsonAsyncExtended<List<UserOutputModel>>("api/users/inrole?rolename=Photo Moderator")
+        ??
+            [];
+        localEditors = await client.GetFromJsonAsyncExtended<List<UserOutputModel>>("api/users/inrole?rolename=Local Editor") ??
+            [];
+        var users = admins.Concat(editors).Concat(moderators).Concat(localEditors).Distinct().ToList();
+        var now = DateTime.UtcNow;
+        @* foreach (var user in users)
+        {
+            editsCount[user] = ModelContext.AuditRecords.Where(
+            r => r.UserId == user.Id && (now - r.Timestamp).TotalDays < 30
+            ).Count();
+        }
+        locationNames = await ModelContext.Locations
+        .Select(loc => new Tuple<Guid, string>(loc.Id, loc.Name))
+        .ToDictionaryAsync(loc => loc.Item1, loc => loc.Item2); *@
+        loaded = true;
+        await base.OnInitializedAsync();
+    }
+}

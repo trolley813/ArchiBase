@@ -1,0 +1,161 @@
+@page "/users/{id:guid}"
+@using Microsoft.EntityFrameworkCore
+@inject IHttpClientFactory ClientFactory
+@inject IStringLocalizer<UserInfo> Loc
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+@if (user != null)
+{
+    <ArchibasePageTitle Title=@Loc["User information"] />
+    <LoadingScreen Loaded=@loaded>
+        <RadzenCard>
+            <RadzenText TextStyle="TextStyle.H4">@Loc["User information"] @(user.UserName)</RadzenText>
+            @if (!user.IsEnabled)
+            {
+                <RadzenBadge Text="Disabled account" />
+            }
+
+            <RadzenRow>
+                <RadzenColumn>
+                    <RadzenText TextStyle="TextStyle.Overline">@Loc["Username"]</RadzenText>
+                    <RadzenText>@(user.UserName)</RadzenText>
+                    @if (myLocation is not null)
+                    {
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="3">
+                            @foreach (var flag in myLocationFlags)
+                            {
+                                <img src=@($"flags/{flag ?? "xx"}.svg") width="16px" />
+                            }
+                            <RadzenLink Text="@(myLocation.Name)" Path=@($"locations/{myLocation.Id}") />
+                        </RadzenStack>
+                    }
+                </RadzenColumn>
+                <RadzenColumn>
+                    <RadzenText TextStyle="TextStyle.Overline">@Loc["Date of birth"]</RadzenText>
+                    <RadzenText>@(user.DateOfBirth?.ToString("dd.MM.yyyy") ?? @Loc["not specified"])</RadzenText>
+                </RadzenColumn>
+                <RadzenColumn>
+                    <RadzenText TextStyle="TextStyle.Overline">@Loc["Roles"]</RadzenText>
+                    <RadzenStack Orientation="Orientation.Horizontal">
+                        @foreach (var role in roles)
+                        {
+                            <RadzenBadge Text="@Loc[role]" IsPill=true BadgeStyle=@(role.ToBadgeStyle()) />
+                        }
+                        @if (roles.Count == 0)
+                        {
+                            <RadzenText>No roles.</RadzenText>
+                        }
+
+                    </RadzenStack>
+                </RadzenColumn>
+                @if (roles.Contains("Local Editor"))
+                {
+                    <RadzenColumn>
+                        <RadzenText TextStyle="TextStyle.Overline">@Loc["Locations"]</RadzenText>
+                        <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" Gap="8">
+                            @foreach (var location in locations)
+                            {
+                                <RadzenStack Orientation="Orientation.Horizontal" Gap="3">
+                                    @foreach (var flag in locationFlags[location])
+                                    {
+                                        <img src=@($"flags/{flag ?? "xx"}.svg") width="16px" />
+                                    }
+                                    <RadzenLink Text="@(location.Name)" Path=@($"locations/{location.Id}") />
+                                </RadzenStack>
+                            }
+                        </RadzenStack>
+
+                    </RadzenColumn>
+                }
+            </RadzenRow>
+            <RadzenRow Gap="8">
+                <RadzenColumn>
+                    <RadzenText TextStyle="TextStyle.Overline">@Loc["Bio"]</RadzenText>
+                    <RadzenText>@((MarkupString)user.Bio)</RadzenText>
+                </RadzenColumn>
+
+            </RadzenRow>
+            <RadzenRow Gap="12">
+                <RadzenColumn>
+                    <RadzenText TextStyle="TextStyle.Overline">@Loc["Photos published"]</RadzenText>
+                    <RadzenText TextStyle="TextStyle.H4">
+                        <RadzenLink Path=@($"/photos?authorid={user.Id}")>
+                            @(photosCount)
+                        </RadzenLink>
+                    </RadzenText>
+                </RadzenColumn>
+            </RadzenRow>
+            <RadzenRow Gap="12">
+                <RadzenColumn>
+                    <RadzenText TextStyle="TextStyle.Overline">@Loc["By location"]</RadzenText>
+                    @foreach (var p in photosByLocation.OrderBy(pbl => pbl.Key.Name))
+                    {
+                        <RadzenText>
+                            <RadzenLink Text=@(p.Key.Name) Path=@($"/locations/{p.Key.Id}") />:
+                            <RadzenLink Text=@(p.Value.ToString()) Path=@($"/photos?authorid={user.Id}&locid={p.Key.Id}") />
+                        </RadzenText>
+                    }
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenCard>
+    </LoadingScreen>
+}
+else
+{
+    <RadzenAlert AllowClose="false" Title="User not found" AlertStyle="AlertStyle.Danger" Variant="Variant.Flat"
+    Shade="Shade.Lighter">User with specified ID not found.</RadzenAlert>
+}
+
+@code
+{
+    [Parameter]
+    public Guid Id { get; set; }
+
+    bool loaded = false;
+
+    UserOutputModel? user;
+    List<String> roles = [];
+    List<LocationOutputModel> locations = [];
+    Dictionary<LocationOutputModel, List<string>> locationFlags = [];
+    List<string> myLocationFlags = [];
+    LocationOutputModel? myLocation;
+
+    Dictionary<LocationOutputModel, int> photosByLocation = [];
+
+    int photosCount = 0;
+    protected override async Task OnInitializedAsync()
+    {
+        using var client = ClientFactory.CreateClient();
+        user = await client.GetFromJsonAsyncExtended<UserOutputModel>($"/api/users/{Id}");
+        loaded = false;
+        await Task.Yield();
+        if (user is not null)
+        {
+            roles = await client.GetFromJsonAsyncExtended<List<string>>($"/api/users/{Id}/roles") ?? [];
+            locations = await client.GetFromJsonAsyncExtended<List<LocationOutputModel>>($"/api/users/{Id}/locations") ?? [];
+            if (user.MyLocation is not null)
+            {
+                myLocation = await client.GetFromJsonAsyncExtended<LocationOutputModel>($"/api/locations/{user.MyLocation}");
+            }
+            if (myLocation is not null)
+            {
+                myLocationFlags = await client.GetFromJsonAsyncExtended<List<string>>($"/api/locations/{myLocation.Id}/flags") ?? [];
+            }
+            foreach (var loca in locations)
+            {
+                locationFlags[loca] = await client.GetFromJsonAsyncExtended<List<string>>($"/api/locations/{loca.Id}/flags") ??
+                    [];
+            }
+            @* photosCount = await ModelContext.ActivePhotos.Where(p => p.AuthorId == Id).CountAsync();
+            photosByLocation = await ModelContext.PhotoLocationMappings
+            .Include(m => m.Photo)
+            .Include(m => m.Location)
+            .Where(m => !m.Photo.IsHidden && m.Photo.Status == PhotoStatus.Published && m.Photo.AuthorId == Id)
+            .GroupBy(m => m.Location)
+            .ToDictionaryAsync(g => g.Key, g => g.Count()); *@
+
+        }
+        loaded = true;
+        await base.OnInitializedAsync();
+    }
+}

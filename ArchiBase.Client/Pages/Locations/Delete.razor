@@ -1,0 +1,70 @@
+@page "/locations/{id:guid}/delete"
+@using ArchiBase.Components.Utils
+
+@inject NotificationService NotificationService
+@inject IHttpClientFactory ClientFactory
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+@if (location is not null)
+{
+
+    <AdminOnly AlertText="To delete items, you must be authorized as admin." ShowLoginLink=true>
+    <RadzenText>Are you sure to delete this location?</RadzenText>
+    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Text="Delete" Click="DeleteLocation" />
+</AdminOnly>
+
+}
+
+@code
+{
+    [Parameter]
+    public Guid Id { get; set; }
+
+    LocationOutputModel? location;
+    int childrenCount = 0;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        using var client = ClientFactory.CreateClient();
+        location = await client.GetFromJsonAsyncExtended<LocationOutputModel>($"/api/locations/{Id}");
+        childrenCount = location is not null ? (await
+        client.GetFromJsonAsyncExtended<List<LocationOutputModel>>($"/api/locations/{Id}/sublocations")).Count() : 0;
+    }
+
+    async Task DeleteLocation()
+    {
+        if (location is null) return;
+
+        if (childrenCount != 0)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Cannot delete location",
+                    Detail = $"This location has {childrenCount} child locations"
+                });
+            return;
+        }
+        using var client = ClientFactory.CreateClient();
+        var response = await client.DeleteAsync($"api/locations/{Id}");
+        if (response.IsSuccessStatusCode)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Catalogue deleted",
+                    Detail = $"ID: {location.Id}"
+                });
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"{response.Content}"
+                });
+        }
+
+    }
+}

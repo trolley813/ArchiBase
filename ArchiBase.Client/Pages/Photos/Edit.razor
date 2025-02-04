@@ -1,0 +1,361 @@
+@page "/photos/{id:guid}/edit"
+@using Microsoft.EntityFrameworkCore
+@inject IHttpClientFactory ClientFactory
+@inject NotificationService NotificationService
+@inject IStringLocalizer<Edit> Loc
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+@if (photo is not null)
+{
+        <EditorOnly>
+            <LoadingScreen Loaded=loaded>
+                <RadzenText TextStyle="TextStyle.H4">@Loc["Edit photo"]</RadzenText>
+                <RadzenStack>
+                    <RadzenImage Path=@(photoLink)
+                    Style="max-width: 100%; height: auto; display: block; margin-left: auto; margin-right: auto; padding-bottom: 30px;"
+                    AlternateText=@Loc["Photo not available"] onerror="this.src='/images/unavailable.png'" />
+                    <RadzenFieldset Text=@Loc["Buildings"]>
+                        <RadzenRow>
+                            <RadzenText>
+                            @(location?.Name) &emsp;
+                            @if (suggestedLocation)
+                            {
+                                        <RadzenBadge Text=@Loc["Suggested"] BadgeStyle="BadgeStyle.Info" Style="vertical-align: middle" />
+                            }
+                            </RadzenText>
+                        </RadzenRow>
+                        <RadzenRow RowGap="10">
+                            <RadzenButton Icon="add" Text=@Loc["Bind a building"] Size="ButtonSize.Small" Click="AddBuilding" />
+                        </RadzenRow>
+                    @for (int index = 0; index < photo.BuildingBinds.Count; index++)
+                    {
+                        int i = index;
+                                <div draggable="true" ondragover="event.preventDefault()" 
+                                        @ondragstart="() => DragStart(i)" @ondrop="() => Drop(i)">
+                                    <RadzenRow>
+                                        <RadzenColumn Size="6">
+                                            <RadzenDropDown Data="filteredBuildings[i]" Value=@(photo.BuildingBinds[i].BuildingId) TValue="Guid"
+                                            Change="args => SetBind(i, args)"
+                                            Style="width: 100%" @bind-SearchText="searchTexts[i]" ValueProperty="Building.Id" LoadData=@(args
+                                => LoadData(i, args)) Placeholder=@Loc["Select a building"] FilterPlaceholder=@Loc["Address"]
+                                            AllowFiltering=true FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+                                                <Template Context="building">
+                                                    <RadzenText>@(string.Join(" / ", building.Addresses))</RadzenText>
+                                                    <RadzenText TextStyle="TextStyle.Overline">
+                                                @if (building.Building is not null)
+                                                {
+                                                    @* var b = building.Building as Building;
+                                                    var text = String.Join(" • ", b?.ActualCard?.Parts.Select(p => p.Design.Name) ?? []);
+                                                    if (text.Length == 0)
+                                                    {
+                                                        text = String.Join(" • ", b?.ActualCard?.Categories.Select(c => c.Name) ?? []);
+                                                    }
+                                                    @(text) *@
+                                                }
+                                                    </RadzenText>
+                                                </Template>
+                                            </RadzenDropDown>
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="1">
+                                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text" Icon="close"
+                                            Click="args => RemoveBuilding(i)" />
+                                            <RadzenCheckBox @bind-Value=@(photo.BuildingBinds[i].IsMain) Name=@($"IsMain{i}") />
+                                            <RadzenLabel Text=@Loc["Main"] Component=@($"IsMain{i}") />
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="5">
+                                            <RadzenText>
+                                        @if (photo.BuildingBinds[i].BuildingId != Guid.Empty)
+                                        {
+                                            @* var text = String.Join(" • ", photo.BuildingBinds[i].Building.ActualCard?.Parts.Select(p =>
+                                            p.Design.Name) ?? []);
+                                            if (text.Length == 0)
+                                            {
+                                                text = String.Join(" • ", photo.BuildingBinds[i].Building.ActualCard?.Categories.Select(c =>
+                                                c.Name) ?? []);
+                                            }
+                                            @(text) *@
+                                        }
+                                            </RadzenText>
+                                        </RadzenColumn>
+                                    </RadzenRow>
+                                </div>
+                    }
+                    </RadzenFieldset>
+                    <RadzenFieldset Text=@Loc["EXIF Data"]>
+                        <RadzenStack>
+                            <RadzenRow>
+                                <RadzenLabel>@Loc["Shooting date"]</RadzenLabel>
+                                <ImpreciseDateInput Value="photo.ShootingDate"/>
+                            </RadzenRow>
+                            <RadzenRow>
+                                <RadzenFormField Text=@Loc["Latitude"]>
+                                    <RadzenNumeric ShowUpDown="false" @bind-Value="photo.Latitude" />
+                                </RadzenFormField>
+                                <RadzenFormField Text=@Loc["Longitude"]>
+                                    <RadzenNumeric ShowUpDown="false" @bind-Value="photo.Longitude" />
+                                </RadzenFormField>
+                                <RadzenFormField Text=@Loc["Direction"]>
+                                    <RadzenNumeric Name="Dir" Min="1" Max="360" @bind-Value="photo.Direction" Format="0 °" />
+                                </RadzenFormField>
+                            </RadzenRow>
+                            <RadzenRow>
+                                <RadzenButton Text=@Loc["Re-read from file"] Icon="replay" Click="RereadExifData" />
+                            </RadzenRow>
+                            <RadzenRow>
+                                <RadzenCheckBox Name="reread-exif" @bind-Value="rereadExif" />
+                                <RadzenLabel Component="reread-exif">@Loc["EXIF Data"]</RadzenLabel>
+                                <RadzenCheckBox Name="reread-date" @bind-Value="rereadDate" />
+                                <RadzenLabel Component="reread-date">@Loc["Shooting date"]</RadzenLabel>
+                                <RadzenCheckBox Name="reread-coords" @bind-Value="rereadCoordinates" />
+                                <RadzenLabel Component="reread-coords">@Loc["Coordinates"]</RadzenLabel>
+                            </RadzenRow>
+
+                            <ExifDisplay ExifData="photo.Exif" />
+                        </RadzenStack>
+                    </RadzenFieldset>
+                    <RadzenButton Text=@Loc["Save"] Icon="save" Click="Save" />
+                </RadzenStack>
+            </LoadingScreen>
+
+        </EditorOnly>
+}
+
+@code
+{
+    [Parameter]
+    public Guid Id { get; set; }
+    PhotoInputModel? photo;
+
+    List<List<BuildingWithAddress>> filteredBuildings = [];
+
+    List<string> searchTexts;
+
+
+    List<BuildingWithAddress> buildings;
+
+    LocationOutputModel? location;
+
+    bool loaded = false;
+
+    bool suggestedLocation = false;
+
+    int maxListSize = 20;
+
+    bool rereadExif = true, rereadCoordinates = false, rereadDate = false;
+
+    int dragStartIndex = -1;
+
+    string photoLink;
+
+    protected override async Task OnInitializedAsync()
+    {
+        loaded = false;
+        await Task.Yield();
+        using var client = ClientFactory.CreateClient();
+        var photoOutputModel = await client.GetFromJsonAsyncExtended<PhotoOutputModel>($"/api/photos/{Id}");
+        if (photoOutputModel is not null)
+        {
+            photo = new PhotoInputModel()
+            {
+                Id = photoOutputModel.Id,
+                AuthorId = photoOutputModel.Id,
+                BuildingBinds = photoOutputModel.BuildingBinds.Select(b => new BuildingBindInputModel()
+                {
+                    Id = b.Id,
+                    BuildingId = b.Building.Id,
+                    IsMain = b.IsMain,
+                    Markup = b.Markup,
+                    Order = b.Order,
+                    PhotoId = b.Photo.Id
+                })
+                .ToList(),
+                Description = photoOutputModel.Description,
+                Direction = photoOutputModel.Direction,
+                Exif = photoOutputModel.Exif,
+                Extension = photoOutputModel.Extension,
+                IsHidden = photoOutputModel.IsHidden,
+                IsLost = photoOutputModel.IsLost,
+                Latitude = photoOutputModel.Latitude,
+                LicenseId = photoOutputModel.License.Id,
+                Longitude = photoOutputModel.Longitude,
+                NonAuthor = photoOutputModel.NonAuthor,
+                PublicationDate = photoOutputModel.PublicationDate,
+                ShootingDate = photoOutputModel.ShootingDate,
+                Status = photoOutputModel.Status,
+                ThumbnailData = photoOutputModel.ThumbnailData,
+                Votes = photoOutputModel.Votes
+            };
+            photoLink = photoOutputModel.PhotoLink;
+        }
+
+        if (photo.BuildingBinds.Count > 0)
+        {
+            var buildingId = photo.BuildingBinds.First()?.BuildingId;
+            if (buildingId is Guid locId)
+            {
+                location = await client.GetFromJsonAsyncExtended<LocationOutputModel>($"/api/locations/{locId}");
+            }
+        }
+        else
+        {
+            location = await client.GetFromJsonAsyncExtended<LocationOutputModel>($"/api/photos/{photo.Id}/suggestedlocation");
+            suggestedLocation = true;
+        }
+
+        buildings = await client.GetFromJsonAsyncExtended<List<BuildingWithAddress>>($"/api/locations/{location.Id}/buildingswithaddresses") ?? [];
+
+        searchTexts = Enumerable.Repeat("", photo.BuildingBinds.Count).ToList();
+        photo.BuildingBinds.Sort((BuildingBindInputModel b1, BuildingBindInputModel b2) => b1.Order.CompareTo(b2.Order));
+        filteredBuildings = photo.BuildingBinds.Select(b => buildings.Where(bb => bb.Building.Id == b.BuildingId).ToList()).ToList();
+
+        loaded = true;
+    }
+
+    public void AddBuilding()
+    {
+        photo.BuildingBinds.Add(new() { Order = photo.BuildingBinds.Count + 1, BuildingId = Guid.Empty });
+        searchTexts.Add("");
+        filteredBuildings.Add([]);
+    }
+
+    public void RemoveBuilding(int index)
+    {
+        photo.BuildingBinds.RemoveAt(index);
+        searchTexts.RemoveAt(index);
+        filteredBuildings.RemoveAt(index);
+    }
+
+    void LoadData(int index, LoadDataArgs args)
+    {
+        var query = buildings.AsQueryable();
+        if (!string.IsNullOrEmpty(args.Filter))
+        {
+            var filters = args.Filter.Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(f => f.ToLower()).ToArray();
+            query = query.Where(
+                b => filters.All(
+                    f => b.Addresses.Any(
+                        a => a.StreetName.ToLower().Contains(f) ||
+                             a.HouseNumber.ToLower().Contains(f)
+                    )
+                )
+            );
+        }
+        filteredBuildings[index] = query.Take(maxListSize).ToList();
+        InvokeAsync(StateHasChanged);
+    }
+
+    void RereadExifData()
+    {
+        var wwwroot = "/wwwroot"; // WebHostEnvironment.WebRootPath;
+        var filePath = wwwroot + photoLink;
+        if (photo is not null && File.Exists(filePath))
+        {
+            byte[] bytes = File.ReadAllBytes(filePath);
+            var (exif, shootingDate, latitude, longitude) = PhotoExifReader.ReadExif(bytes);
+            if (rereadExif)
+            {
+                photo.Exif = exif;
+            }
+            if (rereadDate)
+            {
+                if (shootingDate.Precision != 0)
+                {
+                    photo.ShootingDate = shootingDate;
+                }
+                else
+                {
+                    NotificationService.Notify(new NotificationMessage
+                        {
+                            Severity = NotificationSeverity.Warning,
+                            Summary = Loc["No date present"],
+                            Detail = Loc["The photo does not contain date/time information"]
+                        });
+                }
+            }
+            if (rereadCoordinates)
+            {
+                if (latitude != 0 || longitude != 0)
+                {
+                    photo.Latitude = latitude;
+                    photo.Longitude = longitude;
+
+                }
+                else
+                {
+                    NotificationService.Notify(new NotificationMessage
+                        {
+                            Severity = NotificationSeverity.Warning,
+                            Summary = Loc["No GPS data"],
+                            Detail = Loc["The photo does not contain GPS tags"]
+                        });
+                }
+            }
+        }
+        this.StateHasChanged();
+
+    }
+
+    async void SetBind(int index, object value)
+    {
+        if (value is null) return;
+        using var client = ClientFactory.CreateClient();
+        if ((value as Guid?) is Guid id)
+        {
+            photo.BuildingBinds[index].BuildingId = id;
+        }
+
+    }
+
+    async void Save()
+    {
+        for (int i = 0; i < photo.BuildingBinds.Count; i++)
+        {
+            photo.BuildingBinds[i].Order = i + 1;
+        }
+        using var client = ClientFactory.CreateClient();
+        var response = await client.PutAsJsonAsyncExtended<PhotoInputModel>($"/api/photos/{photo.Id}", photo);
+        if (response.IsSuccessStatusCode)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Photo saved",
+                    Detail = $"ID: {photo.Id}"
+                });
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"{response}"
+                });
+        }
+    }
+
+    void DragStart(int index)
+    {
+        dragStartIndex = index;
+    }
+
+    void Drop(int index)
+    {
+        int count = photo.BuildingBinds.Count;
+        if (0 <= dragStartIndex && dragStartIndex < count && 0 <= index && index < count)
+        {
+            var t1 = photo.BuildingBinds[index];
+            photo.BuildingBinds[index] = photo.BuildingBinds[dragStartIndex];
+            photo.BuildingBinds[dragStartIndex] = t1;
+            var t2 = searchTexts[index];
+            searchTexts[index] = searchTexts[dragStartIndex];
+            searchTexts[dragStartIndex] = t2;
+            var t3 = filteredBuildings[index];
+            filteredBuildings[index] = filteredBuildings[dragStartIndex];
+            filteredBuildings[dragStartIndex] = t3;
+            StateHasChanged();
+        }
+    }
+
+}

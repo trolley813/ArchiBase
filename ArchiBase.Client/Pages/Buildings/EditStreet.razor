@@ -1,0 +1,119 @@
+@page "/streets/{id:guid}/edit"
+@inject IHttpClientFactory ClientFactory
+@inject IStringLocalizer<EditStreet> Loc
+@inject NotificationService NotificationService
+@using Microsoft.EntityFrameworkCore
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<LoadingScreen Loaded=@loaded>
+    <RadzenText></RadzenText>
+    @if (street is not null && location is not null)
+    {
+        <EditorOnly Location=@(location.Id) ShowAlert=false>
+            <RadzenText TextStyle="TextStyle.H3">@Loc["Edit street"]</RadzenText>
+
+            <RadzenStack Orientation="Orientation.Vertical">
+                <RadzenFormField Text="Name">
+                    <RadzenTextBox @bind-Value="@street.Name" />
+                </RadzenFormField>
+                <RadzenFormField Text="Description">
+                    <RadzenHtmlEditor @bind-Value="@street.Description" />
+                </RadzenFormField>
+                <RadzenFormField Text="Actual street (optional)">
+                    <RadzenDropDown @bind-Value="@street.ActualStreetId" Data="streets" TextProperty="Name"
+                        ValueProperty="Id" AllowFiltering=true FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        AllowClear=true>
+                    </RadzenDropDown>
+                </RadzenFormField>
+                <RadzenFormField Text="From (optional)">
+                    <Start>
+                        <RadzenLabel For="SetFrom" Text=@Loc["Enable"] />
+                        <RadzenCheckBox Name="SetFrom" @bind-Value="@fromDateSet" />
+                    </Start>
+                    <ChildContent>
+                        <ImpreciseDateInput @bind-Value="@street.From" />
+                    </ChildContent>
+                </RadzenFormField>
+                <RadzenFormField Text="To (optional)">
+                    <Start>
+                        <RadzenLabel For="SetTo" Text=@Loc["Enable"] />
+                        <RadzenCheckBox Name="SetTo" @bind-Value="@toDateSet" />
+                    </Start>
+                    <ChildContent>
+                        <ImpreciseDateInput @bind-Value="@street.To" />
+                    </ChildContent>
+                </RadzenFormField>
+                <RadzenFormField>
+                    <RadzenButton Text="Save" Icon="save" Click="@Save" />
+                </RadzenFormField>
+            </RadzenStack>
+        </EditorOnly>
+    }
+
+</LoadingScreen>
+
+@code
+{
+    [Parameter]
+    public Guid Id { get; set; }
+
+    bool loaded;
+    LocationOutputModel? location;
+
+    List<StreetOutputModel> streets;
+
+    StreetInputModel street;
+
+    bool fromDateSet, toDateSet;
+
+    protected override async Task OnInitializedAsync()
+    {
+        loaded = false;
+        await Task.Yield();
+        using var client = ClientFactory.CreateClient();
+        var streetOutputModel = await client.GetFromJsonAsyncExtended<StreetOutputModel>($"/api/streets/{Id}");
+        location = streetOutputModel?.Location;
+        streets = await client.GetFromJsonAsyncExtended<List<StreetOutputModel>>($"/api/locations/{location?.Id}/streets") ??
+            [];
+        street.Name = streetOutputModel.Name;
+        street.Description = streetOutputModel.Description;
+        street.ActualStreetId = streetOutputModel.ActualStreet.Id;
+        fromDateSet = streetOutputModel.From is not null;
+        if (streetOutputModel.From is not null)
+        {
+            street.From = streetOutputModel.From;
+        }
+        toDateSet = streetOutputModel.To is not null;
+        if (streetOutputModel.To is not null)
+        {
+            street.To = streetOutputModel.To;
+        }
+        loaded = true;
+    }
+
+    public async void Save()
+    {
+        using var client = ClientFactory.CreateClient();
+        street.From = fromDateSet ? street.From : null;
+        street.To = toDateSet ? street.To : null;
+        var response = await client.PutAsJsonAsyncExtended<StreetInputModel>($"/api/streets/{street.Id}", street);
+        if (response.IsSuccessStatusCode)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Street saved",
+                    Detail = $"ID: {street.Id}"
+                });
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"{response}"
+                });
+        }
+    }
+}

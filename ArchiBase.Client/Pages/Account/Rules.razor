@@ -1,0 +1,32 @@
+@inject IStringLocalizer<Rules> Loc
+@inject IHttpClientFactory ClientFactory
+
+@page "/rules"
+@using System.Globalization
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<ArchibasePageTitle Title=@Loc["Rules"] />
+<RadzenText>@Loc["Rules"]</RadzenText>
+<RadzenText>
+    @rulesText
+</RadzenText>
+
+@code
+{
+    MarkupString rulesText;
+
+    override protected async Task OnInitializedAsync()
+    {
+        using var client = ClientFactory.CreateClient();
+        var lang = CultureInfo.CurrentCulture.TwoLetterISOLanguageName;
+        var filePath = $"/rules/text_{lang}.html";
+        try
+        {
+            rulesText = (MarkupString)await client.GetStringAsync(filePath);
+        }
+        catch (HttpRequestException e)
+        {
+            rulesText = (MarkupString)await client.GetStringAsync("/rules/text.html");
+        }
+    }
+}

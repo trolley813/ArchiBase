@@ -1,0 +1,60 @@
+@page "/galleries"
+@inject IHttpClientFactory ClientFactory
+@inject IStringLocalizer<Index> Loc
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<RadzenText TextStyle="TextStyle.H3">@Loc["Galleries"]</RadzenText>
+<RadzenDataGrid AllowPaging=true Data="@galleries" PagerAlwaysVisible=true ShowPagingSummary=true
+    Density="Density.Default" PageSize="30" AllowFiltering=true AllowSorting=true Responsive=true>
+    <Columns>
+        <RadzenDataGridColumn Title=@Loc["Name"]>
+            <Template Context="gallery">
+                <RadzenLink Text="@(gallery.Name)" Path=@($"/galleries/{gallery.Id}") />
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title=@Loc["City/Design/Category"]>
+            <Template Context="gallery">
+                @{
+                    switch (gallery.EntityType)
+                    {
+                        case "Location":
+                            <RadzenLink Text=@(locations.FirstOrDefault(loc => loc.Id == gallery.EntityId)?.Name)
+                                Path=@($"/locations/{gallery.EntityId}")></RadzenLink>
+                            break;
+                        case "Design":
+                            @Loc["Design"]
+                            <RadzenLink Text=@(designs.FirstOrDefault(loc => loc.Id == gallery.EntityId)?.Name)
+                                Path=@($"/series/{gallery.EntityId}")></RadzenLink>
+                            break;
+                        case "DesignCategory":
+                            @Loc["Category"]
+                            <RadzenLink Text=@(categories.FirstOrDefault(loc => loc.Id == gallery.EntityId)?.Name)
+                                Path=@($"/categories/{gallery.EntityId}")></RadzenLink>
+                            break;
+                        case null:
+                            <RadzenText>-</RadzenText>
+                            break;
+                    }
+                }
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+
+</RadzenDataGrid>
+
+@code
+{
+    List<GalleryOutputModel> galleries = [];
+    List<LocationOutputModel> locations = [];
+    List<DesignOutputModel> designs = [];
+    List<DesignCategoryOutputModel> categories = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var client = ClientFactory.CreateClient();
+        galleries = await client.GetFromJsonAsyncExtended<List<GalleryOutputModel>>("/api/galleries") ?? [];
+        locations = await client.GetFromJsonAsyncExtended<List<LocationOutputModel>>("/api/locations") ?? [];
+        designs = await client.GetFromJsonAsyncExtended<List<DesignOutputModel>>("/api/designs") ?? [];
+        categories = await client.GetFromJsonAsyncExtended<List<DesignCategoryOutputModel>>("/api/categories") ?? [];
+    }
+}

@@ -1,0 +1,151 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0,
+      Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0,
+      Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Comments" xml:space="preserve">
+        <value>Комментарии</value>
+    </data>
+  <data name="New comments written after:" xml:space="preserve">
+        <value>Новые комментарии, написанные с:</value>
+    </data>
+  <data name="Mark all as read" xml:space="preserve">
+        <value>Пометить все как прочитанное</value>
+    </data>
+  <data name="(unknown author)" xml:space="preserve">
+        <value>(наеизвестный автор)</value>
+    </data>
+  <data name="Mark up to this comment as read" xml:space="preserve">
+        <value>Пометить как прочитанные до этого комментария</value>
+    </data>
+  <data name="Thank you! Comment was recorded." xml:space="preserve">
+        <value>Спасибо! Комментарий учтен</value>
+    </data>
+  <data name="Unmark as recorded" xml:space="preserve">
+        <value>Снять отметку "Комментарий учтен"</value>
+    </data>
+  <data name="Mark as recorded" xml:space="preserve">
+        <value>Поставить отметку "Комментарий учтен"</value>
+    </data>
+  <data name="Add comment" xml:space="preserve">
+        <value>Добавить комментарий</value>
+    </data>
+  <data name="Building" xml:space="preserve">
+        <value>Здание</value>
+    </data>
+  <data name="Photo" xml:space="preserve">
+        <value>Фото</value>
+    </data>
+  <data name="Design" xml:space="preserve">
+        <value>Проект</value>
+    </data>
+  <data name="Category" xml:space="preserve">
+        <value>Категория</value>
+    </data>
+  <data name="Page {0} of {1} (total comments: {2})" xml:space="preserve">
+        <value>Страница {0} из {1} (всего комментариев: {2})</value>
+    </data>
+  <data name="New responses written after:" xml:space="preserve">
+        <value>Новые ответы, написанные с:</value>
+    </data>
+  <data name="To mark responses as read, use the new comments page." xml:space="preserve">
+        <value>Чтобы пометить ответы прочитанными, используйте страницу новых комментариев</value>
+    </data>
+  <data name="Cite" xml:space="preserve">
+        <value>Цитировать</value>
+    </data>
+  <data name="Quote" xml:space="preserve">
+        <value>Цитата</value>
+    </data>
+  <data name="Admin" xml:space="preserve">
+        <value>Администратор</value>
+    </data>
+  <data name="Editor" xml:space="preserve">
+        <value>Общий редактор</value>
+    </data>
+  <data name="Local Editor" xml:space="preserve">
+        <value>Местный редактор</value>
+    </data>
+  <data name="Photo Moderator" xml:space="preserve">
+        <value>Фотомодератор</value>
+    </data>
+  <data name="Edit" xml:space="preserve">
+        <value>Редактировать</value>
+    </data>
+  <data name="Delete" xml:space="preserve">
+        <value>Удалить</value>
+    </data>
+  <data name="Comment text is required" xml:space="preserve">
+        <value>Текст комментария обязателен</value>
+    </data>
+  <data name="Date from" xml:space="preserve">
+        <value>Дата с</value>
+    </data>
+  <data name="Date to" xml:space="preserve">
+        <value>Дата по</value>
+    </data>
+  <data name="Contains text" xml:space="preserve">
+        <value>Содержит текст</value>
+    </data>
+  <data name="Search" xml:space="preserve">
+        <value>Поиск</value>
+    </data>
+</root>

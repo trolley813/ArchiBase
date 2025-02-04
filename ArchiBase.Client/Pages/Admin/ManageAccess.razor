@@ -1,0 +1,77 @@
+@page "/admin/user/{id:guid}/access"
+@using SmartFormat
+@inject IHttpClientFactory ClientFactory
+@inject NotificationService NotificationService
+@inject IStringLocalizer<ManageAccess> Loc
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<ArchibasePageTitle Title=@(Smart.Format(Loc["Managing access for user: {UserName}"], new {UserName =
+    user?.UserName})) />
+<AdminOnly AlertText="To access admin page, you must be logged in as admin.">
+    @if (user != null)
+    {
+            <RadzenText TextStyle="TextStyle.H4">
+            @(Smart.Format(Loc["Managing access for user: {UserName}"], new
+            {
+                UserName =
+                    user?.UserName
+            }))
+            </RadzenText>
+            <RadzenStack>
+                <RadzenFormField Text=@Loc["Locations available to edit"]>
+                    <RadzenDropDown @bind-Value="user.Locations" Data="locations" ValueProperty="Id" TextProperty="Name" Chips=true
+                        Multiple=true AllowFiltering=true FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        MaxSelectedLabels="20">
+                    </RadzenDropDown>
+                </RadzenFormField>
+                <RadzenButton Text="Save" Click="args => Save()"/>
+            </RadzenStack>
+    }
+    </AdminOnly>
+
+
+
+    @code
+    {
+    [Parameter]
+    public Guid Id { get; set; }
+
+    UserOutputModel? user;
+
+    List<LocationOutputModel> locations = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var client = ClientFactory.CreateClient();
+        user = await client.GetFromJsonAsyncExtended<UserOutputModel>($"/api/users/{Id}");
+        locations = await client.GetFromJsonAsyncExtended<List<LocationOutputModel>>($"/api/locations") ?? [];
+    }
+
+    public async void Save()
+    {
+        using var client = ClientFactory.CreateClient();
+        if (user is not null)
+        {
+            var response = await client.PostAsJsonAsyncExtended<List<Guid>>($"/api/users/{Id}/updatelocations", user.Locations);
+            if (response.IsSuccessStatusCode)
+            {
+                user = await client.GetFromJsonAsyncExtended<UserOutputModel>($"/api/users/{Id}");
+                NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Success,
+                        Summary = "User's locations updated",
+                        Detail = $"ID: {user?.Id}"
+                    });
+            }
+            else
+            {
+                NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Error,
+                        Summary = "Error occured",
+                        Detail = $"{response}"
+                    });
+            }
+        }
+    }
+}

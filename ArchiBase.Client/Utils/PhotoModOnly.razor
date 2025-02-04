@@ -1,0 +1,36 @@
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<CascadingAuthenticationState>
+    <AuthorizeView Roles="Admin, Photo Moderator">
+        <Authorized Context="actx">
+            @ChildContent
+        </Authorized>
+        <NotAuthorized>
+            @if (ShowAlert)
+            {
+                <RadzenAlert AllowClose="false" Title="Unauthorized" AlertStyle="AlertStyle.Danger" Variant="Variant.Flat"
+                    Shade="Shade.Lighter">
+                    @AlertText
+                    @if (ShowLoginLink)
+                    {
+                        <RadzenLink Path="login" Text="Log in" />
+                    }
+                </RadzenAlert>
+            }
+        </NotAuthorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>
+
+@code
+{
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public string AlertText { get; set; } = "To moderate photos, you must be authorized as admin or photo moderator.";
+
+    [Parameter]
+    public bool ShowAlert { get; set; } = true;
+
+    [Parameter]
+    public bool ShowLoginLink { get; set; } = true;
+}

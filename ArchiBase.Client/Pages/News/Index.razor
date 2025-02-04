@@ -1,0 +1,30 @@
+@page "/news"
+@inject IHttpClientFactory ClientFactory
+@inject IStringLocalizer<Index> Loc
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<ArchibasePageTitle Title=@Loc["News"] />
+
+<RadzenText TextStyle="TextStyle.H5">@Loc["News"]</RadzenText>
+<EditorOnly>
+    <RadzenRow>
+        <RadzenLink Path=@($"news/add") Text=@Loc["Add"] Icon="edit" Target="_blank" />
+    </RadzenRow>
+</EditorOnly>
+@* <RadzenDataList AllowPaging="true" PageSize="10" Data="news">
+    <Template Context="item">
+        <RadzenText>@(item.PublicationDate)</RadzenText>
+        <RadzenText>@((MarkupString)item.Text)</RadzenText>
+    </Template>
+</RadzenDataList> *@
+
+@code
+{
+    //List<NewsItem> news;
+
+    override protected async Task OnInitializedAsync()
+    {
+        using var client = ClientFactory.CreateClient();
+        //news = await client.GetFromJsonAsyncExtended<List<NewsItem>>("/api/news") ?? [];
+    }
+}

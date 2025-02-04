@@ -1,0 +1,112 @@
+@page "/locations/add"
+
+@inject IHttpClientFactory ClientFactory
+@inject NotificationService NotificationService
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<EditorOnly Location=@ParentId>
+    <RadzenText TextStyle="TextStyle.H3">Add location</RadzenText>
+    <RadzenStack Orientation="Orientation.Vertical">
+        <RadzenFormField Text="Name">
+            <RadzenTextBox @bind-Value="@name" />
+        </RadzenFormField>
+        <RadzenFormField Text="Flag (ISO 3166-2)">
+            <RadzenTextBox @bind-Value="@flag" />
+        </RadzenFormField>
+        <RadzenFormField Text="Parent">
+            <RadzenDropDown @bind-Value="@parentLocation" Data="Locations" TextProperty="Name">
+            </RadzenDropDown>
+        </RadzenFormField>
+        <RadzenFormField Text="Description">
+            <RadzenHtmlEditor @bind-Value="@description" />
+        </RadzenFormField>
+        <RadzenRow>
+            <RadzenFormField Text="Latitude">
+                <RadzenNumeric ShowUpDown="false" @bind-Value="latitude" />
+            </RadzenFormField>
+            <RadzenFormField Text="Longitude">
+                <RadzenNumeric ShowUpDown="false" @bind-Value="longitude" />
+            </RadzenFormField>
+        </RadzenRow>
+        <RadzenRow>
+            <RadzenLabel Text="Allow streets" Component="AllowStreets" />
+            <RadzenCheckBox Name="AllowStreets" @bind-Value="allowStreets" />
+        </RadzenRow>
+        <LeafletMap @ref="map" Style="height:480px; width:640px" OnMapClick="OnMapClick">
+        </LeafletMap>
+        <RadzenFormField>
+            <RadzenButton Text="Submit" Icon="add_circle_outline" Click="@AddNew" />
+        </RadzenFormField>
+    </RadzenStack>
+</EditorOnly>
+
+
+
+@code
+{
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public Guid? ParentId { get; set; }
+    string name = "";
+
+    string? flag, description;
+
+    LocationOutputModel? parentLocation;
+
+    double latitude, longitude;
+
+    bool allowStreets;
+
+    LeafletMap map = null!;
+
+    List<LocationOutputModel> Locations { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var client = ClientFactory.CreateClient();
+        Locations = await client.GetFromJsonAsyncExtended<List<LocationOutputModel>>("/api/locations");
+        parentLocation = Locations.FirstOrDefault(loc => loc.Id == ParentId);
+        if (map is not null) map.Center = (parentLocation?.Latitude ?? 0.0, parentLocation?.Longitude ?? 0.0);
+    }
+
+    public async Task AddNew()
+    {
+        using var client = ClientFactory.CreateClient();
+        LocationInputModel location = new LocationInputModel
+            {
+                Id = Guid.NewGuid(),
+                Name = name,
+                Latitude = latitude,
+                Longitude = longitude,
+                Flag = flag,
+                Description = description,
+                AllowStreets = allowStreets
+            };
+        var response = await client.PostAsJsonAsync($"/api/location/create?parentid={parentLocation?.Id}", location);
+        if (response.IsSuccessStatusCode)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Location added",
+                    Detail = $"ID: {location.Id}"
+                });
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"{response.Content}"
+                });
+        }
+    }
+
+    void OnMapClick((double, double) coordinate)
+    {
+        latitude = coordinate.Item1;
+        longitude = coordinate.Item2;
+        map.PrincipalMarker = new PrincipalMarker { Latitude = latitude, Longitude = longitude };
+    }
+}

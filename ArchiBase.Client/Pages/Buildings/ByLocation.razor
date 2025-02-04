@@ -1,0 +1,152 @@
+@page "/locations/{id:guid}/buildings"
+@using ArchiBase.Shared.Output
+@using Microsoft.EntityFrameworkCore
+@using System.Linq.Dynamic.Core
+@inject IHttpClientFactory ClientFactory
+@inject IStringLocalizer<ByLocation> Loc
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+@if (location != null)
+{
+        <ArchibasePageTitle Title=@($"{Loc["Buildings in location"]}: {location.Name}") />
+
+        <RadzenText TextStyle="TextStyle.H4">@($"{Loc["Buildings in location"]}: {location.Name}")</RadzenText>
+
+        <RadzenCheckBox @bind-Value=@showPhotos Name="ShowPhotos" />
+        <RadzenLabel Text=@Loc["Show photos"] Component="ShowPhotos" />
+
+        <RadzenDataGrid @ref="grid" AllowPaging=true PageSize=50 PagerAlwaysVisible=true ShowPagingSummary=true Data="@buildings" Count="@count" Responsive=true
+        AllowSorting=true AllowFiltering=true LoadData="@LoadData" IsLoading=@(!loaded) FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+            <Columns>
+                <RadzenDataGridColumn Title=@Loc["Photo"] Sortable=false Visible="showPhotos">
+                    <Template Context="building">
+                        <RadzenImage Path=@(photoLinks.GetValueOrDefault(building.Building.Id, "/images/unavailable.png"))
+                            Style="display:block;margin:auto;max-height:150px;max-width:300px;height:auto;width:auto;"
+                            AlternateText=@Loc["Photo not available"] onerror="this.src='/images/unavailable.png'" />
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title=@Loc["Address"] Property="HouseNumber" Sortable=false Filterable=false>
+                    <Template Context="building">
+                        <RadzenLink Style="white-space: pre-wrap" Text="@(String.Join(" / ", building.Addresses
+                    .OrderByDescending(a => a.HouseNumber, StringComparison.OrdinalIgnoreCase.WithNaturalSort())
+                        .Select(a => $"{a.Street?.Name}, {a.HouseNumber}") ?? []))"
+                            Path=@($"buildings/{building.Building.Id}")>
+                        </RadzenLink>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title=@Loc["Design"] Sortable=false Filterable=false Width="30%">
+                    <Template Context="building">
+                        <RadzenText Style="white-space: pre-wrap">
+                        @(String.Join(" ⋅ ", building.Building.ActualCard?.Parts?.Select(p => p.Design.Name).Distinct()
+                        ??
+                        []))
+                        </RadzenText>
+                        <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
+                        @foreach (var c in building.Building.ActualCard?.Categories ?? [])
+                        {
+                                    <RadzenLink Path=@($"/categories/{c.Id}")>
+                                        <RadzenBadge Style="white-space: normal;" Text=@(c.Name) Shade="Shade.Darker"
+                                            BadgeStyle="BadgeStyle.Info" />
+                                    </RadzenLink>
+                        }
+                        @foreach (var c in building.Building.ActualCard?.CategoriesOfDesigns ?? [])
+                        {
+                                    <RadzenLink Path=@($"/categories/{c.Id}")>
+                                        <RadzenBadge Style="white-space: normal;" Text=@(c.Name) Shade="Shade.Lighter"
+                                            BadgeStyle="BadgeStyle.Info" />
+                                    </RadzenLink>
+                        }
+                        </RadzenStack>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title=@Loc["Floor count"] Property="FloorCount" Width="10%">
+                    <Template Context="building">
+                        <RadzenText>@(building.FloorCount)</RadzenText>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title=@Loc["Name"] Property="Name">
+                    <Template Context="building">
+                        <RadzenText Style="white-space: normal">@((MarkupString)building.Name)</RadzenText>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title=@Loc["Built"] FilterProperty="BuiltSort" SortProperty="BuiltSort" Property="Built" Width="10%">
+                    <Template Context="building">
+                        <ImpreciseDateDisplay Value="@(building.Built)" />
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title=@Loc["Demolished"]  FilterProperty="DemolishedSort" SortProperty="DemolishedSort" Property="Demolished" Width="10%">
+                    <Template Context="building">
+                        <ImpreciseDateDisplay Value="@(building.Demolished)" />
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+}
+
+@code
+{
+    [Parameter]
+    public Guid Id { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public Guid[]? DesignIds { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public Guid[]? CategoryIds { get; set; }
+
+    LocationOutputModel? location;
+
+    bool loaded;
+
+    bool showPhotos = false;
+
+    List<BuildingInfoOutputModel>? buildings;
+
+    Dictionary<Guid, string> photoLinks = [];
+
+    int count;
+
+    RadzenDataGrid<BuildingInfoOutputModel> grid;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var client = ClientFactory.CreateClient();
+        location = await client.GetFromJsonAsyncExtended<LocationOutputModel>($"/api/locations/{Id}");
+    }
+
+    void CellRender(DataGridCellRenderEventArgs<BuildingInfoOutputModel> args)
+    {
+        var actualAddress = args.Data.ActualCard == args.Data.LastCardWithAddress;
+        var color = args.Data.Building.Events.OrderBy(e => (e.Date.Date)).ThenBy(e => e.Type).LastOrDefault()?.Type switch
+        {
+            BuildingEventType.ConstructionStarted => "--rz-success-lighter",
+            BuildingEventType.RebuildingStarted => "--rz-warning-lighter",
+            BuildingEventType.Abandoned => "--rz-base",
+            BuildingEventType.Demolished => "--rz-danger-lighter",
+            _ => "--rz-base-background-color"
+        };
+        if (!actualAddress) color = "--rz-info-lighter";
+        string style = $"background-color: var({color});";
+        if (args.Column.Property == "HouseNumber" && photoLinks.ContainsKey(args.Data.Building.Id)) style += "font-weight: bold;";
+        args.Attributes.Add("style", style);
+    }
+
+    async Task LoadData(LoadDataArgs args)
+    {
+        loaded = false;
+        await Task.Yield();
+        using var client = ClientFactory.CreateClient();
+        var designs = DesignIds is not null ? string.Join(",", DesignIds) : "";
+        var categories = CategoryIds is not null ? string.Join(",", CategoryIds) : "";
+        var result = await client.GetFromJsonAsyncExtended<ExtendedBuildingListPage>(
+            $"api/buildings/extended?locid={location?.Id}&designs={designs}&categories={categories}" +
+            $"&filter={args.Filter}&orderby={args.OrderBy}&limit={args.Top}&offset={args.Skip}"
+        );
+        count = result.Count;
+        buildings = result.Buildings;
+        photoLinks = result.PhotoData;
+        loaded = true;
+    }
+}

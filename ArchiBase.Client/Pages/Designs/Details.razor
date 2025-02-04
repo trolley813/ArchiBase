@@ -1,0 +1,197 @@
+@page "/series/{id:guid}"
+@using Microsoft.EntityFrameworkCore
+@inject IHttpClientFactory ClientFactory
+@inject IStringLocalizer<Details> Loc
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<ArchibasePageTitle Title="@($"{Loc["Design"]} {design?.Name}")" />
+
+@if (design != null)
+{
+    <RadzenText TextStyle="TextStyle.H3">@Loc["Design"] @(design.Name)</RadzenText>
+    <RadzenRow>
+        <RadzenLink Path=@($"series/{Id}/edit") Text=@Loc["Edit"] Icon="edit" />
+        <RadzenLink Path=@($"series/{Id}/delete") Text=@Loc["Delete"] Icon="delete" />
+    </RadzenRow>
+    <RadzenRow>
+        <RadzenLink Text=@Loc["All photos of this design buildings"] Icon="photo" Path=@($"/photos?designid={design.Id}") />
+    </RadzenRow>
+    <RadzenText TextStyle="TextStyle.H5">@Loc["Description"]</RadzenText>
+    <RadzenStack>
+        <RadzenRow>
+            @((MarkupString)(design.Description ?? ""))
+        </RadzenRow>
+        @if (design.BuildingArea != null)
+        {
+            <RadzenRow>
+                <RadzenText>"@Loc["Building area"]: <b>@(design.BuildingArea)</b> m² </RadzenText>
+            </RadzenRow>
+        }
+        @if (design.TotalArea != null)
+        {
+            <RadzenRow>
+                <RadzenText>@Loc["Total area"]: <b>@(design.TotalArea)</b> m² </RadzenText>
+            </RadzenRow>
+        }
+        @if (design.Cubage != null)
+        {
+            <RadzenRow>
+                <RadzenText>@Loc["Cubage"]: <b>@(design.Cubage)</b> m³ </RadzenText>
+            </RadzenRow>
+        }
+
+    </RadzenStack>
+    <RadzenText TextStyle="TextStyle.H5">@Loc["Categories"]</RadzenText>
+
+    <RadzenRow Gap="10">
+
+        @foreach (var cat in design.Categories)
+        {
+            <RadzenLink Path=@($"/categories/{cat.Id}")>
+                <RadzenBadge IsPill=true>
+                    @(cat.Name)
+                </RadzenBadge>
+            </RadzenLink>
+        }
+
+    </RadzenRow>
+
+    <RadzenText TextStyle="TextStyle.H5">@Loc["Codes in catalogues"]</RadzenText>
+    <RadzenDataGrid
+        Data="@(design.CatalogueEntries.OrderBy(e => e.Catalogue.Name).ThenBy(e => e.Code, StringComparison.OrdinalIgnoreCase.WithNaturalSort()))">
+        <Columns>
+            <RadzenDataGridColumn Title=@Loc["Code"]>
+                <Template Context="entry">
+                    <RadzenText>@(entry.Code)</RadzenText>
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title=@Loc["Catalogue"]>
+                <Template Context="entry">
+                    <RadzenLink Text=@(entry.Catalogue.Name) Path=@($"/catalogues/{entry.Catalogue.Id}") />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+
+    </RadzenDataGrid>
+
+    <RadzenText TextStyle="TextStyle.H5">@Loc["Buildings"]</RadzenText>
+    <RadzenDataGrid Data="buildingsByLocation">
+        <Columns>
+            <RadzenDataGridColumn Title=@Loc["Location"]>
+                <Template Context="pair">
+                    <RadzenText>@(locationNames.GetValueOrDefault(pair.Key, "(unknown)"))</RadzenText>
+                </Template>
+                <FooterTemplate>
+                    <RadzenText>@Loc["Total locations"]: @(buildingsByLocation.Count)</RadzenText>
+                </FooterTemplate>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title=@Loc["Count"]>
+                <Template Context="pair">
+                    <RadzenText>@(pair.Value)</RadzenText>
+                </Template>
+                <FooterTemplate>
+                    <RadzenText>@Loc["Total buildings"]: @(buildingsByLocation.Select(p => p.Value).Sum())</RadzenText>
+                </FooterTemplate>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+    <RadzenText TextStyle="TextStyle.H5">@Loc["Buildings"]</RadzenText>
+
+    <RadzenChart>
+        <RadzenPieSeries
+            Data="@(buildingsByStatus.Select(kv => new { Key = kv.Key.GetDisplayName(), kv.Value } ).ToArray())"
+            Title=@Loc["Count"] CategoryProperty="Key" ValueProperty="Value">
+            <RadzenSeriesDataLabels Visible=true />
+        </RadzenPieSeries>
+    </RadzenChart>
+
+    <RadzenDataGrid Data="buildings" AllowPaging="true" AllowSorting="true" PageSize="50" CellRender="CellRender"
+        Responsive=true>
+        <Columns>
+            <RadzenDataGridColumn Title=@Loc["Address"] SortOrder="SortOrder.Ascending">
+                <Template Context="building">
+                    <RadzenLink style="white-space: pre-wrap" Path=@($"buildings/{building.Building.Id}")>
+                        @(building.Building.Location.Name + ", " + String.Join(" / ", (building.ActualCard?.StreetAddresses
+                        ?? [])))
+                    </RadzenLink>
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title=@Loc["Floor count"] Width="10%" Property="FloorCount">
+                <Template Context="building">
+                    <RadzenText Style="white-space: pre-wrap">@(String.Join("; ", building.ActualCard?.FloorCount ?? []))
+                    </RadzenText>
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title=@Loc["Name"] Property="Name">
+                <Template Context="building">
+                    <RadzenText Style="white-space: pre-wrap">@((MarkupString)(building.ActualCard?.Name ?? ""))
+                    </RadzenText>
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title=@Loc["Built"] Width="10%" Property="Built" Visible=@(buildings.Any(b => b.Built !=
+            null))>
+                <Template Context="building">
+                    <ImpreciseDateDisplay Value="building.Built" />
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title=@Loc["Demolished"] Width="10%" Property="Demolished" Visible=@(buildings.Any(b =>
+            b.Demolished != null))>
+                <Template Context="building">
+                    <ImpreciseDateDisplay Value="building.Demolished" />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+
+    <CommentView EntityId="design.Id" EntityType="Design" />
+}
+
+@code
+{
+    [Parameter]
+    public Guid Id { get; set; }
+
+    DesignOutputModel? design = null;
+
+    Dictionary<Guid, int> buildingsByLocation = [];
+
+    Dictionary<Guid, string> locationNames = [];
+    List<BuildingInfoOutputModel> buildings = [];
+
+    Dictionary<BuildingEventType, int> buildingsByStatus = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var client = ClientFactory.CreateClient();
+        design = await client.GetFromJsonAsyncExtended<DesignOutputModel>($"/api/designs/{Id}");
+
+        if (design != null)
+        {
+            buildingsByLocation = await client.GetFromJsonAsyncExtended<Dictionary<Guid,
+            int>>($"/api/designs/{Id}/buildingsbylocation") ?? [];
+            buildings = await client.GetFromJsonAsyncExtended<List<BuildingInfoOutputModel>>($"/api/designs/{Id}/buildings") ?? [];
+            buildingsByStatus = buildings
+            .GroupBy(b => b.Building.ActualStatus)
+            .ToDictionary(g => g.Key, g => g.Count());
+            var locationNamesResponse = await client.PostAsJsonAsyncExtended<List<Guid>>("/api/locations/names",
+            buildingsByLocation.Keys.ToList());
+            locationNames = await locationNamesResponse.Content.ReadFromJsonAsync<Dictionary<Guid,
+            string>>(HttpClientExtensions.SerializerOptionsOutput) ?? [];
+        }
+    }
+
+
+    void CellRender(DataGridCellRenderEventArgs<BuildingInfoOutputModel> args)
+    {
+        var color = args.Data.Building.Events.OrderBy(e => (e.Date.Date)).ThenBy(e => e.Type).LastOrDefault()?.Type switch
+        {
+            BuildingEventType.ConstructionStarted => "--rz-success-lighter",
+            BuildingEventType.RebuildingStarted => "--rz-warning-lighter",
+            BuildingEventType.Abandoned => "--rz-base",
+            BuildingEventType.Demolished => "--rz-danger-lighter",
+            _ => "--rz-base-background-color"
+        };
+        string style = $"background-color: var({color});";
+        args.Attributes.Add("style", style);
+    }
+}

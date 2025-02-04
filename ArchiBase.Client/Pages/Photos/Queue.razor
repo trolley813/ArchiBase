@@ -1,0 +1,60 @@
+@page "/queue"
+@using Microsoft.EntityFrameworkCore
+@inject IHttpClientFactory ClientFactory
+@inject IStringLocalizer<Details> Loc
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<ArchibasePageTitle Title=@Loc["Queue"] />
+
+<PhotoModOnly>
+    <RadzenText TextStyle="TextStyle.H5">@Loc["Queue (photos pending publication)"]</RadzenText>
+
+    <RadzenDataList Data="photos" AllowPaging=true PageSize=16 WrapItems=true>
+        <Template Context="photo">
+            <RadzenCard Style="width: max(20%, 300px); max-width: 100%;">
+                <RadzenLink Path=@($"/photos/{photo.Id}")>
+                    <RadzenImage Path=@($"data:image/webp;base64,{Convert.ToBase64String(photo.ThumbnailData)}")
+                        Style="display:block;margin:auto;max-height:150px;max-width:300px;height:auto;width:auto;"
+                        AlternateText=@Loc["Photo not available"] onerror="this.src='/images/unavailable.png'" /> 
+                </RadzenLink>
+                <RadzenStack>
+                    @foreach (var b in photo.BuildingBinds)
+                    {
+                            <RadzenText TextStyle="TextStyle.Body1">
+                            <RadzenLink Path=@($"/buildings/{b.Building.Id}") 
+                            Text=@($"{b.Building.Location.Name}, {String.Join(" / ", b.Building.ActualCard.StreetAddresses)}") />
+                            </RadzenText>
+                    }
+                </RadzenStack>
+                <RadzenStack>
+                    @foreach (var g in photo.Galleries)
+                    {
+                            <RadzenText TextStyle="TextStyle.Body1">
+                            <RadzenLink Path=@($"/galleries/{g.Id}") Text=@(g.Name) />
+                            </RadzenText>
+                    }
+                </RadzenStack>
+                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Style="width: 100%">
+                    <RadzenButton Icon="thumb_up" ButtonStyle="ButtonStyle.Success"/>
+                    <RadzenText TextStyle="TextStyle.H4">@(photo.VotesCount)</RadzenText>
+                    <RadzenButton Icon="thumb_down" ButtonStyle="ButtonStyle.Danger"/>
+                </RadzenStack>
+                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Style="width: 100%">
+                    <RadzenText TextStyle="TextStyle.Overline">+@(photo.UpvotesCount)/-@(photo.DownvotesCount)</RadzenText>
+                </RadzenStack>
+            </RadzenCard>
+        </Template>
+    </RadzenDataList>
+</PhotoModOnly>
+
+@code
+{
+
+    List<PhotoOutputModel> photos;
+
+    override protected async Task OnInitializedAsync()
+    {
+        using var client = ClientFactory.CreateClient();
+        photos = await client.GetFromJsonAsyncExtended<List<PhotoOutputModel>>($"/api/photos/queue");
+    }
+}

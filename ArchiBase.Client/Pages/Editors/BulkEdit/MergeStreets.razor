@@ -1,0 +1,123 @@
+@page "/bulkedit/mergestreets"
+@* @using Microsoft.EntityFrameworkCore
+@inject NotificationService NotificationService
+
+@inject IStringLocalizer<MergeStreets> Loc
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<ArchibasePageTitle Title=@Loc["Merge streets"] />
+
+<EditorOnly>
+    <RadzenText TextStyle="TextStyle.H5">@Loc["Merge streets"]</RadzenText>
+    <RadzenTemplateForm TItem="Model" Data="@model" Submit=@OnSubmit InvalidSubmit=@OnInvalidSubmit>
+        <RadzenRow>
+            <RadzenFormField Text="Location">
+                <RadzenDropDown TValue="Location" Data="locations" TextProperty="Name" @bind-Value="model.Location"
+                    AllowFiltering=true FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                    Change="args => OnLocationChange()" Style="width: min(100%, 600px)" />
+            </RadzenFormField>
+        </RadzenRow>
+        <RadzenRow>
+            <RadzenFormField Text=@Loc["Street to be kept in the DB"]>
+                <RadzenDropDown Name="GoodStreetInput" Data="streets" TextProperty="Name" @bind-Value="model.GoodStreet"
+                    AllowFiltering=true FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowClear=true
+                    Style="width: min(100%, 600px)" />
+                <RadzenRequiredValidator Component="GoodStreetInput" Text=@Loc["Street is required"]
+                    Style="position: absolute" />
+            </RadzenFormField>
+        </RadzenRow>
+        <RadzenRow>
+            <RadzenFormField Text=@Loc["Street to be removed"]>
+                <RadzenDropDown Name="BadStreetInput" Data="streets" TextProperty="Name" @bind-Value="model.BadStreet"
+                    AllowFiltering=true FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowClear=true
+                    Style="width: min(100%, 600px)" />
+                <RadzenRequiredValidator Component="BadStreetInput" Text=@Loc["Street is required"]
+                    Style="position: absolute" />
+            </RadzenFormField>
+        </RadzenRow>
+        <RadzenRow>
+            <RadzenFormField Text=@Loc["New name for street (optional)"]>
+                <RadzenTextBox @bind-Value="model.NewName" Style="width: min(100%, 600px)" />
+            </RadzenFormField>
+        </RadzenRow>
+        <RadzenRow>
+            <RadzenFormField>
+                <RadzenButton ButtonType="ButtonType.Submit" Text=@Loc["Merge"] />
+            </RadzenFormField>
+        </RadzenRow>
+    </RadzenTemplateForm>
+</EditorOnly>
+
+@code
+{
+    class Model
+    {
+        public Location Location { get; set; }
+        public Street? GoodStreet { get; set; }
+        public Street? BadStreet { get; set; }
+
+        public string? NewName { get; set; }
+    }
+
+    Model model = new();
+
+    List<Location> locations;
+
+    List<Street> streets;
+
+    RadzenDropDown<Street> streetSelectGood, streetSelectBad;
+
+
+    protected override void OnInitialized()
+    {
+        locations = ModelContext.Locations.Where(loc => loc.AllowStreets).ToList();
+    }
+
+    void OnLocationChange()
+    {
+        streets = ModelContext.Streets.Where(s => s.Location == model.Location).ToList();
+        model.GoodStreet = null;
+        model.BadStreet = null;
+    }
+
+    void OnSubmit(Model data)
+    {
+        try
+        {
+            var updatedAddresses = ModelContext.StreetAddresses
+            .Include(a => a.Street)
+            .Where(a => a.Street == data.BadStreet)
+            .ToList();
+            updatedAddresses.ForEach(a => { a.Street = data.GoodStreet; });
+            if (data.NewName is not null && data.NewName != "") data.GoodStreet.Name = data.NewName;
+            ModelContext.Streets.Remove(data.BadStreet);
+            ModelContext.SaveChanges();
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Streets merged",
+                    Detail = $"{data.GoodStreet.Id} (<stroke>{data.BadStreet.Id}</stroke>)"
+                });
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"{e.Message}"
+                });
+        }
+    }
+
+    void OnInvalidSubmit(FormInvalidSubmitEventArgs args)
+    {
+        NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Cannot merge streets",
+                Detail = $"{String.Join("\n", args.Errors)}"
+            });
+    }
+} *@

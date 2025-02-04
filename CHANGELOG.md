@@ -1,3 +1,14 @@
+## 0.3.0 (2025-02-04)
+- upgraded to .NET 9.0
+- switched to WebAssembly for the UI
+- added Web API (experimental, stabilization scheduled to version 0.4.0)
+- added comments search
+- added location labels with flags to comment authors
+- added list of photos per design
+- added ability to specify location upon register 
+- added ability to edit architects for local editors
+- fixed error in upload limit calculation
+
 ## 0.2.9 (2024-12-31)
 - fixed cadastre link for Russia
 - fixed builder/customer translation

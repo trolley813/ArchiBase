@@ -1,0 +1,78 @@
+@page "/architects/add"
+@using ArchiBase.Components.Utils
+@inject IHttpClientFactory ClientFactory
+@inject NotificationService NotificationService
+@inject IStringLocalizer<Add> Loc
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<EditorOnly>
+    <RadzenText TextStyle="TextStyle.H3">@Loc["Add architect"]</RadzenText>
+    <RadzenStack Orientation="Orientation.Vertical">
+        <RadzenFormField Text=@Loc["Abbreviated name (Lastname F. M.)"]>
+            <RadzenTextBox @bind-Value="@model.AbbreviatedName" />
+        </RadzenFormField>
+        <RadzenFormField Text=@Loc["Full name (Firstname Middlename Lastname)"]>
+            <RadzenTextBox @bind-Value="@model.FullName" />
+        </RadzenFormField>
+        <RadzenFormField Text=@Loc["Date of birth (optional)"]>
+            <Start>
+                <RadzenLabel For="SetDateOfBirth" Text=@Loc["Enable"] />
+                <RadzenCheckBox Name="SetDateOfBirth" @bind-Value="@dateOfBirthSet" />
+            </Start>
+            <ChildContent>
+                <ImpreciseDateInput @bind-Value="@model.DateOfBirth" />
+            </ChildContent>
+        </RadzenFormField>
+        <RadzenFormField Text=@Loc["Date of death (optional)"]>
+            <Start>
+                <RadzenLabel For="SetDateOfDeath" Text=@Loc["Enable"] />
+                <RadzenCheckBox Name="SetDateOfDeath" @bind-Value="@dateOfDeathSet" />
+            </Start>
+            <ChildContent>
+                <ImpreciseDateInput @bind-Value="@model.DateOfDeath" />
+            </ChildContent>
+        </RadzenFormField>
+        <RadzenFormField>
+            <RadzenButton Text=@Loc["Add"] Icon="add_circle_outline" Click="@AddNew" />
+        </RadzenFormField>
+    </RadzenStack>
+</EditorOnly>
+
+@code
+{
+
+    ArchitectInputModel model = new();
+
+    bool dateOfBirthSet, dateOfDeathSet;
+
+    public async Task AddNew()
+    {
+        using var client = ClientFactory.CreateClient();
+        var architect = new ArchitectInputModel
+            {
+                FullName = model.FullName,
+                AbbreviatedName = model.AbbreviatedName
+            };
+        if (dateOfBirthSet) architect.DateOfBirth = model.DateOfBirth;
+        if (dateOfDeathSet) architect.DateOfDeath = model.DateOfDeath;
+        var response = await client.PostAsJsonAsyncExtended<ArchitectInputModel>("/api/architects/create", architect);
+        if (response.IsSuccessStatusCode)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Architect added",
+                    Detail = $"ID: {architect.Id}"
+                });
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Error occured",
+                    Detail = $"{response}"
+                });
+        }
+    }
+}

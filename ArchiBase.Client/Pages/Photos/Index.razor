@@ -1,0 +1,160 @@
+@page "/photos"
+@using ArchiBase.Shared.Output
+@using Microsoft.EntityFrameworkCore
+@using System.Linq.Dynamic.Core
+@using SmartFormat
+@inject IHttpClientFactory ClientFactory
+@inject IStringLocalizer<Index> Loc
+
+<LanguageTrackProvider OnInitializeEvent="provider => provider.RegisterComponent(this)" />
+<ArchibasePageTitle Title=@Loc["Photos"] />
+
+@if (selectedAuthor is not null || selectedLocation is not null)
+{
+    string text = Loc["Photos"];
+    if (selectedAuthor is not null) text = Smart.Format(Loc["Photos uploaded by {User}"], new { User = selectedAuthor.UserName });
+    if (selectedLocation is not null) text += " " + Smart.Format(Loc["(from the location: {Location})"], new { Location = selectedLocation.Name });
+
+        <RadzenText TextStyle="TextStyle.H4">@text</RadzenText>
+        <RadzenStack Orientation="Orientation.Horizontal">
+        @if (selectedAuthor is not null)
+        {
+                    <RadzenLink Path=@($"/users/{selectedAuthor.Id}") Text=@Loc["To user's page"] Target="blank" />
+        }
+        @if (selectedLocation is not null)
+        {
+                    <RadzenLink Path=@($"/locations/{selectedLocation.Id}") Text=@Loc["To location page"] Target="blank" />
+        }
+            <RadzenLink Path="/photos" Text=@Loc["Show all"] Target="blank" />
+        </RadzenStack>
+}
+else
+{
+        <RadzenText TextStyle="TextStyle.H4">@Loc["Photos"]</RadzenText>
+}
+
+
+<RadzenDataGrid @ref="grid" AllowPaging=true PageSize=20 PagerAlwaysVisible=true ShowPagingSummary=true Data="photos" Count="count" Responsive=true
+    AllowSorting=true AllowFiltering=true LoadData="@LoadData" IsLoading=@(!loaded) FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+    <Columns>
+        <RadzenDataGridColumn Title=@Loc["Photo"] Sortable=false Filterable=false>
+            <Template Context="photo">
+                <RadzenLink Path=@($"/photos/{photo.Photo.Id}")>
+                    <RadzenImage Path="@($"data:image/webp;base64,{photo.Photo.ThumbnailData}")"
+                        Style="display:block;margin:auto;max-height:150px;max-width:300px;height:auto;width:auto;"
+                        AlternateText=@Loc["Photo not available"] onerror="this.src='/images/unavailable.png'" />
+                </RadzenLink>
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title=@Loc["Published"] Filterable=false Property="PublicationDateSort" SortOrder="SortOrder.Descending">
+            <Template Context="photo">
+                <RadzenText TextStyle="TextStyle.Body1">
+                    <b><LocalTime DateTime="photo.Photo.PublicationDate" /></b>
+                </RadzenText>
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title=@Loc["Shooting date"] Property="ShootingDateSort">
+            <Template Context="photo">
+                <RadzenText TextStyle="TextStyle.Body1">
+                    <b><ImpreciseDateDisplay Value="photo.Photo.ShootingDate"></ImpreciseDateDisplay></b>
+                </RadzenText>
+            </Template>
+        </RadzenDataGridColumn>
+        @if (selectedAuthor is null)
+        {
+                <RadzenDataGridColumn Title=@Loc["Author"] Property="AuthorName">
+                    <Template Context="photo">
+                    @if (photo.Photo.NonAuthor)
+                    {
+                                <RadzenText TextStyle="TextStyle.Overline">@Loc["Sent by"]</RadzenText>
+                    }
+                    else
+                    {
+                                <RadzenText TextStyle="TextStyle.Overline">@Loc["Author"]</RadzenText>
+                    }
+
+                        <RadzenText TextStyle="TextStyle.Body1">
+                            <RadzenLink Path=@($"/users/{photo.Photo.AuthorId}")>
+                                <b>@(photo.AuthorName)</b>
+                            </RadzenLink>
+                        </RadzenText>
+                    </Template>
+                </RadzenDataGridColumn>
+        }
+        <RadzenDataGridColumn Title=@Loc["Buildings and galleries"] Sortable=false Filterable=false>
+            <Template Context="photo">
+                <RadzenStack>
+                    @foreach (var b in photo.Photo.BuildingBinds)
+                    {
+                        <RadzenText TextStyle="TextStyle.Body1" Style="white-space: pre-line;">
+                        <RadzenLink Path=@($"/buildings/{b.Building.Id}") 
+                        Text=@($"{b.Building.Location.Name}, {String.Join(" / ", b.Building.ActualCard.StreetAddresses)}") />
+                        </RadzenText>
+                    }
+                </RadzenStack>
+                <RadzenStack>
+                    @foreach (var g in photo.Photo.Galleries)
+                    {
+                        <RadzenText TextStyle="TextStyle.Body1">
+                        <RadzenLink Path=@($"/galleries/{g.Id}") Text=@(g.Name) />
+                        </RadzenText>
+                    }
+                </RadzenStack>
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+@code
+{
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public Guid? AuthorId { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public Guid? LocId { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public Guid? DesignId { get; set; }
+
+    List<PhotoWithAuthor> photos;
+
+    List<UserOutputModel> users;
+
+    UserOutputModel? selectedAuthor;
+
+    LocationOutputModel? selectedLocation;
+
+    bool loaded;
+    int count;
+
+    RadzenDataGrid<PhotoWithAuthor> grid;
+
+    override protected async Task OnInitializedAsync()
+    {
+        using var client = ClientFactory.CreateClient();
+        users = await client.GetFromJsonAsyncExtended<List<UserOutputModel>>("/api/users") ?? [];
+        selectedAuthor = users.FirstOrDefault(u => u.Id == AuthorId);
+        if (LocId is not null)
+        {
+            selectedLocation = await client.GetFromJsonAsyncExtended<LocationOutputModel>($"/api/locations/{LocId}");
+        }
+    }
+
+    async Task LoadData(LoadDataArgs args)
+    {
+        loaded = false;
+
+        await Task.Yield();
+        using var client = ClientFactory.CreateClient();
+        var result = await client.GetFromJsonAsyncExtended<ExtendedPhotoListPage>(
+            $"api/photos/extended?locid={LocId}&authid={selectedAuthor?.Id}&desid={DesignId}&filter={args.Filter}" +
+            $"&orderby={args.OrderBy}&limit={args.Top}&offset={args.Skip}"
+        );
+        count = result.Count;
+        photos = result.Photos;
+        loaded = true;
+    }
+}
